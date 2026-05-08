@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -29,7 +31,14 @@ func main() {
 	}
 	defer db.Close()
 
-	server := handlers.NewServer(store.New(db))
+	st := store.New(db)
+	validationCtx, cancelValidation := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelValidation()
+	if err := st.Validate(validationCtx); err != nil {
+		e.Logger.Fatal(err)
+	}
+
+	server := handlers.NewServer(st)
 
 	e.GET("/", server.Home)
 	e.GET("/scrutins", server.Scrutins)

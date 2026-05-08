@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -105,6 +106,32 @@ func TestScrutinDetailPageOrdersGroupVotesByPreseance(t *testing.T) {
 	}
 }
 
+func TestValidateAcceptsExpectedDatabase(t *testing.T) {
+	s := newValidationTestStore(t, expectedSchemaVersion, nil)
+
+	if err := s.Validate(context.Background()); err != nil {
+		t.Fatalf("Validate() error = %v", err)
+	}
+}
+
+func TestValidateRejectsMissingRequiredTable(t *testing.T) {
+	s := newValidationTestStore(t, expectedSchemaVersion, map[string]bool{"votes": true})
+
+	err := s.Validate(context.Background())
+	if err == nil || !strings.Contains(err.Error(), `missing required table "votes"`) {
+		t.Fatalf("Validate() error = %v, want missing votes table", err)
+	}
+}
+
+func TestValidateRejectsUnexpectedSchemaVersion(t *testing.T) {
+	s := newValidationTestStore(t, "0", nil)
+
+	err := s.Validate(context.Background())
+	if err == nil || !strings.Contains(err.Error(), `unsupported database schema version "0"`) {
+		t.Fatalf("Validate() error = %v, want unsupported schema version", err)
+	}
+}
+
 func newTestStore(t *testing.T) *Store {
 	t.Helper()
 
@@ -116,6 +143,38 @@ func newTestStore(t *testing.T) *Store {
 
 	if _, err := db.Exec(testSchema); err != nil {
 		t.Fatalf("create test schema: %v", err)
+	}
+
+	return New(db)
+}
+
+func newValidationTestStore(t *testing.T, schemaVersion string, skipTables map[string]bool) *Store {
+	t.Helper()
+
+	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "validation.sqlite"))
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	for _, table := range requiredTables {
+		if skipTables[table] {
+			continue
+		}
+
+		statement := "CREATE TABLE " + table + " (id INTEGER)"
+		if table == "dataset_meta" {
+			statement = "CREATE TABLE dataset_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+		}
+		if _, err := db.Exec(statement); err != nil {
+			t.Fatalf("create table %s: %v", table, err)
+		}
+	}
+
+	if !skipTables["dataset_meta"] {
+		if _, err := db.Exec(`INSERT INTO dataset_meta (key, value) VALUES ('schema_version', ?)`, schemaVersion); err != nil {
+			t.Fatalf("insert schema version: %v", err)
+		}
 	}
 
 	return New(db)
