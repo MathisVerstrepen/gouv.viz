@@ -8,5 +8,9 @@ build-errors.log
 web/assets/css/output.css
 data/raw/scrutins-publics/*
 !data/raw/scrutins-publics/.gitkeep
+data/raw/acteur/*
+!data/raw/acteur/.gitkeep
+data/raw/organe/*
+!data/raw/organe/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
