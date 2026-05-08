@@ -102,7 +102,7 @@ templ Home(page HomePage) {
 										}
 									</div>
 									<div class="scrutin-card__body">
-										<h3>{ scrutin.Titre }</h3>
+										<h3><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ scrutin.Titre }</a></h3>
 										<p>{ scrutin.TypeVote }</p>
 									</div>
 									<div class="scrutin-card__result" aria-label="Resultat du scrutin">

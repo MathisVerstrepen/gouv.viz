@@ -22,6 +22,7 @@ func main() {
 
 	e.GET("/", handlers.Home)
 	e.GET("/scrutins", handlers.Scrutins)
+	e.GET("/scrutins/:uid", handlers.ScrutinDetail)
 	e.GET("/ping", handlers.Ping)
 
 	if os.Getenv("ENV") != "prod" {

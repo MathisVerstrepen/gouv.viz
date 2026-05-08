@@ -1,0 +1,212 @@
+package components
+
+import "strconv"
+
+type ScrutinDetailPage struct {
+	Scrutin    ScrutinDetailData
+	GroupVotes []ScrutinGroupVote
+}
+
+type ScrutinDetailData struct {
+	UID                      string
+	Numero                   int
+	Legislature              int
+	OrganeUID                string
+	Organe                   string
+	SessionRef               string
+	SeanceRef                string
+	Date                     string
+	QuantiemeJourSeance      int
+	CodeTypeVote             string
+	TypeVote                 string
+	TypeMajorite             string
+	SortCode                 string
+	SortLibelle              string
+	Titre                    string
+	Demandeur                string
+	Objet                    string
+	ModePublicationVotes     string
+	NombreVotants            int
+	SuffragesExprimes        int
+	SuffragesRequis          int
+	NonVotants               int
+	Pour                     int
+	Contre                   int
+	Abstentions              int
+	NonVotantsVolontaires    int
+	SourceFile               string
+}
+
+type ScrutinGroupVote struct {
+	GroupeUID                string
+	Groupe                   string
+	NombreMembres            int
+	PositionMajoritaire      string
+	NonVotants               int
+	Pour                     int
+	Contre                   int
+	Abstentions              int
+	NonVotantsVolontaires    int
+}
+
+templ ScrutinDetail(page ScrutinDetailPage) {
+	<div class="page-shell">
+		@SiteHeader("scrutins")
+
+		<main id="contenu" class="page-main">
+			<section class="section page-heading detail-heading">
+				<div class="fr-container">
+					<nav class="breadcrumb" aria-label="Fil d'Ariane">
+						<a href="/">Accueil</a>
+						<span aria-hidden="true">/</span>
+						<a href="/scrutins">Scrutins</a>
+						<span aria-hidden="true">/</span>
+						<span>n{ strconv.Itoa(page.Scrutin.Numero) }</span>
+					</nav>
+					<p class="eyebrow">Scrutin public</p>
+					<h1>Scrutin n{ strconv.Itoa(page.Scrutin.Numero) }</h1>
+					<p class="lead">{ page.Scrutin.Titre }</p>
+					<div class="detail-heading__meta">
+						<span>{ formatDate(page.Scrutin.Date) }</span>
+						if page.Scrutin.Organe != "" {
+							<span>{ page.Scrutin.Organe }</span>
+						}
+						if page.Scrutin.TypeVote != "" {
+							<span>{ page.Scrutin.TypeVote }</span>
+						}
+						if page.Scrutin.SortCode != "" {
+							<span class="result-chip">{ page.Scrutin.SortCode }</span>
+						}
+					</div>
+				</div>
+			</section>
+
+			<section class="section section--muted">
+				<div class="fr-container detail-layout">
+					<div class="detail-main">
+						<section class="detail-card" aria-labelledby="scrutin-resultat">
+							<h2 id="scrutin-resultat">Resultat du vote</h2>
+							<dl class="detail-metrics">
+								<div>
+									<dt>Pour</dt>
+									<dd>{ strconv.Itoa(page.Scrutin.Pour) }</dd>
+								</div>
+								<div>
+									<dt>Contre</dt>
+									<dd>{ strconv.Itoa(page.Scrutin.Contre) }</dd>
+								</div>
+								<div>
+									<dt>Abstentions</dt>
+									<dd>{ strconv.Itoa(page.Scrutin.Abstentions) }</dd>
+								</div>
+								<div>
+									<dt>Votants</dt>
+									<dd>{ strconv.Itoa(page.Scrutin.NombreVotants) }</dd>
+								</div>
+								<div>
+									<dt>Suffrages exprimes</dt>
+									<dd>{ strconv.Itoa(page.Scrutin.SuffragesExprimes) }</dd>
+								</div>
+								<div>
+									<dt>Majorite requise</dt>
+									<dd>{ strconv.Itoa(page.Scrutin.SuffragesRequis) }</dd>
+								</div>
+							</dl>
+						</section>
+
+						<section class="detail-card" aria-labelledby="scrutin-objet">
+							<h2 id="scrutin-objet">Objet et demande</h2>
+							if page.Scrutin.Objet != "" {
+								<p>{ page.Scrutin.Objet }</p>
+							} else {
+								<p class="fr-text--mention">Objet non renseigne.</p>
+							}
+							<dl class="detail-list">
+								@DetailRow("Demandeur", page.Scrutin.Demandeur)
+								@DetailRow("Mode de publication", page.Scrutin.ModePublicationVotes)
+								@DetailRow("Type de majorite", page.Scrutin.TypeMajorite)
+								@DetailRow("Libelle du sort", page.Scrutin.SortLibelle)
+							</dl>
+						</section>
+
+						<section class="detail-card" aria-labelledby="scrutin-groupes">
+							<h2 id="scrutin-groupes">Votes par groupe</h2>
+							if len(page.GroupVotes) == 0 {
+								<p class="empty-state">Aucun detail par groupe disponible pour ce scrutin.</p>
+							} else {
+								<div class="table-scroll">
+									<table class="data-table">
+										<thead>
+											<tr>
+												<th scope="col">Groupe</th>
+												<th scope="col">Position</th>
+												<th scope="col">Membres</th>
+												<th scope="col">Pour</th>
+												<th scope="col">Contre</th>
+												<th scope="col">Abst.</th>
+												<th scope="col">Non votants</th>
+											</tr>
+										</thead>
+										<tbody>
+											for _, groupVote := range page.GroupVotes {
+												<tr>
+													<th scope="row">{ groupVote.Groupe }</th>
+													<td>{ fallbackText(groupVote.PositionMajoritaire) }</td>
+													<td>{ strconv.Itoa(groupVote.NombreMembres) }</td>
+													<td>{ strconv.Itoa(groupVote.Pour) }</td>
+													<td>{ strconv.Itoa(groupVote.Contre) }</td>
+													<td>{ strconv.Itoa(groupVote.Abstentions) }</td>
+													<td>{ strconv.Itoa(groupVote.NonVotants) }</td>
+												</tr>
+											}
+										</tbody>
+									</table>
+								</div>
+							}
+						</section>
+					</div>
+
+					<aside class="detail-aside" aria-labelledby="scrutin-informations">
+						<section class="detail-card">
+							<h2 id="scrutin-informations">Informations</h2>
+							<dl class="detail-list">
+								@DetailRow("UID", page.Scrutin.UID)
+								@DetailRow("Legislature", strconv.Itoa(page.Scrutin.Legislature))
+								@DetailRow("Organe", page.Scrutin.Organe)
+								@DetailRow("Organe UID", page.Scrutin.OrganeUID)
+								@DetailRow("Session", page.Scrutin.SessionRef)
+								@DetailRow("Seance", page.Scrutin.SeanceRef)
+								@DetailRow("Jour de seance", numberOrEmpty(page.Scrutin.QuantiemeJourSeance))
+								@DetailRow("Code type vote", page.Scrutin.CodeTypeVote)
+								@DetailRow("Source", page.Scrutin.SourceFile)
+							</dl>
+						</section>
+					</aside>
+				</div>
+			</section>
+		</main>
+
+		@SiteFooter()
+	</div>
+}
+
+templ DetailRow(label string, value string) {
+	<div>
+		<dt>{ label }</dt>
+		<dd>{ fallbackText(value) }</dd>
+	</div>
+}
+
+func fallbackText(value string) string {
+	if value == "" {
+		return "Non renseigne"
+	}
+	return value
+}
+
+func numberOrEmpty(value int) string {
+	if value == 0 {
+		return ""
+	}
+	return strconv.Itoa(value)
+}

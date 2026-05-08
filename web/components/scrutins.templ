@@ -86,10 +86,10 @@ templ Scrutins(page ScrutinsPage) {
 											<span>{ scrutin.Organe }</span>
 										}
 									</div>
-									<div class="scrutin-card__body">
-										<h2>{ scrutin.Titre }</h2>
-										<p>{ scrutin.TypeVote }</p>
-									</div>
+								<div class="scrutin-card__body">
+									<h2><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ scrutin.Titre }</a></h2>
+									<p>{ scrutin.TypeVote }</p>
+								</div>
 									<div class="scrutin-card__result" aria-label="Resultat du scrutin">
 										<span class="result-chip">{ scrutin.SortCode }</span>
 										<dl class="vote-counts">
