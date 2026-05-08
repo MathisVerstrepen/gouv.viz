@@ -20,6 +20,18 @@
 - Focused verification for most changes: `templ generate -path ./web/components && gofmt -w ./cmd ./web && go mod tidy && go build ./...`.
 - `make dev` requires Air and uses `.air.toml`; it regenerates templ and builds `./cmd/web` on changes.
 
+## Design Guidelines
+
+- Follow the French government design system fundamentals (DSFR) for visual decisions: neutral surfaces, Bleu France for primary actions, Rouge Marianne only for identity/accent use, and functional colors only for status meanings.
+- Keep design tokens centralized in `web/assets/css/main.css`; add new colors, spacing, type sizes, borders, shadows, and breakpoints as CSS variables before using them in components.
+- Prefer DSFR-style decision token names when practical, such as `--background-*`, `--text-*`, and `--border-*`, with project aliases like `--color-*` for local readability.
+- Preserve the static-first approach: use semantic HTML in `.templ` files and avoid JavaScript for layout or visual behavior unless it is required for interaction.
+- Design mobile-first and keep layouts responsive with the existing container, grid, spacing, and utility classes before adding new one-off classes.
+- Maintain accessible defaults: visible focus states, sufficient contrast, text alternatives for visual status, skip-link support, and `forced-colors: active` handling for custom interactive or bordered components.
+- Do not import the full DSFR package unless explicitly requested; this project currently mirrors DSFR fundamentals with local CSS rather than depending on DSFR assets.
+- Use Marianne/Spectral font-family tokens as the preferred typography contract, with system fallbacks because local font files are not committed yet.
+- Keep visual language sober, institutional, and data-oriented; avoid decorative patterns that reduce readability or make future data visualizations harder to scan.
+
 ## Gotchas
 
 - Do not edit generated `*_templ.go` files directly; edit `.templ` files and regenerate.

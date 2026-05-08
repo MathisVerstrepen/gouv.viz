@@ -1,11 +1,95 @@
 package components
 
 templ Home() {
-	<main class="page-shell">
-		<section class="hero">
-			<p class="eyebrow">gouv.viz</p>
-			<h1>Scrutins publics de l'Assemblee nationale</h1>
-			<p>Base de projet prete pour les futures visualisations.</p>
-		</section>
-	</main>
+	<div class="page-shell">
+		<header class="site-header">
+			<div class="fr-container site-header__inner">
+				<a class="brand-block" href="/" aria-label="Accueil - gouv.viz">
+					<span>Republique</span>
+					<span>Francaise</span>
+				</a>
+				<div class="service-title" aria-label="Service">
+					<p class="service-title__name">gouv.viz</p>
+					<p class="service-title__tagline">Scrutins publics de l'Assemblee nationale</p>
+				</div>
+			</div>
+		</header>
+
+		<main id="contenu" class="page-main">
+			<section class="hero section">
+				<div class="fr-container hero__grid">
+					<div class="hero__content">
+						<p class="eyebrow">Donnees publiques</p>
+						<h1>Comprendre les votes de l'Assemblee nationale</h1>
+						<p class="lead">
+							Une base sobre et accessible pour explorer les scrutins publics, suivre les tendances de vote et preparer les futures visualisations.
+						</p>
+						<div class="hero__actions" aria-label="Actions principales">
+							<a class="button" href="#fondations">Voir les fondations</a>
+							<a class="button button--secondary" href="/ping">Verifier le service</a>
+						</div>
+					</div>
+
+					<aside class="hero__panel" aria-label="Etat du projet">
+						<p class="status-chip">Base projet</p>
+						<h2>Socle statique pret</h2>
+						<p>
+							La couche UI est preparee pour accueillir les donnees traitees sans changer les fondations visuelles.
+						</p>
+						<div class="metric-list" aria-label="Capacites disponibles">
+							<div class="metric-card">
+								<strong>Go</strong>
+								<span>pretraitement</span>
+							</div>
+							<div class="metric-card">
+								<strong>templ</strong>
+								<span>rendu HTML</span>
+							</div>
+							<div class="metric-card">
+								<strong>htmx</strong>
+								<span>interactions</span>
+							</div>
+						</div>
+					</aside>
+				</div>
+			</section>
+
+			<section id="fondations" class="section section--muted">
+				<div class="fr-container">
+					<div class="section-heading">
+						<p class="eyebrow">Fondamentaux</p>
+						<h2>Un design aligne avec les reperes publics</h2>
+						<p>
+							Couleurs de decision, rythme typographique, grille responsive et etats accessibles sont centralises dans <code>main.css</code>.
+						</p>
+					</div>
+
+					<div class="card-grid">
+						<article class="card">
+							<p class="card__kicker">Couleurs</p>
+							<h3>Tokens reutilisables</h3>
+							<p>Les decisions visuelles partent des neutres, du bleu France, du rouge Marianne et des statuts fonctionnels.</p>
+						</article>
+						<article class="card">
+							<p class="card__kicker">Typographie</p>
+							<h3>Lecture priorisee</h3>
+							<p>Les tailles et largeurs de ligne gardent une hierarchie claire sur mobile comme sur desktop.</p>
+						</article>
+						<article class="card">
+							<p class="card__kicker">Accessibilite</p>
+							<h3>Etats visibles</h3>
+							<p>Les liens, boutons, contrastes et modes haut contraste disposent de styles explicites.</p>
+						</article>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer class="site-footer">
+			<div class="fr-container site-footer__inner">
+				<p>gouv.viz</p>
+				<p>Visualisation statique des scrutins publics.</p>
+			</div>
+		</footer>
+	</div>
 }
