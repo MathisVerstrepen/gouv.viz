@@ -28,3 +28,15 @@ Static-first website scaffold for visualizing statistics from French Assemblee n
 2. Install `templ`: `go install github.com/a-h/templ/cmd/templ@latest`.
 3. Run `make generate` before building, or `make dev` with Air installed.
 4. Put large raw Scrutins publics JSON files in `data/raw/scrutins-publics/`.
+
+## Docker
+
+The container does not embed generated Assemblee nationale data. Build the SQLite database first, then mount it at `/data/gouv-viz.sqlite`:
+
+```sh
+make preprocess
+docker build -t gouv-viz .
+docker run --rm -p 9456:9456 -v "$PWD/data/processed:/data:ro" gouv-viz
+```
+
+Startup validates the database path, schema tables, and `dataset_meta.schema_version`, so a missing or incompatible mount fails fast.

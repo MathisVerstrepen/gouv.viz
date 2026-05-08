@@ -22,5 +22,10 @@ COPY --from=builder /app/web/assets ./web/assets
 ENV ENV=prod
 ENV PORT=9456
 ENV ASSETS_PATH=web/assets
+ENV DATABASE_PATH=/data/gouv-viz.sqlite
+
+RUN mkdir -p /data
+VOLUME ["/data"]
+EXPOSE 9456
 
 CMD ["./gouv-viz"]

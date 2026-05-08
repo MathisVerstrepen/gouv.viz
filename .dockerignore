@@ -1,0 +1,9 @@
+.git
+.env
+
+data/raw
+data/processed
+
+tmp
+dist
+coverage.out
