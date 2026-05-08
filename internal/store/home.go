@@ -10,7 +10,7 @@ import (
 func (s *Store) HomePage(ctx context.Context) (components.HomePage, error) {
 	var page components.HomePage
 	if err := s.db.QueryRowContext(ctx, `
-SELECT COUNT(*), MIN(date_scrutin), MAX(date_scrutin)
+SELECT COUNT(*), COALESCE(MIN(date_scrutin), ''), COALESCE(MAX(date_scrutin), '')
 FROM scrutins
 `).Scan(&page.TotalScrutins, &page.FirstScrutinDate, &page.LastScrutinDate); err != nil {
 		return components.HomePage{}, fmt.Errorf("query scrutin totals: %w", err)

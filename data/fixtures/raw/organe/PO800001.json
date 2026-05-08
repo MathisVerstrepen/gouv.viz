@@ -1,0 +1,16 @@
+{
+  "organe": {
+    "uid": "PO800001",
+    "codeType": "GP",
+    "libelle": "Groupe Fixture",
+    "libelleAbrege": "GF",
+    "libelleAbrev": "GF",
+    "libelleEdition": "Groupe Fixture",
+    "legislature": "17",
+    "chambre": "AN",
+    "preseance": "1",
+    "viMoDe": {
+      "dateDebut": "2024-07-01"
+    }
+  }
+}

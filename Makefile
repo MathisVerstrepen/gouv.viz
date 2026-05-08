@@ -1,4 +1,4 @@
-.PHONY: dev generate build run preprocess tidy
+.PHONY: dev generate build run preprocess tidy test verify
 
 dev:
 	air
@@ -17,3 +17,13 @@ preprocess:
 
 tidy:
 	go mod tidy
+
+test:
+	go test ./...
+
+verify: generate
+	gofmt -w ./cmd ./internal ./web
+	go mod tidy
+	go test ./...
+	go vet ./...
+	go build ./...

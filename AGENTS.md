@@ -29,9 +29,29 @@
 - Build the web binary: `make build` or `go build ./cmd/web`.
 - Run the web app locally: `make run` or `go run ./cmd/web`.
 - Run the preprocessing stub: `make preprocess` or `go run ./cmd/preprocess`.
+- Run all Go tests: `make test` or `go test ./...`.
 - Tidy dependencies: `go mod tidy`.
-- Focused verification for most changes: `templ generate -path ./web/components && gofmt -w ./cmd ./web && go mod tidy && go build ./...`.
+- Focused verification for most changes: `make verify`, which runs templ generation, `gofmt`, `go mod tidy`, `go test ./...`, `go vet ./...`, and `go build ./...`.
 - `make dev` requires Air and uses `.air.toml`; it regenerates templ and builds `./cmd/web` on changes.
+
+## Testing Guidelines
+
+- Prefer fast Go tests over browser tests for this static-first server-rendered app.
+- Store tests live in `internal/store/` and should use temporary SQLite databases with the smallest schema and rows needed for the behavior under test.
+- Preprocessing tests should use tiny committed raw JSON fixtures under `data/fixtures/raw/`; never depend on local ignored raw datasets.
+- Handler tests should exercise Echo contexts and real store calls where practical, and must cover query parsing plus expected HTTP translations such as `store.ErrNotFound` to 404.
+- Component tests should target helper behavior and focused rendered output; avoid broad full-page snapshots unless there is a clear stability need.
+- Add or update tests when changing SQL queries, pagination, search behavior, preprocessing JSON parsing, route parameter handling, or component URL/date helpers.
+- Keep fixtures minimal and intentional: one small row that demonstrates the edge case is better than copying large Assemblee nationale files.
+- CI requires generated `web/components/*_templ.go` files to be current; after editing `.templ` files, run `templ generate -path ./web/components` before verification.
+
+## Coding Guidelines
+
+- Keep production changes small and place behavior in the existing layer that owns it: SQL in `internal/store`, HTTP parsing in `web/handlers`, rendering helpers in `web/components`, and preprocessing import logic under `cmd/preprocess` until it is split into an internal package.
+- When fixing a bug, add the narrowest regression test that fails without the fix, especially for SQLite null handling, search escaping, pagination boundaries, and Assemblee JSON shape variations.
+- Do not duplicate large schemas or fixture datasets in tests; define only the columns and rows needed by the code path under test.
+- Prefer real temporary SQLite databases in store and handler tests over mocks so query text, scans, joins, and pagination are exercised together.
+- Avoid editing generated `*_templ.go` files directly; update `.templ` sources, regenerate, and let CI verify generated output.
 
 ## Design Guidelines
 

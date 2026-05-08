@@ -1,0 +1,49 @@
+{
+  "acteur": {
+    "uid": "PA100001",
+    "etatCivil": {
+      "ident": {
+        "civ": "M.",
+        "prenom": "Jean",
+        "nom": "Fixture",
+        "alpha": "Fixture Jean"
+      },
+      "infoNaissance": {
+        "dateNais": "1980-01-01",
+        "villeNais": "Paris",
+        "depNais": "75",
+        "paysNais": "France"
+      }
+    },
+    "profession": {
+      "libelleCourant": "Depute"
+    },
+    "adresses": {
+      "adresse": {
+        "uid": "ADDR100001",
+        "type": "15",
+        "typeLibelle": "Adresse electronique",
+        "poids": "1",
+        "valElec": "jean.fixture@example.test"
+      }
+    },
+    "mandats": {
+      "mandat": {
+        "uid": "PM100001",
+        "acteurRef": "PA100001",
+        "legislature": "17",
+        "typeOrgane": "ASSEMBLEE",
+        "dateDebut": "2024-07-01",
+        "preseance": "1",
+        "nominPrincipale": "1",
+        "infosQualite": {
+          "codeQualite": "membre",
+          "libQualite": "Membre"
+        },
+        "organes": {
+          "organeRef": "PO800001"
+        }
+      }
+    }
+  }
+}

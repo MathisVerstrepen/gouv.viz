@@ -1,0 +1,68 @@
+package components
+
+import "testing"
+
+func TestFormatDate(t *testing.T) {
+	if got := formatDate("2024-07-18"); got != "18/07/2024" {
+		t.Fatalf("formatDate(valid) = %q, want 18/07/2024", got)
+	}
+	if got := formatDate("not-a-date"); got != "not-a-date" {
+		t.Fatalf("formatDate(invalid) = %q, want original value", got)
+	}
+}
+
+func TestScrutinListURL(t *testing.T) {
+	query := ScrutinsQuery{Search: " budget public ", Sort: "date_desc", Page: 3, PerPage: 25}
+
+	if got := scrutinListURL(query, 1, "date_desc"); got != "/scrutins?q=+budget+public+" {
+		t.Fatalf("scrutinListURL(default sort) = %q", got)
+	}
+	if got := scrutinListURL(query, 2, "numero_asc"); got != "/scrutins?page=2&q=+budget+public+&sort=numero_asc" {
+		t.Fatalf("scrutinListURL(custom sort) = %q", got)
+	}
+}
+
+func TestPaginationPages(t *testing.T) {
+	tests := []struct {
+		name    string
+		current int
+		total   int
+		want    []int
+	}{
+		{name: "single", current: 1, total: 1, want: []int{1}},
+		{name: "small", current: 3, total: 5, want: []int{1, 2, 3, 4, 5}},
+		{name: "middle", current: 5, total: 10, want: []int{1, 0, 3, 4, 5, 6, 7, 0, 10}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := paginationPages(tt.current, tt.total)
+			if len(got) != len(tt.want) {
+				t.Fatalf("paginationPages() = %v, want %v", got, tt.want)
+			}
+			for i := range got {
+				if got[i] != tt.want[i] {
+					t.Fatalf("paginationPages() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
+func TestDetailHelpers(t *testing.T) {
+	if got := ScrutinDetailURL("VT/1 2"); got != "/scrutins/VT%2F1%202" {
+		t.Fatalf("ScrutinDetailURL() = %q", got)
+	}
+	if got := fallbackText(""); got != "Non renseigne" {
+		t.Fatalf("fallbackText(empty) = %q", got)
+	}
+	if got := fallbackText("Valeur"); got != "Valeur" {
+		t.Fatalf("fallbackText(value) = %q", got)
+	}
+	if got := numberOrEmpty(0); got != "" {
+		t.Fatalf("numberOrEmpty(0) = %q", got)
+	}
+	if got := numberOrEmpty(12); got != "12" {
+		t.Fatalf("numberOrEmpty(12) = %q", got)
+	}
+}
