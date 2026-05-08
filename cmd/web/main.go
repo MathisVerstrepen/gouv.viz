@@ -1,12 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "modernc.org/sqlite"
 
+	"gouv.viz/internal/store"
 	"gouv.viz/web/handlers"
 )
 
@@ -20,9 +23,17 @@ func main() {
 
 	e.Static("/assets", os.Getenv("ASSETS_PATH"))
 
-	e.GET("/", handlers.Home)
-	e.GET("/scrutins", handlers.Scrutins)
-	e.GET("/scrutins/:uid", handlers.ScrutinDetail)
+	db, err := sql.Open("sqlite", os.Getenv("DATABASE_PATH"))
+	if err != nil {
+		e.Logger.Fatal(err)
+	}
+	defer db.Close()
+
+	server := handlers.NewServer(store.New(db))
+
+	e.GET("/", server.Home)
+	e.GET("/scrutins", server.Scrutins)
+	e.GET("/scrutins/:uid", server.ScrutinDetail)
 	e.GET("/ping", handlers.Ping)
 
 	if os.Getenv("ENV") != "prod" {

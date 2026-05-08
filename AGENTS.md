@@ -4,11 +4,24 @@
 
 - This is a Go 1.25 static-first website for French Assemblee nationale "Scrutins publics" statistics.
 - The web stack is Go + Echo + templ + htmx; templ components live in `web/components/` and render through Go handlers in `web/handlers/`.
+- Read-side SQLite access for the web app lives in `internal/store/`; handlers should call store methods rather than embed SQL.
 - templ is less common than standard Go templates; if unsure about syntax or codegen, check https://templ.guide/ before guessing.
 - The website entrypoint is `cmd/web/main.go`; the preprocessing entrypoint is `cmd/preprocess/main.go`.
 - Static files live under `web/assets/`; Echo serves them at `/assets` using `ASSETS_PATH`.
 - Local raw JSON belongs in `data/raw/scrutins-publics/`; generated preprocessing output belongs in `data/processed/`; both are ignored except `.gitkeep`.
 - Only small committed samples should go in `data/fixtures/`.
+
+## App Architecture
+
+- `cmd/web/main.go` owns process setup: environment initialization, Echo middleware, static assets, SQLite opening, store construction, and route registration.
+- Open the web SQLite database once at startup with `database/sql`; pass the resulting `*sql.DB` into `internal/store.New` and close it when the process exits.
+- Keep HTTP handlers in `web/handlers/` thin: parse request parameters, call the store, translate expected store errors into HTTP responses, and render templ components.
+- Keep SQL, row scanning, pagination totals, search clauses, and whitelisted SQL sort definitions inside `internal/store/`, not in handlers or templ components.
+- Use `QueryContext` and `QueryRowContext` in store methods with `ctx.Request().Context()` from handlers so request cancellation can reach SQLite calls.
+- Keep dynamic SQL limited to safe fragments selected from internal allowlists, such as sort definitions; user values must still be passed as SQL parameters.
+- Prefer adding focused store methods such as `HomePage`, `ScrutinsPage`, or `ScrutinDetailPage` over exposing generic query helpers to handlers.
+- For now, store methods may return component page DTOs to keep the static-first rendering path simple; introduce separate domain/view models only when reuse or testing pressure justifies it.
+- Expose data-layer sentinel errors from `internal/store` when handlers need HTTP-specific translation; do not import `database/sql` in handlers just to check `sql.ErrNoRows`.
 
 ## Commands
 
