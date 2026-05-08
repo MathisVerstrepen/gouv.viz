@@ -8,7 +8,41 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Home() templ.Component {
+import (
+	"strconv"
+	"time"
+)
+
+type HomePage struct {
+	TotalScrutins    int
+	FirstScrutinDate string
+	LastScrutinDate  string
+	Scrutins         []ScrutinListItem
+}
+
+type ScrutinListItem struct {
+	UID           string
+	Numero        int
+	Date          string
+	Titre         string
+	SortCode      string
+	TypeVote      string
+	Organe        string
+	Pour          int
+	Contre        int
+	Abstentions   int
+	NombreVotants int
+}
+
+func formatDate(value string) string {
+	date, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		return value
+	}
+	return date.Format("02/01/2006")
+}
+
+func Home(page HomePage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +63,237 @@ func Home() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"page-shell\"><header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-block\" href=\"/\" aria-label=\"Accueil - gouv.viz\"><span>Republique</span> <span>Francaise</span></a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">gouv.viz</p><p class=\"service-title__tagline\">Scrutins publics de l'Assemblee nationale</p></div></div></header><main id=\"contenu\" class=\"page-main\"><section class=\"hero section\"><div class=\"fr-container hero__grid\"><div class=\"hero__content\"><p class=\"eyebrow\">Donnees publiques</p><h1>Comprendre les votes de l'Assemblee nationale</h1><p class=\"lead\">Une base sobre et accessible pour explorer les scrutins publics, suivre les tendances de vote et preparer les futures visualisations.</p><div class=\"hero__actions\" aria-label=\"Actions principales\"><a class=\"button\" href=\"#fondations\">Voir les fondations</a> <a class=\"button button--secondary\" href=\"/ping\">Verifier le service</a></div></div><aside class=\"hero__panel\" aria-label=\"Etat du projet\"><p class=\"status-chip\">Base projet</p><h2>Socle statique pret</h2><p>La couche UI est preparee pour accueillir les donnees traitees sans changer les fondations visuelles.</p><div class=\"metric-list\" aria-label=\"Capacites disponibles\"><div class=\"metric-card\"><strong>Go</strong> <span>pretraitement</span></div><div class=\"metric-card\"><strong>templ</strong> <span>rendu HTML</span></div><div class=\"metric-card\"><strong>htmx</strong> <span>interactions</span></div></div></aside></div></section><section id=\"fondations\" class=\"section section--muted\"><div class=\"fr-container\"><div class=\"section-heading\"><p class=\"eyebrow\">Fondamentaux</p><h2>Un design aligne avec les reperes publics</h2><p>Couleurs de decision, rythme typographique, grille responsive et etats accessibles sont centralises dans <code>main.css</code>.</p></div><div class=\"card-grid\"><article class=\"card\"><p class=\"card__kicker\">Couleurs</p><h3>Tokens reutilisables</h3><p>Les decisions visuelles partent des neutres, du bleu France, du rouge Marianne et des statuts fonctionnels.</p></article><article class=\"card\"><p class=\"card__kicker\">Typographie</p><h3>Lecture priorisee</h3><p>Les tailles et largeurs de ligne gardent une hierarchie claire sur mobile comme sur desktop.</p></article><article class=\"card\"><p class=\"card__kicker\">Accessibilite</p><h3>Etats visibles</h3><p>Les liens, boutons, contrastes et modes haut contraste disposent de styles explicites.</p></article></div></div></section></main><footer class=\"site-footer\"><div class=\"fr-container site-footer__inner\"><p>gouv.viz</p><p>Visualisation statique des scrutins publics.</p></div></footer></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"page-shell\"><header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-block\" href=\"/\" aria-label=\"Accueil - gouv.viz\"><span>Republique</span> <span>Francaise</span></a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">gouv.viz</p><p class=\"service-title__tagline\">Scrutins publics de l'Assemblee nationale</p></div></div></header><main id=\"contenu\" class=\"page-main\"><section class=\"hero section\"><div class=\"fr-container hero__grid\"><div class=\"hero__content\"><p class=\"eyebrow\">Donnees publiques</p><h1>Les derniers scrutins publics</h1><p class=\"lead\">Explorez les votes publics de l'Assemblee nationale importes depuis les fichiers ouverts et consolides dans la base locale.</p><div class=\"hero__actions\" aria-label=\"Actions principales\"><a class=\"button\" href=\"#scrutins\">Voir les scrutins</a> <a class=\"button button--secondary\" href=\"/ping\">Verifier le service</a></div></div><aside class=\"hero__panel\" aria-label=\"Etat des donnees\"><p class=\"status-chip\">Base SQLite</p><h2>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.TotalScrutins))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 69, Col: 44}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " scrutins charges</h2><p>Periode couverte : ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.FirstScrutinDate))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 71, Col: 61}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " - ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.LastScrutinDate))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 71, Col: 100}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, ".</p><div class=\"metric-list\" aria-label=\"Indicateurs disponibles\"><div class=\"metric-card\"><strong>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.TotalScrutins))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 75, Col: 50}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</strong> <span>scrutins</span></div><div class=\"metric-card\"><strong>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(page.Scrutins)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 79, Col: 50}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</strong> <span>affiches</span></div><div class=\"metric-card\"><strong>SQL</strong> <span>source</span></div></div></aside></div></section><section id=\"scrutins\" class=\"section section--muted\"><div class=\"fr-container\"><div class=\"section-heading\"><p class=\"eyebrow\">Scrutins recents</p><h2>Les 50 derniers votes publics</h2><p>Liste triee par date de scrutin decroissante, avec resultat et decompte principal.</p></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if len(page.Scrutins) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p class=\"empty-state\">Aucun scrutin trouve. Lancez <code>make preprocess</code> pour generer la base SQLite.</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"scrutin-list\" aria-label=\"Liste des scrutins publics\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			for _, scrutin := range page.Scrutins {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<article class=\"scrutin-card\"><div class=\"scrutin-card__meta\"><span>Scrutin n")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(scrutin.Numero))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 108, Col: 55}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(scrutin.Date))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 109, Col: 42}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if scrutin.Organe != "" {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var9 string
+					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(scrutin.Organe)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 111, Col: 33}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><div class=\"scrutin-card__body\"><h3>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var10 string
+				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(scrutin.Titre)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 115, Col: 29}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</h3><p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var11 string
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(scrutin.TypeVote)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 116, Col: 31}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</p></div><div class=\"scrutin-card__result\" aria-label=\"Resultat du scrutin\"><span class=\"result-chip\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var12 string
+				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(scrutin.SortCode)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 119, Col: 54}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span><dl class=\"vote-counts\"><div><dt>Pour</dt><dd>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var13 string
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(scrutin.Pour))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 123, Col: 44}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</dd></div><div><dt>Contre</dt><dd>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var14 string
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(scrutin.Contre))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 127, Col: 46}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</dd></div><div><dt>Abst.</dt><dd>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var15 string
+				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(scrutin.Abstentions))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 131, Col: 51}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</dd></div><div><dt>Votants</dt><dd>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var16 string
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(scrutin.NombreVotants))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 135, Col: 53}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</dd></div></dl></div></article>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div></section></main><footer class=\"site-footer\"><div class=\"fr-container site-footer__inner\"><p>gouv.viz</p><p>Visualisation statique des scrutins publics.</p></div></footer></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

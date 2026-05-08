@@ -1,6 +1,40 @@
 package components
 
-templ Home() {
+import (
+	"strconv"
+	"time"
+)
+
+type HomePage struct {
+	TotalScrutins    int
+	FirstScrutinDate string
+	LastScrutinDate  string
+	Scrutins         []ScrutinListItem
+}
+
+type ScrutinListItem struct {
+	UID            string
+	Numero         int
+	Date           string
+	Titre          string
+	SortCode       string
+	TypeVote       string
+	Organe         string
+	Pour           int
+	Contre         int
+	Abstentions    int
+	NombreVotants  int
+}
+
+func formatDate(value string) string {
+	date, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		return value
+	}
+	return date.Format("02/01/2006")
+}
+
+templ Home(page HomePage) {
 	<div class="page-shell">
 		<header class="site-header">
 			<div class="fr-container site-header__inner">
@@ -20,67 +54,92 @@ templ Home() {
 				<div class="fr-container hero__grid">
 					<div class="hero__content">
 						<p class="eyebrow">Donnees publiques</p>
-						<h1>Comprendre les votes de l'Assemblee nationale</h1>
+						<h1>Les derniers scrutins publics</h1>
 						<p class="lead">
-							Une base sobre et accessible pour explorer les scrutins publics, suivre les tendances de vote et preparer les futures visualisations.
+							Explorez les votes publics de l'Assemblee nationale importes depuis les fichiers ouverts et consolides dans la base locale.
 						</p>
 						<div class="hero__actions" aria-label="Actions principales">
-							<a class="button" href="#fondations">Voir les fondations</a>
+							<a class="button" href="#scrutins">Voir les scrutins</a>
 							<a class="button button--secondary" href="/ping">Verifier le service</a>
 						</div>
 					</div>
 
-					<aside class="hero__panel" aria-label="Etat du projet">
-						<p class="status-chip">Base projet</p>
-						<h2>Socle statique pret</h2>
+					<aside class="hero__panel" aria-label="Etat des donnees">
+						<p class="status-chip">Base SQLite</p>
+						<h2>{ strconv.Itoa(page.TotalScrutins) } scrutins charges</h2>
 						<p>
-							La couche UI est preparee pour accueillir les donnees traitees sans changer les fondations visuelles.
+							Periode couverte : { formatDate(page.FirstScrutinDate) } - { formatDate(page.LastScrutinDate) }.
 						</p>
-						<div class="metric-list" aria-label="Capacites disponibles">
+						<div class="metric-list" aria-label="Indicateurs disponibles">
 							<div class="metric-card">
-								<strong>Go</strong>
-								<span>pretraitement</span>
+								<strong>{ strconv.Itoa(page.TotalScrutins) }</strong>
+								<span>scrutins</span>
 							</div>
 							<div class="metric-card">
-								<strong>templ</strong>
-								<span>rendu HTML</span>
+								<strong>{ strconv.Itoa(len(page.Scrutins)) }</strong>
+								<span>affiches</span>
 							</div>
 							<div class="metric-card">
-								<strong>htmx</strong>
-								<span>interactions</span>
+								<strong>SQL</strong>
+								<span>source</span>
 							</div>
 						</div>
 					</aside>
 				</div>
 			</section>
 
-			<section id="fondations" class="section section--muted">
+			<section id="scrutins" class="section section--muted">
 				<div class="fr-container">
 					<div class="section-heading">
-						<p class="eyebrow">Fondamentaux</p>
-						<h2>Un design aligne avec les reperes publics</h2>
+						<p class="eyebrow">Scrutins recents</p>
+						<h2>Les 50 derniers votes publics</h2>
 						<p>
-							Couleurs de decision, rythme typographique, grille responsive et etats accessibles sont centralises dans <code>main.css</code>.
+							Liste triee par date de scrutin decroissante, avec resultat et decompte principal.
 						</p>
 					</div>
 
-					<div class="card-grid">
-						<article class="card">
-							<p class="card__kicker">Couleurs</p>
-							<h3>Tokens reutilisables</h3>
-							<p>Les decisions visuelles partent des neutres, du bleu France, du rouge Marianne et des statuts fonctionnels.</p>
-						</article>
-						<article class="card">
-							<p class="card__kicker">Typographie</p>
-							<h3>Lecture priorisee</h3>
-							<p>Les tailles et largeurs de ligne gardent une hierarchie claire sur mobile comme sur desktop.</p>
-						</article>
-						<article class="card">
-							<p class="card__kicker">Accessibilite</p>
-							<h3>Etats visibles</h3>
-							<p>Les liens, boutons, contrastes et modes haut contraste disposent de styles explicites.</p>
-						</article>
-					</div>
+					if len(page.Scrutins) == 0 {
+						<p class="empty-state">Aucun scrutin trouve. Lancez <code>make preprocess</code> pour generer la base SQLite.</p>
+					} else {
+						<div class="scrutin-list" aria-label="Liste des scrutins publics">
+							for _, scrutin := range page.Scrutins {
+								<article class="scrutin-card">
+									<div class="scrutin-card__meta">
+										<span>Scrutin n{ strconv.Itoa(scrutin.Numero) }</span>
+										<span>{ formatDate(scrutin.Date) }</span>
+										if scrutin.Organe != "" {
+											<span>{ scrutin.Organe }</span>
+										}
+									</div>
+									<div class="scrutin-card__body">
+										<h3>{ scrutin.Titre }</h3>
+										<p>{ scrutin.TypeVote }</p>
+									</div>
+									<div class="scrutin-card__result" aria-label="Resultat du scrutin">
+										<span class="result-chip">{ scrutin.SortCode }</span>
+										<dl class="vote-counts">
+											<div>
+												<dt>Pour</dt>
+												<dd>{ strconv.Itoa(scrutin.Pour) }</dd>
+											</div>
+											<div>
+												<dt>Contre</dt>
+												<dd>{ strconv.Itoa(scrutin.Contre) }</dd>
+											</div>
+											<div>
+												<dt>Abst.</dt>
+												<dd>{ strconv.Itoa(scrutin.Abstentions) }</dd>
+											</div>
+											<div>
+												<dt>Votants</dt>
+												<dd>{ strconv.Itoa(scrutin.NombreVotants) }</dd>
+											</div>
+										</dl>
+									</div>
+								</article>
+							}
+						</div>
+					}
 				</div>
 			</section>
 		</main>

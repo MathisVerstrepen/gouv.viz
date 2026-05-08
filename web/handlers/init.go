@@ -15,6 +15,7 @@ func Init() {
 	setDefaultEnv("ENV", "dev")
 	setDefaultEnv("PORT", "9456")
 	setDefaultEnv("ASSETS_PATH", "web/assets")
+	setDefaultEnv("DATABASE_PATH", "data/processed/gouv-viz.sqlite")
 }
 
 func setDefaultEnv(key string, value string) {
