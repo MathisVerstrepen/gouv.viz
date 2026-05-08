@@ -3,29 +3,32 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"os"
+	"log"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "modernc.org/sqlite"
 
+	"gouv.viz/internal/config"
 	"gouv.viz/internal/store"
 	"gouv.viz/web/handlers"
 )
 
 func main() {
-	handlers.Init()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 
-	e.Static("/assets", os.Getenv("ASSETS_PATH"))
+	e.Static("/assets", cfg.AssetsPath)
 
-	db, err := sql.Open("sqlite", os.Getenv("DATABASE_PATH"))
+	db, err := sql.Open("sqlite", cfg.DatabasePath)
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
@@ -45,9 +48,9 @@ func main() {
 	e.GET("/scrutins/:uid", server.ScrutinDetail)
 	e.GET("/ping", handlers.Ping)
 
-	if os.Getenv("ENV") != "prod" {
+	if !cfg.IsProd() {
 		e.GET("/ws", handlers.HotReloadWS)
 	}
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
+	e.Logger.Fatal(e.Start(cfg.Addr()))
 }

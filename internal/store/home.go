@@ -3,17 +3,15 @@ package store
 import (
 	"context"
 	"fmt"
-
-	"gouv.viz/web/components"
 )
 
-func (s *Store) HomePage(ctx context.Context) (components.HomePage, error) {
-	var page components.HomePage
+func (s *Store) HomePage(ctx context.Context) (HomePage, error) {
+	var page HomePage
 	if err := s.db.QueryRowContext(ctx, `
 SELECT COUNT(*), COALESCE(MIN(date_scrutin), ''), COALESCE(MAX(date_scrutin), '')
 FROM scrutins
 `).Scan(&page.TotalScrutins, &page.FirstScrutinDate, &page.LastScrutinDate); err != nil {
-		return components.HomePage{}, fmt.Errorf("query scrutin totals: %w", err)
+		return HomePage{}, fmt.Errorf("query scrutin totals: %w", err)
 	}
 
 	rows, err := s.db.QueryContext(ctx, `
@@ -35,12 +33,12 @@ ORDER BY s.date_scrutin DESC, s.numero DESC
 LIMIT 50
 `)
 	if err != nil {
-		return components.HomePage{}, fmt.Errorf("query scrutins: %w", err)
+		return HomePage{}, fmt.Errorf("query scrutins: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var scrutin components.ScrutinListItem
+		var scrutin ScrutinListItem
 		if err := rows.Scan(
 			&scrutin.UID,
 			&scrutin.Numero,
@@ -54,12 +52,12 @@ LIMIT 50
 			&scrutin.Abstentions,
 			&scrutin.NombreVotants,
 		); err != nil {
-			return components.HomePage{}, fmt.Errorf("scan scrutin: %w", err)
+			return HomePage{}, fmt.Errorf("scan scrutin: %w", err)
 		}
 		page.Scrutins = append(page.Scrutins, scrutin)
 	}
 	if err := rows.Err(); err != nil {
-		return components.HomePage{}, fmt.Errorf("iterate scrutins: %w", err)
+		return HomePage{}, fmt.Errorf("iterate scrutins: %w", err)
 	}
 
 	return page, nil

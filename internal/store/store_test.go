@@ -9,8 +9,6 @@ import (
 	"testing"
 
 	_ "modernc.org/sqlite"
-
-	"gouv.viz/web/components"
 )
 
 func TestHomePageHandlesEmptyDatabase(t *testing.T) {
@@ -39,7 +37,7 @@ func TestScrutinsPageEscapesLikeWildcards(t *testing.T) {
 	insertScrutin(t, s.db, testScrutin{UID: "percent", Numero: 2, Date: "2024-01-02", Titre: "Budget 100% public", OrganeUID: "ORG1"})
 	insertScrutin(t, s.db, testScrutin{UID: "underscore", Numero: 3, Date: "2024-01-03", Titre: "Article A_B", OrganeUID: "ORG1"})
 
-	percentPage, err := s.ScrutinsPage(context.Background(), components.ScrutinsQuery{Search: "%", Page: 1, PerPage: 25})
+	percentPage, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Search: "%", Page: 1, PerPage: 25})
 	if err != nil {
 		t.Fatalf("ScrutinsPage(%%) error = %v", err)
 	}
@@ -47,7 +45,7 @@ func TestScrutinsPageEscapesLikeWildcards(t *testing.T) {
 		t.Fatalf("search %% returned %v, want [percent]", got)
 	}
 
-	underscorePage, err := s.ScrutinsPage(context.Background(), components.ScrutinsQuery{Search: "_", Page: 1, PerPage: 25})
+	underscorePage, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Search: "_", Page: 1, PerPage: 25})
 	if err != nil {
 		t.Fatalf("ScrutinsPage(_) error = %v", err)
 	}
@@ -63,7 +61,7 @@ func TestScrutinsPageClampsPagePastTotal(t *testing.T) {
 	insertScrutin(t, s.db, testScrutin{UID: "two", Numero: 2, Date: "2024-01-02", Titre: "Deuxieme", OrganeUID: "ORG1"})
 	insertScrutin(t, s.db, testScrutin{UID: "three", Numero: 3, Date: "2024-01-03", Titre: "Troisieme", OrganeUID: "ORG1"})
 
-	page, err := s.ScrutinsPage(context.Background(), components.ScrutinsQuery{Sort: "numero_asc", Page: 99, PerPage: 2})
+	page, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Sort: "numero_asc", Page: 99, PerPage: 2})
 	if err != nil {
 		t.Fatalf("ScrutinsPage() error = %v", err)
 	}
@@ -274,7 +272,7 @@ VALUES (?, ?, 10, ?, 1, 6, 3, 0, 0)
 	}
 }
 
-func uids(items []components.ScrutinListItem) []string {
+func uids(items []ScrutinListItem) []string {
 	values := make([]string, 0, len(items))
 	for _, item := range items {
 		values = append(values, item.UID)

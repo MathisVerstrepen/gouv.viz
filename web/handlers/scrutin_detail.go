@@ -20,6 +20,7 @@ func (s *Server) ScrutinDetail(ctx echo.Context) error {
 		return fmt.Errorf("load scrutin detail page: %w", err)
 	}
 
-	title := fmt.Sprintf("Scrutin n%d - gouv.viz", page.Scrutin.Numero)
-	return Render(ctx, http.StatusOK, components.Root(components.ScrutinDetail(page), title))
+	view := scrutinDetailView(page)
+	title := fmt.Sprintf("Scrutin n%d - gouv.viz", view.Scrutin.Numero)
+	return Render(ctx, http.StatusOK, components.Root(components.ScrutinDetail(view), title))
 }

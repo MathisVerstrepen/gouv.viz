@@ -18,16 +18,16 @@ func (s *Server) Scrutins(ctx echo.Context) error {
 		return fmt.Errorf("load scrutins page: %w", err)
 	}
 
-	return Render(ctx, http.StatusOK, components.Root(components.Scrutins(page), "Scrutins publics - gouv.viz"))
+	return Render(ctx, http.StatusOK, components.Root(components.Scrutins(scrutinsView(page)), "Scrutins publics - gouv.viz"))
 }
 
-func parseScrutinsQuery(ctx echo.Context) components.ScrutinsQuery {
+func parseScrutinsQuery(ctx echo.Context) store.ScrutinsQuery {
 	page := 1
 	if value, err := strconv.Atoi(ctx.QueryParam("page")); err == nil && value > 0 {
 		page = value
 	}
 
-	return store.NormalizeScrutinsQuery(components.ScrutinsQuery{
+	return store.NormalizeScrutinsQuery(store.ScrutinsQuery{
 		Search:  ctx.QueryParam("q"),
 		Sort:    ctx.QueryParam("sort"),
 		Page:    page,

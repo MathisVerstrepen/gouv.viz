@@ -3,13 +3,11 @@ package store
 import (
 	"context"
 	"fmt"
-
-	"gouv.viz/web/components"
 )
 
-func (s *Store) ScrutinDetailPage(ctx context.Context, uid string) (components.ScrutinDetailPage, error) {
-	var page components.ScrutinDetailPage
-	var scrutin components.ScrutinDetailData
+func (s *Store) ScrutinDetailPage(ctx context.Context, uid string) (ScrutinDetailPage, error) {
+	var page ScrutinDetailPage
+	var scrutin ScrutinDetailData
 	if err := s.db.QueryRowContext(ctx, `
 SELECT
   s.uid,
@@ -71,7 +69,7 @@ WHERE s.uid = ?
 		&scrutin.NonVotantsVolontaires,
 		&scrutin.SourceFile,
 	); err != nil {
-		return components.ScrutinDetailPage{}, fmt.Errorf("query scrutin: %w", err)
+		return ScrutinDetailPage{}, fmt.Errorf("query scrutin: %w", err)
 	}
 	page.Scrutin = scrutin
 
@@ -92,12 +90,12 @@ WHERE sgv.scrutin_uid = ?
 ORDER BY COALESCE(o.preseance, 9999), COALESCE(o.libelle, sgv.groupe_uid)
 `, uid)
 	if err != nil {
-		return components.ScrutinDetailPage{}, fmt.Errorf("query scrutin group votes: %w", err)
+		return ScrutinDetailPage{}, fmt.Errorf("query scrutin group votes: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var groupVote components.ScrutinGroupVote
+		var groupVote ScrutinGroupVote
 		if err := rows.Scan(
 			&groupVote.GroupeUID,
 			&groupVote.Groupe,
@@ -109,12 +107,12 @@ ORDER BY COALESCE(o.preseance, 9999), COALESCE(o.libelle, sgv.groupe_uid)
 			&groupVote.Abstentions,
 			&groupVote.NonVotantsVolontaires,
 		); err != nil {
-			return components.ScrutinDetailPage{}, fmt.Errorf("scan scrutin group vote: %w", err)
+			return ScrutinDetailPage{}, fmt.Errorf("scan scrutin group vote: %w", err)
 		}
 		page.GroupVotes = append(page.GroupVotes, groupVote)
 	}
 	if err := rows.Err(); err != nil {
-		return components.ScrutinDetailPage{}, fmt.Errorf("iterate scrutin group votes: %w", err)
+		return ScrutinDetailPage{}, fmt.Errorf("iterate scrutin group votes: %w", err)
 	}
 
 	return page, nil

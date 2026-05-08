@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-
-	"gouv.viz/web/components"
 )
 
 const ScrutinsPerPage = 25
@@ -27,7 +25,7 @@ var scrutinSortDefinitions = []scrutinSortDefinition{
 	{value: "contre_desc", label: "Plus de contre", orderBy: "COALESCE(s.contre, 0) DESC, s.date_scrutin DESC, s.numero DESC"},
 }
 
-func NormalizeScrutinsQuery(query components.ScrutinsQuery) components.ScrutinsQuery {
+func NormalizeScrutinsQuery(query ScrutinsQuery) ScrutinsQuery {
 	if query.Page < 1 {
 		query.Page = 1
 	}
@@ -41,9 +39,9 @@ func NormalizeScrutinsQuery(query components.ScrutinsQuery) components.ScrutinsQ
 	return query
 }
 
-func (s *Store) ScrutinsPage(ctx context.Context, query components.ScrutinsQuery) (components.ScrutinsPage, error) {
+func (s *Store) ScrutinsPage(ctx context.Context, query ScrutinsQuery) (ScrutinsPage, error) {
 	query = NormalizeScrutinsQuery(query)
-	page := components.ScrutinsPage{
+	page := ScrutinsPage{
 		Query:       query,
 		SortOptions: scrutinSortOptions(),
 	}
@@ -55,7 +53,7 @@ FROM scrutins s
 LEFT JOIN organes o ON o.uid = s.organe_uid
 ` + whereClause
 	if err := s.db.QueryRowContext(ctx, countQuery, whereArgs...).Scan(&page.TotalResults); err != nil {
-		return components.ScrutinsPage{}, fmt.Errorf("count scrutins: %w", err)
+		return ScrutinsPage{}, fmt.Errorf("count scrutins: %w", err)
 	}
 
 	if page.TotalResults > 0 {
@@ -96,12 +94,12 @@ ORDER BY `+sortDefinition.orderBy+`
 LIMIT ? OFFSET ?
 `, rowsArgs...)
 	if err != nil {
-		return components.ScrutinsPage{}, fmt.Errorf("query scrutins: %w", err)
+		return ScrutinsPage{}, fmt.Errorf("query scrutins: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var scrutin components.ScrutinListItem
+		var scrutin ScrutinListItem
 		if err := rows.Scan(
 			&scrutin.UID,
 			&scrutin.Numero,
@@ -115,21 +113,21 @@ LIMIT ? OFFSET ?
 			&scrutin.Abstentions,
 			&scrutin.NombreVotants,
 		); err != nil {
-			return components.ScrutinsPage{}, fmt.Errorf("scan scrutin: %w", err)
+			return ScrutinsPage{}, fmt.Errorf("scan scrutin: %w", err)
 		}
 		page.Scrutins = append(page.Scrutins, scrutin)
 	}
 	if err := rows.Err(); err != nil {
-		return components.ScrutinsPage{}, fmt.Errorf("iterate scrutins: %w", err)
+		return ScrutinsPage{}, fmt.Errorf("iterate scrutins: %w", err)
 	}
 
 	return page, nil
 }
 
-func scrutinSortOptions() []components.ScrutinSortOption {
-	options := make([]components.ScrutinSortOption, 0, len(scrutinSortDefinitions))
+func scrutinSortOptions() []ScrutinSortOption {
+	options := make([]ScrutinSortOption, 0, len(scrutinSortDefinitions))
 	for _, definition := range scrutinSortDefinitions {
-		options = append(options, components.ScrutinSortOption{
+		options = append(options, ScrutinSortOption{
 			Value: definition.value,
 			Label: definition.label,
 		})
