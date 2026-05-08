@@ -8,10 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"gouv.viz/internal/dbschema"
+
 	_ "modernc.org/sqlite"
 )
 
-const schemaVersion = "1"
+const schemaVersion = dbschema.Version
 
 type stats struct {
 	Organes            int
@@ -111,6 +113,9 @@ func buildDatabase(rawDir, outPath string) (stats, error) {
 	}
 	committed = true
 
+	if err := validateDatabase(db); err != nil {
+		return result, err
+	}
 	if _, err := db.Exec("PRAGMA optimize"); err != nil {
 		return result, fmt.Errorf("optimize sqlite database: %w", err)
 	}

@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"gouv.viz/internal/dbschema"
 )
 
-const expectedSchemaVersion = "1"
+const expectedSchemaVersion = dbschema.Version
 
 var requiredTables = []string{
 	"dataset_meta",
@@ -20,6 +22,7 @@ var requiredTables = []string{
 	"votes",
 	"acteur_vote_stats",
 	"groupe_vote_stats",
+	"scrutin_search",
 }
 
 func (s *Store) Validate(ctx context.Context) error {

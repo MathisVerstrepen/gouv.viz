@@ -30,27 +30,27 @@ func TestHomePageHandlesEmptyDatabase(t *testing.T) {
 	}
 }
 
-func TestScrutinsPageEscapesLikeWildcards(t *testing.T) {
+func TestScrutinsPageSearchesFTSTokens(t *testing.T) {
 	s := newTestStore(t)
 	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
 	insertScrutin(t, s.db, testScrutin{UID: "plain", Numero: 1, Date: "2024-01-01", Titre: "Budget ordinaire", OrganeUID: "ORG1"})
 	insertScrutin(t, s.db, testScrutin{UID: "percent", Numero: 2, Date: "2024-01-02", Titre: "Budget 100% public", OrganeUID: "ORG1"})
 	insertScrutin(t, s.db, testScrutin{UID: "underscore", Numero: 3, Date: "2024-01-03", Titre: "Article A_B", OrganeUID: "ORG1"})
 
-	percentPage, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Search: "%", Page: 1, PerPage: 25})
+	percentPage, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Search: "100%", Page: 1, PerPage: 25})
 	if err != nil {
-		t.Fatalf("ScrutinsPage(%%) error = %v", err)
+		t.Fatalf("ScrutinsPage(100%%) error = %v", err)
 	}
 	if got := uids(percentPage.Scrutins); len(got) != 1 || got[0] != "percent" {
-		t.Fatalf("search %% returned %v, want [percent]", got)
+		t.Fatalf("search 100%% returned %v, want [percent]", got)
 	}
 
-	underscorePage, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Search: "_", Page: 1, PerPage: 25})
+	underscorePage, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Search: "A_B", Page: 1, PerPage: 25})
 	if err != nil {
-		t.Fatalf("ScrutinsPage(_) error = %v", err)
+		t.Fatalf("ScrutinsPage(A_B) error = %v", err)
 	}
 	if got := uids(underscorePage.Scrutins); len(got) != 1 || got[0] != "underscore" {
-		t.Fatalf("search _ returned %v, want [underscore]", got)
+		t.Fatalf("search A_B returned %v, want [underscore]", got)
 	}
 }
 
@@ -227,6 +227,12 @@ CREATE TABLE scrutin_groupe_votes (
   non_votants_volontaires INTEGER,
   PRIMARY KEY (scrutin_uid, groupe_uid)
 );
+
+CREATE VIRTUAL TABLE scrutin_search USING fts5(
+  uid UNINDEXED,
+  document,
+  tokenize = 'unicode61 remove_diacritics 2'
+);
 `
 
 type testScrutin struct {
@@ -258,6 +264,11 @@ INSERT INTO scrutins (
 `, scrutin.UID, scrutin.Numero, scrutin.OrganeUID, scrutin.Date, scrutin.Titre)
 	if err != nil {
 		t.Fatalf("insert scrutin %s: %v", scrutin.UID, err)
+	}
+
+	_, err = db.Exec(`INSERT INTO scrutin_search (uid, document) VALUES (?, ?)`, scrutin.UID, scrutin.Titre)
+	if err != nil {
+		t.Fatalf("insert scrutin search %s: %v", scrutin.UID, err)
 	}
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -35,9 +36,30 @@ func TestBuildDatabaseImportsFixtureDataset(t *testing.T) {
 	assertScalar(t, db, `SELECT value FROM dataset_meta WHERE key = 'schema_version'`, schemaVersion)
 	assertScalar(t, db, `SELECT libelle_abrege FROM organes WHERE uid = 'PO0'`, "NI")
 	assertScalar(t, db, `SELECT titre FROM scrutins WHERE uid = 'VTANR5L17V1'`, "Projet fixture 100%_public")
+	assertScalar(t, db, `SELECT COUNT(*) FROM scrutin_search WHERE scrutin_search MATCH 'fixture'`, "1")
 	assertScalar(t, db, `SELECT position FROM votes WHERE scrutin_uid = 'VTANR5L17V1' AND acteur_uid = 'PA100001'`, "pour")
 	assertScalar(t, db, `SELECT par_delegation FROM votes WHERE scrutin_uid = 'VTANR5L17V1' AND acteur_uid = 'PA100001'`, "1")
 	assertScalar(t, db, `SELECT total_votes FROM acteur_vote_stats WHERE acteur_uid = 'PA100001' AND legislature = 17`, "1")
+}
+
+func TestValidateDatabaseRejectsForeignKeyViolations(t *testing.T) {
+	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "broken.sqlite"))
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer db.Close()
+
+	if err := createSchema(db); err != nil {
+		t.Fatalf("create schema: %v", err)
+	}
+	if _, err := db.Exec(`INSERT INTO acteur_adresses (uid, acteur_uid) VALUES ('ADDR1', 'missing')`); err != nil {
+		t.Fatalf("insert broken row: %v", err)
+	}
+
+	err = validateDatabase(db)
+	if err == nil || !strings.Contains(err.Error(), "foreign key violation") {
+		t.Fatalf("validateDatabase() error = %v, want foreign key violation", err)
+	}
 }
 
 func assertScalar(t *testing.T, db *sql.DB, query string, want string) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 )
 
@@ -24,6 +25,8 @@ var scrutinSortDefinitions = []scrutinSortDefinition{
 	{value: "pour_desc", label: "Plus de pour", orderBy: "COALESCE(s.pour, 0) DESC, s.date_scrutin DESC, s.numero DESC"},
 	{value: "contre_desc", label: "Plus de contre", orderBy: "COALESCE(s.contre, 0) DESC, s.date_scrutin DESC, s.numero DESC"},
 }
+
+var scrutinSearchTokenRE = regexp.MustCompile(`[\p{L}\p{N}]+`)
 
 func NormalizeScrutinsQuery(query ScrutinsQuery) ScrutinsQuery {
 	if query.Page < 1 {
@@ -149,28 +152,31 @@ func scrutinsSearchClause(search string) (string, []any) {
 		return "", nil
 	}
 
-	pattern := "%" + escapeSQLiteLike(search) + "%"
-	args := make([]any, 0, 9)
-	for range 9 {
-		args = append(args, pattern)
+	ftsQuery := scrutinSearchQuery(search)
+	if ftsQuery == "" {
+		return `
+WHERE 1 = 0
+`, nil
 	}
 
 	return `
-WHERE s.titre LIKE ? ESCAPE '\'
-   OR s.objet_libelle LIKE ? ESCAPE '\'
-   OR s.demandeur_texte LIKE ? ESCAPE '\'
-   OR s.sort_code LIKE ? ESCAPE '\'
-   OR s.sort_libelle LIKE ? ESCAPE '\'
-   OR s.libelle_type_vote LIKE ? ESCAPE '\'
-   OR o.libelle LIKE ? ESCAPE '\'
-   OR o.libelle_abrege LIKE ? ESCAPE '\'
-   OR CAST(s.numero AS TEXT) LIKE ? ESCAPE '\'
-`, args
+WHERE s.uid IN (
+  SELECT uid
+  FROM scrutin_search
+  WHERE scrutin_search MATCH ?
+)
+`, []any{ftsQuery}
 }
 
-func escapeSQLiteLike(value string) string {
-	value = strings.ReplaceAll(value, `\`, `\\`)
-	value = strings.ReplaceAll(value, `%`, `\%`)
-	value = strings.ReplaceAll(value, `_`, `\_`)
-	return value
+func scrutinSearchQuery(search string) string {
+	tokens := scrutinSearchTokenRE.FindAllString(search, -1)
+	parts := make([]string, 0, len(tokens))
+	for _, token := range tokens {
+		token = strings.TrimSpace(token)
+		if token == "" {
+			continue
+		}
+		parts = append(parts, `"`+strings.ReplaceAll(token, `"`, `""`)+`"*`)
+	}
+	return strings.Join(parts, " AND ")
 }

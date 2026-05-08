@@ -106,6 +106,9 @@ INSERT INTO scrutins (
 		if err != nil {
 			t.Fatalf("insert scrutin: %v", err)
 		}
+		if _, err := db.Exec(`INSERT INTO scrutin_search (uid, document) VALUES ('scrutin-1', 'Budget fixture')`); err != nil {
+			t.Fatalf("insert scrutin search: %v", err)
+		}
 	}
 
 	return db
@@ -159,5 +162,11 @@ CREATE TABLE scrutin_groupe_votes (
   abstentions INTEGER,
   non_votants_volontaires INTEGER,
   PRIMARY KEY (scrutin_uid, groupe_uid)
+);
+
+CREATE VIRTUAL TABLE scrutin_search USING fts5(
+  uid UNINDEXED,
+  document,
+  tokenize = 'unicode61 remove_diacritics 2'
 );
 `

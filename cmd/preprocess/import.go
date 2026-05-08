@@ -509,7 +509,10 @@ func insertMetadata(tx *sql.Tx, result stats) error {
 		}
 	}
 
-	return insertDerivedStats(tx)
+	if err := insertDerivedStats(tx); err != nil {
+		return err
+	}
+	return insertScrutinSearch(tx)
 }
 
 func insertDerivedStats(tx *sql.Tx) error {
@@ -546,6 +549,31 @@ WHERE v.groupe_uid IS NOT NULL
 GROUP BY v.groupe_uid, s.legislature
 `); err != nil {
 		return fmt.Errorf("insert group vote stats: %w", err)
+	}
+
+	return nil
+}
+
+func insertScrutinSearch(tx *sql.Tx) error {
+	if _, err := tx.Exec(`
+INSERT INTO scrutin_search (uid, document)
+SELECT
+  s.uid,
+  printf(
+    '%s %s %s %s %s %s %s %s',
+    s.numero,
+    COALESCE(s.titre, ''),
+    COALESCE(s.objet_libelle, ''),
+    COALESCE(s.demandeur_texte, ''),
+    COALESCE(s.sort_code, ''),
+    COALESCE(s.sort_libelle, ''),
+    COALESCE(s.libelle_type_vote, ''),
+    COALESCE(o.libelle_abrege, o.libelle, s.organe_uid, '')
+  )
+FROM scrutins s
+LEFT JOIN organes o ON o.uid = s.organe_uid
+`); err != nil {
+		return fmt.Errorf("insert scrutin search index: %w", err)
 	}
 
 	return nil
