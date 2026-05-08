@@ -1,0 +1,235 @@
+package components
+
+import (
+	"net/url"
+	"strconv"
+	"strings"
+)
+
+type ScrutinsQuery struct {
+	Search  string
+	Sort    string
+	Page    int
+	PerPage int
+}
+
+type ScrutinSortOption struct {
+	Value string
+	Label string
+}
+
+type ScrutinsPage struct {
+	Query        ScrutinsQuery
+	SortOptions  []ScrutinSortOption
+	Scrutins     []ScrutinListItem
+	TotalResults int
+	TotalPages   int
+	StartItem    int
+	EndItem      int
+}
+
+templ Scrutins(page ScrutinsPage) {
+	<div class="page-shell">
+		@SiteHeader("scrutins")
+
+		<main id="contenu" class="page-main">
+			<section class="section page-heading">
+				<div class="fr-container">
+					<p class="eyebrow">Exploration</p>
+					<h1>Tous les scrutins publics</h1>
+					<p class="lead">
+						Recherchez dans les titres, objets, demandeurs, resultats et organes, puis parcourez les scrutins avec tri et pagination.
+					</p>
+				</div>
+			</section>
+
+			<section class="section section--muted">
+				<div class="fr-container">
+					<form class="scrutin-toolbar" method="get" action="/scrutins" role="search">
+						<label class="field field--search" for="q">
+							<span>Recherche</span>
+							<input id="q" name="q" type="search" value={ page.Query.Search } placeholder="Ex. budget, motion, rejet, Assemblee"/>
+						</label>
+						<input type="hidden" name="sort" value={ page.Query.Sort }/>
+						<div class="scrutin-toolbar__actions">
+							<button class="button" type="submit">Rechercher</button>
+							if page.Query.Search != "" {
+								<a class="button button--secondary" href={ clearScrutinSearchURL(page.Query) }>Effacer</a>
+							}
+						</div>
+					</form>
+
+					<div class="sort-panel" aria-label="Options de tri">
+						<span>Trier par</span>
+						<div class="sort-panel__links">
+							for _, option := range page.SortOptions {
+								<a class={ sortLinkClass(option.Value == page.Query.Sort) } href={ scrutinListURL(page.Query, 1, option.Value) }>{ option.Label }</a>
+							}
+						</div>
+					</div>
+
+					<div class="list-status" aria-live="polite">
+						<p>{ resultSummary(page) }</p>
+						<p>Tri actuel : { currentSortLabel(page) }.</p>
+					</div>
+
+					if len(page.Scrutins) == 0 {
+						<p class="empty-state">Aucun scrutin ne correspond aux criteres. Modifiez la recherche ou relancez <code>make preprocess</code> si la base est vide.</p>
+					} else {
+						<div class="scrutin-list" aria-label="Liste paginee des scrutins publics">
+							for _, scrutin := range page.Scrutins {
+								<article class="scrutin-card">
+									<div class="scrutin-card__meta">
+										<span>Scrutin n{ strconv.Itoa(scrutin.Numero) }</span>
+										<span>{ formatDate(scrutin.Date) }</span>
+										if scrutin.Organe != "" {
+											<span>{ scrutin.Organe }</span>
+										}
+									</div>
+									<div class="scrutin-card__body">
+										<h2>{ scrutin.Titre }</h2>
+										<p>{ scrutin.TypeVote }</p>
+									</div>
+									<div class="scrutin-card__result" aria-label="Resultat du scrutin">
+										<span class="result-chip">{ scrutin.SortCode }</span>
+										<dl class="vote-counts">
+											<div>
+												<dt>Pour</dt>
+												<dd>{ strconv.Itoa(scrutin.Pour) }</dd>
+											</div>
+											<div>
+												<dt>Contre</dt>
+												<dd>{ strconv.Itoa(scrutin.Contre) }</dd>
+											</div>
+											<div>
+												<dt>Abst.</dt>
+												<dd>{ strconv.Itoa(scrutin.Abstentions) }</dd>
+											</div>
+											<div>
+												<dt>Votants</dt>
+												<dd>{ strconv.Itoa(scrutin.NombreVotants) }</dd>
+											</div>
+										</dl>
+									</div>
+								</article>
+							}
+						</div>
+
+						@Pagination(page)
+					}
+				</div>
+			</section>
+		</main>
+
+		@SiteFooter()
+	</div>
+}
+
+templ Pagination(page ScrutinsPage) {
+	<nav class="pagination" aria-label="Pagination des scrutins">
+		if page.Query.Page > 1 {
+			<a class="pagination__link" href={ scrutinListURL(page.Query, page.Query.Page - 1, page.Query.Sort) }>Precedent</a>
+		} else {
+			<span class="pagination__link pagination__link--disabled">Precedent</span>
+		}
+
+		<div class="pagination__pages">
+			for _, pageNumber := range paginationPages(page.Query.Page, page.TotalPages) {
+				if pageNumber == 0 {
+					<span class="pagination__ellipsis" aria-hidden="true">...</span>
+				} else if pageNumber == page.Query.Page {
+					<span class="pagination__link pagination__link--current" aria-current="page">{ strconv.Itoa(pageNumber) }</span>
+				} else {
+					<a class="pagination__link" href={ scrutinListURL(page.Query, pageNumber, page.Query.Sort) }>{ strconv.Itoa(pageNumber) }</a>
+				}
+			}
+		</div>
+
+		if page.Query.Page < page.TotalPages {
+			<a class="pagination__link" href={ scrutinListURL(page.Query, page.Query.Page + 1, page.Query.Sort) }>Suivant</a>
+		} else {
+			<span class="pagination__link pagination__link--disabled">Suivant</span>
+		}
+	</nav>
+}
+
+func scrutinListURL(query ScrutinsQuery, page int, sort string) string {
+	values := url.Values{}
+	if strings.TrimSpace(query.Search) != "" {
+		values.Set("q", query.Search)
+	}
+	if sort != "" && sort != "date_desc" {
+		values.Set("sort", sort)
+	}
+	if page > 1 {
+		values.Set("page", strconv.Itoa(page))
+	}
+	encoded := values.Encode()
+	if encoded == "" {
+		return "/scrutins"
+	}
+	return "/scrutins?" + encoded
+}
+
+func clearScrutinSearchURL(query ScrutinsQuery) string {
+	query.Search = ""
+	return scrutinListURL(query, 1, query.Sort)
+}
+
+func sortLinkClass(active bool) string {
+	if active {
+		return "sort-link sort-link--active"
+	}
+	return "sort-link"
+}
+
+func resultSummary(page ScrutinsPage) string {
+	if page.TotalResults == 0 {
+		return "0 scrutin trouve."
+	}
+	return strconv.Itoa(page.StartItem) + "-" + strconv.Itoa(page.EndItem) + " sur " + strconv.Itoa(page.TotalResults) + " scrutins."
+}
+
+func currentSortLabel(page ScrutinsPage) string {
+	for _, option := range page.SortOptions {
+		if option.Value == page.Query.Sort {
+			return option.Label
+		}
+	}
+	return page.Query.Sort
+}
+
+func paginationPages(current int, total int) []int {
+	if total <= 1 {
+		return []int{1}
+	}
+	if total <= 7 {
+		pages := make([]int, 0, total)
+		for page := 1; page <= total; page++ {
+			pages = append(pages, page)
+		}
+		return pages
+	}
+
+	start := current - 2
+	if start < 2 {
+		start = 2
+	}
+	end := current + 2
+	if end > total-1 {
+		end = total - 1
+	}
+
+	pages := []int{1}
+	if start > 2 {
+		pages = append(pages, 0)
+	}
+	for page := start; page <= end; page++ {
+		pages = append(pages, page)
+	}
+	if end < total-1 {
+		pages = append(pages, 0)
+	}
+	pages = append(pages, total)
+	return pages
+}

@@ -36,18 +36,7 @@ func formatDate(value string) string {
 
 templ Home(page HomePage) {
 	<div class="page-shell">
-		<header class="site-header">
-			<div class="fr-container site-header__inner">
-				<a class="brand-block" href="/" aria-label="Accueil - gouv.viz">
-					<span>Republique</span>
-					<span>Francaise</span>
-				</a>
-				<div class="service-title" aria-label="Service">
-					<p class="service-title__name">gouv.viz</p>
-					<p class="service-title__tagline">Scrutins publics de l'Assemblee nationale</p>
-				</div>
-			</div>
-		</header>
+		@SiteHeader("home")
 
 		<main id="contenu" class="page-main">
 			<section class="hero section">
@@ -59,7 +48,8 @@ templ Home(page HomePage) {
 							Explorez les votes publics de l'Assemblee nationale importes depuis les fichiers ouverts et consolides dans la base locale.
 						</p>
 						<div class="hero__actions" aria-label="Actions principales">
-							<a class="button" href="#scrutins">Voir les scrutins</a>
+							<a class="button" href="/scrutins">Explorer tous les scrutins</a>
+							<a class="button button--secondary" href="#scrutins">Voir les derniers</a>
 							<a class="button button--secondary" href="/ping">Verifier le service</a>
 						</div>
 					</div>
@@ -94,7 +84,7 @@ templ Home(page HomePage) {
 						<p class="eyebrow">Scrutins recents</p>
 						<h2>Les 50 derniers votes publics</h2>
 						<p>
-							Liste triee par date de scrutin decroissante, avec resultat et decompte principal.
+							Liste triee par date de scrutin decroissante, avec resultat et decompte principal. <a href="/scrutins">Ouvrir l'exploration complete</a>.
 						</p>
 					</div>
 
@@ -144,11 +134,6 @@ templ Home(page HomePage) {
 			</section>
 		</main>
 
-		<footer class="site-footer">
-			<div class="fr-container site-footer__inner">
-				<p>gouv.viz</p>
-				<p>Visualisation statique des scrutins publics.</p>
-			</div>
-		</footer>
+		@SiteFooter()
 	</div>
 }

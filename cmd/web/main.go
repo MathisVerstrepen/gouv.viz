@@ -21,6 +21,7 @@ func main() {
 	e.Static("/assets", os.Getenv("ASSETS_PATH"))
 
 	e.GET("/", handlers.Home)
+	e.GET("/scrutins", handlers.Scrutins)
 	e.GET("/ping", handlers.Ping)
 
 	if os.Getenv("ENV") != "prod" {
