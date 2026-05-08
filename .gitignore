@@ -1,0 +1,12 @@
+.env
+tmp/
+bin/
+dist/
+vendor/
+node_modules/
+build-errors.log
+web/assets/css/output.css
+data/raw/scrutins-publics/*
+!data/raw/scrutins-publics/.gitkeep
+data/processed/*
+!data/processed/.gitkeep

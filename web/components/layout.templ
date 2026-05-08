@@ -1,0 +1,44 @@
+package components
+
+import "os"
+
+func environment() string {
+	return os.Getenv("ENV")
+}
+
+templ layout(content templ.Component, title string) {
+	<!DOCTYPE html>
+	<html lang="fr">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="description" content="Visualisation des scrutins publics de l'Assemblee nationale"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/assets/css/main.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.10" defer></script>
+			if environment() != "prod" {
+				<script>
+					const socket = new WebSocket(`ws://${window.location.hostname}:9456/ws`);
+					window.addEventListener("beforeunload", () => socket.close());
+					socket.addEventListener("close", (event) => {
+						if (event.code === 1000) return;
+						const interval = setInterval(() => {
+							fetch("/ping").then((response) => {
+								if (!response.ok) return;
+								clearInterval(interval);
+								setTimeout(() => window.location.reload(), 100);
+							});
+						}, 200);
+					});
+				</script>
+			}
+		</head>
+		<body>
+			@content
+		</body>
+	</html>
+}
+
+templ Root(content templ.Component, title string) {
+	@layout(content, title)
+}

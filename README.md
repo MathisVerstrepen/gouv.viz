@@ -1,0 +1,30 @@
+# gouv.viz
+
+Static-first website scaffold for visualizing statistics from French Assemblee nationale public votes.
+
+## Stack
+
+- Go HTTP server
+- templ for server-rendered components
+- htmx for progressive interactions
+- Static assets served from `web/assets/`
+
+## Structure
+
+- `cmd/web/`: website server entrypoint
+- `cmd/preprocess/`: future preprocessing command for raw public-vote JSON
+- `web/handlers/`: HTTP handlers and render helpers
+- `web/components/`: templ components
+- `web/assets/`: CSS, JavaScript, images, and vendored static files
+- `internal/assemblee/`: future data loading, parsing, and normalization code
+- `internal/charts/`: future graph preparation code
+- `data/raw/scrutins-publics/`: local raw JSON dataset, ignored by Git
+- `data/processed/`: generated/preprocessed outputs, ignored by Git
+- `data/fixtures/`: small sample data safe to commit
+
+## Development
+
+1. Copy `.env.example` to `.env` if you want local overrides.
+2. Install `templ`: `go install github.com/a-h/templ/cmd/templ@latest`.
+3. Run `make generate` before building, or `make dev` with Air installed.
+4. Put large raw Scrutins publics JSON files in `data/raw/scrutins-publics/`.
