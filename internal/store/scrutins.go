@@ -42,10 +42,15 @@ func NormalizeScrutinsQuery(query ScrutinsQuery) ScrutinsQuery {
 	return query
 }
 
+func DefaultScrutinsSort() string {
+	return scrutinSortDefinitions[0].value
+}
+
 func (s *Store) ScrutinsPage(ctx context.Context, query ScrutinsQuery) (ScrutinsPage, error) {
 	query = NormalizeScrutinsQuery(query)
 	page := ScrutinsPage{
 		Query:       query,
+		DefaultSort: DefaultScrutinsSort(),
 		SortOptions: scrutinSortOptions(),
 	}
 

@@ -14,11 +14,14 @@ func TestFormatDate(t *testing.T) {
 func TestScrutinListURL(t *testing.T) {
 	query := ScrutinsQuery{Search: " budget public ", Sort: "date_desc", Page: 3, PerPage: 25}
 
-	if got := scrutinListURL(query, 1, "date_desc"); got != "/scrutins?q=+budget+public+" {
+	if got := scrutinListURL(query, "date_desc", 1, "date_desc"); got != "/scrutins?q=+budget+public+" {
 		t.Fatalf("scrutinListURL(default sort) = %q", got)
 	}
-	if got := scrutinListURL(query, 2, "numero_asc"); got != "/scrutins?page=2&q=+budget+public+&sort=numero_asc" {
+	if got := scrutinListURL(query, "date_desc", 2, "numero_asc"); got != "/scrutins?page=2&q=+budget+public+&sort=numero_asc" {
 		t.Fatalf("scrutinListURL(custom sort) = %q", got)
+	}
+	if got := scrutinListURL(query, "numero_asc", 1, "date_desc"); got != "/scrutins?q=+budget+public+&sort=date_desc" {
+		t.Fatalf("scrutinListURL(non-hardcoded default) = %q", got)
 	}
 }
 

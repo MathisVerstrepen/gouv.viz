@@ -20,6 +20,7 @@ type ScrutinSortOption struct {
 
 type ScrutinsPage struct {
 	Query        ScrutinsQuery
+	DefaultSort  string
 	SortOptions  []ScrutinSortOption
 	Scrutins     []ScrutinListItem
 	TotalResults int
@@ -65,7 +66,7 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 			<div class="scrutin-toolbar__actions">
 				<button class="button" type="submit">Rechercher</button>
 				if page.Query.Search != "" {
-					<a class="button button--secondary" href={ clearScrutinSearchURL(page.Query) } hx-get={ clearScrutinSearchURL(page.Query) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Effacer</a>
+					<a class="button button--secondary" href={ clearScrutinSearchURL(page.Query, page.DefaultSort) } hx-get={ clearScrutinSearchURL(page.Query, page.DefaultSort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Effacer</a>
 				}
 			</div>
 		</form>
@@ -74,7 +75,7 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 			<span>Trier par</span>
 			<div class="sort-panel__links">
 				for _, option := range page.SortOptions {
-					<a class={ sortLinkClass(option.Value == page.Query.Sort) } href={ scrutinListURL(page.Query, 1, option.Value) } hx-get={ scrutinListURL(page.Query, 1, option.Value) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">{ option.Label }</a>
+					<a class={ sortLinkClass(option.Value == page.Query.Sort) } href={ scrutinListURL(page.Query, page.DefaultSort, 1, option.Value) } hx-get={ scrutinListURL(page.Query, page.DefaultSort, 1, option.Value) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">{ option.Label }</a>
 				}
 			</div>
 		</div>
@@ -134,7 +135,7 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 templ Pagination(page ScrutinsPage) {
 	<nav class="pagination" aria-label="Pagination des scrutins">
 		if page.Query.Page > 1 {
-			<a class="pagination__link" href={ scrutinListURL(page.Query, page.Query.Page - 1, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, page.Query.Page - 1, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Precedent</a>
+			<a class="pagination__link" href={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page - 1, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page - 1, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Precedent</a>
 		} else {
 			<span class="pagination__link pagination__link--disabled">Precedent</span>
 		}
@@ -146,25 +147,25 @@ templ Pagination(page ScrutinsPage) {
 				} else if pageNumber == page.Query.Page {
 					<span class="pagination__link pagination__link--current" aria-current="page">{ strconv.Itoa(pageNumber) }</span>
 				} else {
-					<a class="pagination__link" href={ scrutinListURL(page.Query, pageNumber, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, pageNumber, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">{ strconv.Itoa(pageNumber) }</a>
+					<a class="pagination__link" href={ scrutinListURL(page.Query, page.DefaultSort, pageNumber, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, page.DefaultSort, pageNumber, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">{ strconv.Itoa(pageNumber) }</a>
 				}
 			}
 		</div>
 
 		if page.Query.Page < page.TotalPages {
-			<a class="pagination__link" href={ scrutinListURL(page.Query, page.Query.Page + 1, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, page.Query.Page + 1, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Suivant</a>
+			<a class="pagination__link" href={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page + 1, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page + 1, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Suivant</a>
 		} else {
 			<span class="pagination__link pagination__link--disabled">Suivant</span>
 		}
 	</nav>
 }
 
-func scrutinListURL(query ScrutinsQuery, page int, sort string) string {
+func scrutinListURL(query ScrutinsQuery, defaultSort string, page int, sort string) string {
 	values := url.Values{}
 	if strings.TrimSpace(query.Search) != "" {
 		values.Set("q", query.Search)
 	}
-	if sort != "" && sort != "date_desc" {
+	if sort != "" && sort != defaultSort {
 		values.Set("sort", sort)
 	}
 	if page > 1 {
@@ -177,9 +178,9 @@ func scrutinListURL(query ScrutinsQuery, page int, sort string) string {
 	return "/scrutins?" + encoded
 }
 
-func clearScrutinSearchURL(query ScrutinsQuery) string {
+func clearScrutinSearchURL(query ScrutinsQuery, defaultSort string) string {
 	query.Search = ""
-	return scrutinListURL(query, 1, query.Sort)
+	return scrutinListURL(query, defaultSort, 1, query.Sort)
 }
 
 func sortLinkClass(active bool) string {

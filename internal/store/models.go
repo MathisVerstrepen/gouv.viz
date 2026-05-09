@@ -35,6 +35,7 @@ type ScrutinSortOption struct {
 
 type ScrutinsPage struct {
 	Query        ScrutinsQuery
+	DefaultSort  string
 	SortOptions  []ScrutinSortOption
 	Scrutins     []ScrutinListItem
 	TotalResults int

@@ -22,6 +22,7 @@ func scrutinsView(page store.ScrutinsPage) components.ScrutinsPage {
 			Page:    page.Query.Page,
 			PerPage: page.Query.PerPage,
 		},
+		DefaultSort:  page.DefaultSort,
 		SortOptions:  scrutinSortOptionViews(page.SortOptions),
 		Scrutins:     scrutinListItemViews(page.Scrutins),
 		TotalResults: page.TotalResults,
