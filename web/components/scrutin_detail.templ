@@ -254,9 +254,13 @@ templ GroupVoteStackedChart(groupVotes []ScrutinGroupVote) {
 					for _, groupVote := range sortedGroupVotesForChart(groupVotes) {
 						<div class="group-vote-chart__group">
 							<span class="group-vote-chart__voters" title={ groupVote.Groupe + " : " + strconv.Itoa(groupVoteTotal(groupVote)) + " votants" }>{ strconv.Itoa(groupVoteTotal(groupVote)) }</span>
-							<div class="group-vote-chart__bar" role="img" aria-label={ voteBreakdownLabel(groupVote.Groupe, groupVoteSegments(groupVote), groupVoteTotal(groupVote)) }>
-								for _, cell := range groupVoteChartCells(groupVote) {
-									<span class={ "vote-cell " + cell.Class } title={ cell.Title } aria-hidden="true"></span>
+							<div class={ groupVoteChartBarClass(groupVote) } role="img" aria-label={ groupVoteStackedLabel(groupVote) }>
+								if groupVoteTotal(groupVote) == 0 {
+									<span class="group-vote-chart__empty" title={ groupVoteStackedLabel(groupVote) } aria-hidden="true">-</span>
+								} else {
+									for _, cell := range groupVoteChartCells(groupVote) {
+										<span class={ "vote-cell " + cell.Class } title={ cell.Title } aria-hidden="true"></span>
+									}
 								}
 							</div>
 							<span class="group-vote-chart__label" title={ groupVote.Groupe }>{ groupVote.Groupe }</span>
@@ -278,12 +282,21 @@ templ GroupPourDeviationChart(scrutin ScrutinDetailData, groupVotes []ScrutinGro
 			for _, groupVote := range sortedGroupVotesForChart(groupVotes) {
 				<div class="group-deviation-chart__row">
 					<span class="group-deviation-chart__group" title={ groupVote.Groupe }>{ groupVote.Groupe }</span>
-					<div class="group-deviation-chart__track" role="img" aria-label={ groupPourDeviationLabel(scrutin, groupVote) }>
-						for index := range groupDeviationCellCount {
-							<span class={ groupDeviationCellClass(index, groupPourDeviation(scrutin, groupVote)) } title={ groupPourDeviationLabel(scrutin, groupVote) } aria-hidden="true"></span>
-						}
-					</div>
-					<span class={ groupDeviationValueClass(groupPourDeviation(scrutin, groupVote)) }>{ signedPercentPoints(groupPourDeviation(scrutin, groupVote)) }</span>
+					if groupPourDeviationAvailable(scrutin, groupVote) {
+						<div class="group-deviation-chart__track" role="img" aria-label={ groupPourDeviationLabel(scrutin, groupVote) }>
+							for index := range groupDeviationCellCount {
+								<span class={ groupDeviationCellClass(index, groupPourDeviation(scrutin, groupVote)) } title={ groupPourDeviationLabel(scrutin, groupVote) } aria-hidden="true"></span>
+							}
+						</div>
+						<span class={ groupDeviationValueClass(groupPourDeviation(scrutin, groupVote)) }>{ signedPercentPoints(groupPourDeviation(scrutin, groupVote)) }</span>
+					} else {
+						<div class="group-deviation-chart__track group-deviation-chart__track--empty" role="img" aria-label={ groupPourDeviationUnavailableLabel(scrutin, groupVote) }>
+							for index := range groupDeviationCellCount {
+								<span class={ groupDeviationEmptyCellClass(index) } title={ groupPourDeviationUnavailableLabel(scrutin, groupVote) } aria-hidden="true"></span>
+							}
+						</div>
+						<span class={ groupPourDeviationUnavailableValueClass(groupVote) }>{ groupPourDeviationUnavailableValue(groupVote) }</span>
+					}
 				</div>
 			}
 		</div>
@@ -387,6 +400,20 @@ func groupVoteTotal(groupVote ScrutinGroupVote) int {
 	return groupVote.Pour + groupVote.Contre + groupVote.Abstentions
 }
 
+func groupVoteChartBarClass(groupVote ScrutinGroupVote) string {
+	if groupVoteTotal(groupVote) == 0 {
+		return "group-vote-chart__bar group-vote-chart__bar--empty"
+	}
+	return "group-vote-chart__bar"
+}
+
+func groupVoteStackedLabel(groupVote ScrutinGroupVote) string {
+	if groupVoteTotal(groupVote) == 0 {
+		return groupVote.Groupe + " : aucun vote exprime"
+	}
+	return voteBreakdownLabel(groupVote.Groupe, groupVoteSegments(groupVote), groupVoteTotal(groupVote))
+}
+
 func groupVoteChartCells(groupVote ScrutinGroupVote) []VoteCell {
 	cells := voteBreakdownCells(groupVoteSegments(groupVote), groupVoteTotal(groupVote))
 	for index, cell := range cells {
@@ -412,8 +439,43 @@ func groupPourDeviation(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) f
 	return voteRatio(groupVote.Pour, groupVoteTotal(groupVote)) - voteRatio(scrutin.Pour, votersTotal(scrutin))
 }
 
+func groupPourDeviationAvailable(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) bool {
+	return votersTotal(scrutin) > 0 && groupVoteTotal(groupVote) > 0 && !groupVoteOnlyAbstentions(groupVote)
+}
+
 func groupPourDeviationLabel(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) string {
 	return groupVote.Groupe + " : " + votePercent(groupVote.Pour, groupVoteTotal(groupVote)) + " de Pour, " + signedPercentPoints(groupPourDeviation(scrutin, groupVote)) + " par rapport a l'hemicycle"
+}
+
+func groupPourDeviationUnavailableLabel(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) string {
+	if groupVoteTotal(groupVote) == 0 {
+		return groupVote.Groupe + " : aucun vote exprime, ecart non calcule"
+	}
+	if groupVoteOnlyAbstentions(groupVote) {
+		return groupVote.Groupe + " : abstentions uniquement, ecart au vote Pour non represente"
+	}
+	if votersTotal(scrutin) == 0 {
+		return groupVote.Groupe + " : reference hemicycle indisponible, ecart non calcule"
+	}
+	return groupVote.Groupe + " : ecart non calcule"
+}
+
+func groupPourDeviationUnavailableValue(groupVote ScrutinGroupVote) string {
+	if groupVoteOnlyAbstentions(groupVote) {
+		return "Abst. seule"
+	}
+	return "-"
+}
+
+func groupPourDeviationUnavailableValueClass(groupVote ScrutinGroupVote) string {
+	if groupVoteOnlyAbstentions(groupVote) {
+		return "group-deviation-chart__value group-deviation-chart__value--abstention"
+	}
+	return "group-deviation-chart__value group-deviation-chart__value--empty"
+}
+
+func groupVoteOnlyAbstentions(groupVote ScrutinGroupVote) bool {
+	return groupVote.Abstentions > 0 && groupVote.Pour == 0 && groupVote.Contre == 0
 }
 
 func groupDeviationValueClass(deviation float64) string {
@@ -442,6 +504,14 @@ func groupDeviationCellClass(index int, deviation float64) string {
 		return class + " group-deviation-cell--negative"
 	}
 	return class
+}
+
+func groupDeviationEmptyCellClass(index int) string {
+	const centerIndex = groupDeviationCellCount / 2
+	if index == centerIndex {
+		return "group-deviation-cell group-deviation-cell--center"
+	}
+	return "group-deviation-cell group-deviation-cell--empty"
 }
 
 func signedPercentPoints(value float64) string {
