@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -21,10 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	e := newEcho()
 
 	e.Static("/assets", cfg.AssetsPath)
 
@@ -52,5 +50,32 @@ func main() {
 		e.GET("/ws", handlers.HotReloadWS)
 	}
 
-	e.Logger.Fatal(e.Start(cfg.Addr()))
+	e.Logger.Fatal(e.StartServer(newHTTPServer(cfg.Addr())))
+}
+
+func newEcho() *echo.Echo {
+	e := echo.New()
+	e.Use(middleware.RequestID())
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+		XFrameOptions:         "DENY",
+		ContentTypeNosniff:    "nosniff",
+		HSTSMaxAge:            31536000,
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+		ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+	}))
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	e.HTTPErrorHandler = handlers.NewHTTPErrorHandler(e)
+	return e
+}
+
+func newHTTPServer(addr string) *http.Server {
+	return &http.Server{
+		Addr:              addr,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
 }

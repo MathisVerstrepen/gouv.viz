@@ -101,6 +101,23 @@ func TestScrutinDetailHandlerReturns404ForMissing(t *testing.T) {
 	}
 }
 
+func TestHTTPErrorHandlerRendersCustomPage(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/missing", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	NewHTTPErrorHandler(e)(echo.NewHTTPError(http.StatusNotFound), ctx)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Erreur 404") || !strings.Contains(body, "La page demandee est introuvable.") {
+		t.Fatalf("response body does not contain custom error content: %s", body)
+	}
+}
+
 func newHandlerTestDB(t *testing.T, withScrutin bool) *sql.DB {
 	t.Helper()
 
