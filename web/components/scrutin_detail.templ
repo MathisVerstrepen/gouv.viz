@@ -252,8 +252,8 @@ templ GroupVoteStackedChart(groupVotes []ScrutinGroupVote) {
 					for _, groupVote := range sortedGroupVotesForChart(groupVotes) {
 						<div class="group-vote-chart__group">
 							<div class="group-vote-chart__bar" role="img" aria-label={ voteBreakdownLabel(groupVote.Groupe, groupVoteSegments(groupVote), groupVoteTotal(groupVote)) }>
-								for _, cell := range voteBreakdownCells(groupVoteSegments(groupVote), groupVoteTotal(groupVote)) {
-									<span class={ "vote-cell " + cell.Class } aria-hidden="true"></span>
+								for _, cell := range groupVoteChartCells(groupVote) {
+									<span class={ "vote-cell " + cell.Class } title={ cell.Title } aria-hidden="true"></span>
 								}
 							</div>
 							<span class="group-vote-chart__label" title={ groupVote.Groupe }>{ groupVote.Groupe }</span>
@@ -299,6 +299,7 @@ templ GroupVoteTable(groupVotes []ScrutinGroupVote) {
 type VoteCell struct {
 	Label string
 	Class string
+	Title string
 }
 
 templ DetailRow(label string, value string) {
@@ -354,6 +355,27 @@ func groupVoteSegments(groupVote ScrutinGroupVote) []VoteSegment {
 
 func groupVoteTotal(groupVote ScrutinGroupVote) int {
 	return groupVote.Pour + groupVote.Contre + groupVote.Abstentions
+}
+
+func groupVoteChartCells(groupVote ScrutinGroupVote) []VoteCell {
+	cells := voteBreakdownCells(groupVoteSegments(groupVote), groupVoteTotal(groupVote))
+	for index, cell := range cells {
+		cells[index].Title = groupVoteSegmentTitle(groupVote, cell.Label)
+	}
+	return cells
+}
+
+func groupVoteSegmentTitle(groupVote ScrutinGroupVote, label string) string {
+	count := 0
+	switch label {
+	case "Pour":
+		count = groupVote.Pour
+	case "Abstentions":
+		count = groupVote.Abstentions
+	case "Contre":
+		count = groupVote.Contre
+	}
+	return groupVote.Groupe + " - " + label + " : " + strconv.Itoa(count) + " voix (" + votePercent(count, groupVoteTotal(groupVote)) + ")"
 }
 
 func sortedGroupVotesForChart(groupVotes []ScrutinGroupVote) []ScrutinGroupVote {
