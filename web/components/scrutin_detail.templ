@@ -251,6 +251,7 @@ templ GroupVoteStackedChart(groupVotes []ScrutinGroupVote) {
 				<div class="group-vote-chart__bars">
 					for _, groupVote := range sortedGroupVotesForChart(groupVotes) {
 						<div class="group-vote-chart__group">
+							<span class="group-vote-chart__voters" title={ groupVote.Groupe + " : " + strconv.Itoa(groupVoteTotal(groupVote)) + " votants" }>{ strconv.Itoa(groupVoteTotal(groupVote)) }</span>
 							<div class="group-vote-chart__bar" role="img" aria-label={ voteBreakdownLabel(groupVote.Groupe, groupVoteSegments(groupVote), groupVoteTotal(groupVote)) }>
 								for _, cell := range groupVoteChartCells(groupVote) {
 									<span class={ "vote-cell " + cell.Class } title={ cell.Title } aria-hidden="true"></span>
