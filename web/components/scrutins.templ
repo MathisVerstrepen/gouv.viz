@@ -90,47 +90,51 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 		} else {
 			<div class="scrutin-list" aria-label="Liste paginee des scrutins publics">
 				for _, scrutin := range page.Scrutins {
-					<article class="scrutin-card">
-						<div class="scrutin-card__meta">
-							<span>Scrutin n{ strconv.Itoa(scrutin.Numero) }</span>
-							<span>{ formatDate(scrutin.Date) }</span>
-							if scrutin.Organe != "" {
-								<span>{ scrutin.Organe }</span>
-							}
-						</div>
-						<div class="scrutin-card__body">
-							<h2><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ scrutin.Titre }</a></h2>
-							<p>{ scrutin.TypeVote }</p>
-						</div>
-						<div class="scrutin-card__result" aria-label="Resultat du scrutin">
-							<span class="result-chip">{ scrutin.SortCode }</span>
-							<dl class="vote-counts">
-								<div class="vote-count--pour">
-									<dt>Pour</dt>
-									<dd>{ strconv.Itoa(scrutin.Pour) }</dd>
-								</div>
-								<div class="vote-count--contre">
-									<dt>Contre</dt>
-									<dd>{ strconv.Itoa(scrutin.Contre) }</dd>
-								</div>
-								<div class="vote-count--abstention">
-									<dt>Abst.</dt>
-									<dd>{ strconv.Itoa(scrutin.Abstentions) }</dd>
-								</div>
-								<div>
-									<dt>Votants</dt>
-									<dd>{ strconv.Itoa(scrutin.NombreVotants) }</dd>
-								</div>
-							</dl>
-							@ScrutinVoteDistributionBar(scrutin)
-						</div>
-					</article>
+					@ScrutinCard(scrutin)
 				}
 			</div>
 
 			@Pagination(page)
 		}
 	</div>
+}
+
+templ ScrutinCard(scrutin ScrutinListItem) {
+	<article class="scrutin-card">
+		<div class="scrutin-card__meta">
+			<span>Scrutin n{ strconv.Itoa(scrutin.Numero) }</span>
+			<span>{ formatDate(scrutin.Date) }</span>
+			if scrutin.Organe != "" {
+				<span>{ scrutin.Organe }</span>
+			}
+		</div>
+		<div class="scrutin-card__body">
+			<h2><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ scrutin.Titre }</a></h2>
+			<p>{ scrutin.TypeVote }</p>
+		</div>
+		<div class="scrutin-card__result" aria-label="Resultat du scrutin">
+			<span class="result-chip">{ scrutin.SortCode }</span>
+			<dl class="vote-counts">
+				<div class="vote-count--pour">
+					<dt>Pour</dt>
+					<dd>{ strconv.Itoa(scrutin.Pour) }</dd>
+				</div>
+				<div class="vote-count--contre">
+					<dt>Contre</dt>
+					<dd>{ strconv.Itoa(scrutin.Contre) }</dd>
+				</div>
+				<div class="vote-count--abstention">
+					<dt>Abst.</dt>
+					<dd>{ strconv.Itoa(scrutin.Abstentions) }</dd>
+				</div>
+				<div>
+					<dt>Votants</dt>
+					<dd>{ strconv.Itoa(scrutin.NombreVotants) }</dd>
+				</div>
+			</dl>
+			@ScrutinVoteDistributionBar(scrutin)
+		</div>
+	</article>
 }
 
 templ Pagination(page ScrutinsPage) {

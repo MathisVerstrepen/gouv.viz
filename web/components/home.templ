@@ -93,40 +93,7 @@ templ Home(page HomePage) {
 					} else {
 						<div class="scrutin-list" aria-label="Liste des scrutins publics">
 							for _, scrutin := range page.Scrutins {
-								<article class="scrutin-card">
-									<div class="scrutin-card__meta">
-										<span>Scrutin n{ strconv.Itoa(scrutin.Numero) }</span>
-										<span>{ formatDate(scrutin.Date) }</span>
-										if scrutin.Organe != "" {
-											<span>{ scrutin.Organe }</span>
-										}
-									</div>
-									<div class="scrutin-card__body">
-										<h3><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ scrutin.Titre }</a></h3>
-										<p>{ scrutin.TypeVote }</p>
-									</div>
-									<div class="scrutin-card__result" aria-label="Resultat du scrutin">
-										<span class="result-chip">{ scrutin.SortCode }</span>
-										<dl class="vote-counts">
-											<div>
-												<dt>Pour</dt>
-												<dd>{ strconv.Itoa(scrutin.Pour) }</dd>
-											</div>
-											<div>
-												<dt>Contre</dt>
-												<dd>{ strconv.Itoa(scrutin.Contre) }</dd>
-											</div>
-											<div>
-												<dt>Abst.</dt>
-												<dd>{ strconv.Itoa(scrutin.Abstentions) }</dd>
-											</div>
-											<div>
-												<dt>Votants</dt>
-												<dd>{ strconv.Itoa(scrutin.NombreVotants) }</dd>
-											</div>
-										</dl>
-									</div>
-								</article>
+								@ScrutinCard(scrutin)
 							}
 						</div>
 					}
