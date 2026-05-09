@@ -1,6 +1,10 @@
 package components
 
-import "strconv"
+import (
+	"sort"
+	"strconv"
+	"strings"
+)
 
 const totalDeputies = 577
 
@@ -159,34 +163,11 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 							if len(page.GroupVotes) == 0 {
 								<p class="empty-state">Aucun detail par groupe disponible pour ce scrutin.</p>
 							} else {
-								<div class="table-scroll">
-									<table class="data-table">
-										<thead>
-											<tr>
-												<th scope="col">Groupe</th>
-												<th scope="col">Position</th>
-												<th scope="col">Membres</th>
-												<th scope="col">Pour</th>
-												<th scope="col">Contre</th>
-												<th scope="col">Abst.</th>
-												<th scope="col">Non votants</th>
-											</tr>
-										</thead>
-										<tbody>
-											for _, groupVote := range page.GroupVotes {
-												<tr>
-													<th scope="row">{ groupVote.Groupe }</th>
-													<td>{ fallbackText(groupVote.PositionMajoritaire) }</td>
-													<td>{ strconv.Itoa(groupVote.NombreMembres) }</td>
-													<td>{ strconv.Itoa(groupVote.Pour) }</td>
-													<td>{ strconv.Itoa(groupVote.Contre) }</td>
-													<td>{ strconv.Itoa(groupVote.Abstentions) }</td>
-													<td>{ strconv.Itoa(groupVote.NonVotants) }</td>
-												</tr>
-											}
-										</tbody>
-									</table>
-								</div>
+								@GroupVoteStackedChart(page.GroupVotes)
+								<details class="group-vote-details">
+									<summary>Voir les donnees detaillees par groupe</summary>
+									@GroupVoteTable(page.GroupVotes)
+								</details>
 							}
 						</section>
 					</div>
@@ -248,6 +229,73 @@ templ VoteBreakdownBar(title string, description string, segments []VoteSegment,
 	</div>
 }
 
+templ GroupVoteStackedChart(groupVotes []ScrutinGroupVote) {
+	<figure class="group-vote-chart">
+		<figcaption>
+			Chaque colonne est normalisee a 100% des votes exprimes du groupe.
+		</figcaption>
+		<ul class="group-vote-chart__legend" aria-label="Legende du graphique">
+			<li><span class="vote-breakdown__swatch vote-segment--pour" aria-hidden="true"></span>Pour</li>
+			<li><span class="vote-breakdown__swatch vote-segment--abstention" aria-hidden="true"></span>Abstentions</li>
+			<li><span class="vote-breakdown__swatch vote-segment--contre" aria-hidden="true"></span>Contre</li>
+		</ul>
+		<div class="group-vote-chart__plot">
+			<div class="group-vote-chart__y-axis" aria-hidden="true">
+				<span>100%</span>
+				<span>75%</span>
+				<span>50%</span>
+				<span>25%</span>
+				<span>0%</span>
+			</div>
+			<div class="group-vote-chart__scroller" aria-label="Graphique des votes par groupe">
+				<div class="group-vote-chart__bars">
+					for _, groupVote := range sortedGroupVotesForChart(groupVotes) {
+						<div class="group-vote-chart__group">
+							<div class="group-vote-chart__bar" role="img" aria-label={ voteBreakdownLabel(groupVote.Groupe, groupVoteSegments(groupVote), groupVoteTotal(groupVote)) }>
+								for _, cell := range voteBreakdownCells(groupVoteSegments(groupVote), groupVoteTotal(groupVote)) {
+									<span class={ "vote-cell " + cell.Class } aria-hidden="true"></span>
+								}
+							</div>
+							<span class="group-vote-chart__label" title={ groupVote.Groupe }>{ groupVote.Groupe }</span>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	</figure>
+}
+
+templ GroupVoteTable(groupVotes []ScrutinGroupVote) {
+	<div class="table-scroll">
+		<table class="data-table">
+			<thead>
+				<tr>
+					<th scope="col">Groupe</th>
+					<th scope="col">Position</th>
+					<th scope="col">Membres</th>
+					<th scope="col">Pour</th>
+					<th scope="col">Contre</th>
+					<th scope="col">Abst.</th>
+					<th scope="col">Non votants</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, groupVote := range groupVotes {
+					<tr>
+						<th scope="row">{ groupVote.Groupe }</th>
+						<td>{ fallbackText(groupVote.PositionMajoritaire) }</td>
+						<td>{ strconv.Itoa(groupVote.NombreMembres) }</td>
+						<td>{ strconv.Itoa(groupVote.Pour) }</td>
+						<td>{ strconv.Itoa(groupVote.Contre) }</td>
+						<td>{ strconv.Itoa(groupVote.Abstentions) }</td>
+						<td>{ strconv.Itoa(groupVote.NonVotants) }</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
 type VoteCell struct {
 	Label string
 	Class string
@@ -294,6 +342,52 @@ func nonVotingDeputies(scrutin ScrutinDetailData) int {
 		return 0
 	}
 	return nonVoting
+}
+
+func groupVoteSegments(groupVote ScrutinGroupVote) []VoteSegment {
+	return []VoteSegment{
+		{Label: "Pour", Count: groupVote.Pour, Class: "vote-segment--pour"},
+		{Label: "Abstentions", Count: groupVote.Abstentions, Class: "vote-segment--abstention"},
+		{Label: "Contre", Count: groupVote.Contre, Class: "vote-segment--contre"},
+	}
+}
+
+func groupVoteTotal(groupVote ScrutinGroupVote) int {
+	return groupVote.Pour + groupVote.Contre + groupVote.Abstentions
+}
+
+func sortedGroupVotesForChart(groupVotes []ScrutinGroupVote) []ScrutinGroupVote {
+	sorted := append([]ScrutinGroupVote(nil), groupVotes...)
+	sort.SliceStable(sorted, func(i int, j int) bool {
+		leftRank := groupPoliticalRank(sorted[i].Groupe)
+		rightRank := groupPoliticalRank(sorted[j].Groupe)
+		if leftRank == rightRank {
+			return strings.Compare(sorted[i].Groupe, sorted[j].Groupe) < 0
+		}
+		return leftRank < rightRank
+	})
+	return sorted
+}
+
+func groupPoliticalRank(group string) int {
+	ranks := map[string]int{
+		"LFI-NFP": 10,
+		"GDR":     20,
+		"ECOS":    30,
+		"SOC":     40,
+		"LIOT":    50,
+		"DEM":     60,
+		"EPR":     70,
+		"HOR":     80,
+		"DR":      90,
+		"NI":      100,
+		"UDR":     110,
+		"RN":      120,
+	}
+	if rank, ok := ranks[strings.ToUpper(strings.TrimSpace(group))]; ok {
+		return rank
+	}
+	return 1000
 }
 
 func votePercent(count int, total int) string {
