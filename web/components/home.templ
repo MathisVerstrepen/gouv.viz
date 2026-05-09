@@ -45,35 +45,18 @@ templ Home(page HomePage) {
 						<p class="eyebrow">Donnees publiques</p>
 						<h1>Les derniers scrutins publics</h1>
 						<p class="lead">
-							Explorez les votes publics de l'Assemblee nationale importes depuis les fichiers ouverts et consolides dans la base locale.
+							Explorez les votes publics de l'Assemblee nationale importes depuis l'open data de l'Assemblée nationale.
 						</p>
 						<div class="hero__actions" aria-label="Actions principales">
 							<a class="button" href="/scrutins">Explorer tous les scrutins</a>
-							<a class="button button--secondary" href="#scrutins">Voir les derniers</a>
-							<a class="button button--secondary" href="/ping">Verifier le service</a>
 						</div>
 					</div>
 
 					<aside class="hero__panel" aria-label="Etat des donnees">
-						<p class="status-chip">Base SQLite</p>
-						<h2>{ strconv.Itoa(page.TotalScrutins) } scrutins charges</h2>
+						<h2>{ strconv.Itoa(page.TotalScrutins) } scrutins indexés</h2>
 						<p>
 							Periode couverte : { formatDate(page.FirstScrutinDate) } - { formatDate(page.LastScrutinDate) }.
 						</p>
-						<div class="metric-list" aria-label="Indicateurs disponibles">
-							<div class="metric-card">
-								<strong>{ strconv.Itoa(page.TotalScrutins) }</strong>
-								<span>scrutins</span>
-							</div>
-							<div class="metric-card">
-								<strong>{ strconv.Itoa(len(page.Scrutins)) }</strong>
-								<span>affiches</span>
-							</div>
-							<div class="metric-card">
-								<strong>SQL</strong>
-								<span>source</span>
-							</div>
-						</div>
 					</aside>
 				</div>
 			</section>
