@@ -197,7 +197,7 @@ func SiteFooter() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<footer class=\"site-footer\"><div class=\"fr-container site-footer__inner\"><p>gouv.viz</p><p>Visualisation statique des scrutins publics.</p></div></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<footer class=\"site-footer\"><div class=\"fr-container site-footer__inner\"><p>gouv.viz</p><p>Made with ❤️ by  <a href=\"https://github.com/MathisVerstrepen\" target=\"_blank\" rel=\"noopener noreferrer\">Mathis Verstrepen</a></p></div></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

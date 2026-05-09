@@ -42,7 +42,7 @@
 	--background-flat-error: #ce0500;
 	--background-vote-pour: #18753c;
 	--background-vote-contre: #ce0500;
-	--background-vote-abstention: #6e4c00;
+	--background-vote-abstention: #e9a512;
 	--background-vote-non-votant: #929292;
 	--background-result-adopte: var(--background-flat-success);
 	--background-result-rejete: var(--background-flat-error);
