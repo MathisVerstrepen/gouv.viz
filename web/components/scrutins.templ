@@ -122,6 +122,7 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 									<dd>{ strconv.Itoa(scrutin.NombreVotants) }</dd>
 								</div>
 							</dl>
+							@ScrutinVoteDistributionBar(scrutin)
 						</div>
 					</article>
 				}
@@ -158,6 +159,16 @@ templ Pagination(page ScrutinsPage) {
 			<span class="pagination__link pagination__link--disabled">Suivant</span>
 		}
 	</nav>
+}
+
+templ ScrutinVoteDistributionBar(scrutin ScrutinListItem) {
+	<div class="vote-distribution-bar" role="img" aria-label={ voteBreakdownLabel("Repartition des votes", scrutinVoteSegments(scrutin), scrutinListVotersTotal(scrutin)) }>
+		for _, cell := range voteBreakdownCells(scrutinVoteSegments(scrutin), scrutinListVotersTotal(scrutin)) {
+			<span class={ "vote-cell " + cell.Class } title={ cell.Label }>
+				<span class="fr-sr-only">{ cell.Label }</span>
+			</span>
+		}
+	</div>
 }
 
 func scrutinListURL(query ScrutinsQuery, defaultSort string, page int, sort string) string {
@@ -204,6 +215,21 @@ func currentSortLabel(page ScrutinsPage) string {
 		}
 	}
 	return page.Query.Sort
+}
+
+func scrutinVoteSegments(scrutin ScrutinListItem) []VoteSegment {
+	return []VoteSegment{
+		{Label: "Pour", Count: scrutin.Pour, Class: "vote-segment--pour"},
+		{Label: "Abstentions", Count: scrutin.Abstentions, Class: "vote-segment--abstention"},
+		{Label: "Contre", Count: scrutin.Contre, Class: "vote-segment--contre"},
+	}
+}
+
+func scrutinListVotersTotal(scrutin ScrutinListItem) int {
+	if scrutin.NombreVotants > 0 {
+		return scrutin.NombreVotants
+	}
+	return scrutin.Pour + scrutin.Contre + scrutin.Abstentions
 }
 
 func paginationPages(current int, total int) []int {

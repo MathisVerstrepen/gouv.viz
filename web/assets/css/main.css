@@ -895,6 +895,21 @@ code {
 	font-weight: var(--font-weight-bold);
 }
 
+.vote-distribution-bar {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(100, minmax(0, 1fr));
+	gap: 0;
+	overflow: hidden;
+	min-height: 0.5rem;
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-alt-grey);
+}
+
+.vote-distribution-bar .vote-cell {
+	min-height: 0.5rem;
+}
+
 .pagination {
 	display: flex;
 	flex-wrap: wrap;
