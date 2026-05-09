@@ -2,6 +2,8 @@ package components
 
 import "strconv"
 
+const totalDeputies = 577
+
 type ScrutinDetailPage struct {
 	Scrutin    ScrutinDetailData
 	GroupVotes []ScrutinGroupVote
@@ -112,6 +114,20 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 									<dd>{ strconv.Itoa(page.Scrutin.SuffragesRequis) }</dd>
 								</div>
 							</dl>
+
+							<div class="vote-breakdowns" aria-label="Representation graphique des votes">
+								@VoteBreakdownBar("Votes exprimes par les votants", "Base : " + strconv.Itoa(votersTotal(page.Scrutin)) + " votants", []VoteSegment{
+									{Label: "Pour", Count: page.Scrutin.Pour, Class: "vote-segment--pour"},
+									{Label: "Abstentions", Count: page.Scrutin.Abstentions, Class: "vote-segment--abstention"},
+									{Label: "Contre", Count: page.Scrutin.Contre, Class: "vote-segment--contre"},
+								}, votersTotal(page.Scrutin))
+								@VoteBreakdownBar("Participation dans l'hemicycle", "Base : 577 deputes", []VoteSegment{
+									{Label: "Pour", Count: page.Scrutin.Pour, Class: "vote-segment--pour"},
+									{Label: "Abstentions", Count: page.Scrutin.Abstentions, Class: "vote-segment--abstention"},
+									{Label: "Contre", Count: page.Scrutin.Contre, Class: "vote-segment--contre"},
+									{Label: "Non votants", Count: nonVotingDeputies(page.Scrutin), Class: "vote-segment--non-votant"},
+								}, totalDeputies)
+							</div>
 						</section>
 
 						<section class="detail-card" aria-labelledby="scrutin-objet">
@@ -190,6 +206,44 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 	</div>
 }
 
+type VoteSegment struct {
+	Label string
+	Count int
+	Class string
+}
+
+templ VoteBreakdownBar(title string, description string, segments []VoteSegment, total int) {
+	<div class="vote-breakdown">
+		<div class="vote-breakdown__header">
+			<h3>{ title }</h3>
+			<p>{ description }</p>
+		</div>
+		<div class="vote-breakdown__bar" role="img" aria-label={ voteBreakdownLabel(title, segments, total) }>
+			for _, cell := range voteBreakdownCells(segments, total) {
+				<span class={ "vote-cell " + cell.Class } title={ cell.Label }>
+					<span class="fr-sr-only">{ cell.Label }</span>
+				</span>
+			}
+			<span class="vote-breakdown__marker vote-breakdown__marker--50" aria-hidden="true"></span>
+		</div>
+		<ul class="vote-breakdown__legend">
+			for _, segment := range segments {
+				<li>
+					<span class={ "vote-breakdown__swatch " + segment.Class } aria-hidden="true"></span>
+					<span>{ segment.Label }</span>
+					<strong>{ strconv.Itoa(segment.Count) }</strong>
+					<span>{ votePercent(segment.Count, total) }</span>
+				</li>
+			}
+		</ul>
+	</div>
+}
+
+type VoteCell struct {
+	Label string
+	Class string
+}
+
 templ DetailRow(label string, value string) {
 	<div>
 		<dt>{ label }</dt>
@@ -209,4 +263,65 @@ func numberOrEmpty(value int) string {
 		return ""
 	}
 	return strconv.Itoa(value)
+}
+
+func votersTotal(scrutin ScrutinDetailData) int {
+	if scrutin.NombreVotants > 0 {
+		return scrutin.NombreVotants
+	}
+	return scrutin.Pour + scrutin.Contre + scrutin.Abstentions
+}
+
+func nonVotingDeputies(scrutin ScrutinDetailData) int {
+	nonVoting := totalDeputies - votersTotal(scrutin)
+	if nonVoting < 0 {
+		return 0
+	}
+	return nonVoting
+}
+
+func votePercent(count int, total int) string {
+	if count <= 0 || total <= 0 {
+		return "0%"
+	}
+	percent := (float64(count) / float64(total)) * 100
+	return strconv.FormatFloat(percent, 'f', 1, 64) + "%"
+}
+
+func voteBreakdownLabel(title string, segments []VoteSegment, total int) string {
+	label := title + ", total " + strconv.Itoa(total)
+	for _, segment := range segments {
+		label += ", " + segment.Label + " " + strconv.Itoa(segment.Count) + " (" + votePercent(segment.Count, total) + ")"
+	}
+	return label
+}
+
+func voteBreakdownCells(segments []VoteSegment, total int) []VoteCell {
+	const cellCount = 100
+
+	cells := make([]VoteCell, 0, cellCount)
+	if total <= 0 {
+		return cells
+	}
+
+	for index := range cellCount {
+		position := (float64(index) + 0.5) * float64(total) / cellCount
+		cumulative := 0
+		cell := VoteCell{Label: "Non renseigne", Class: "vote-segment--non-votant"}
+
+		for _, segment := range segments {
+			if segment.Count <= 0 {
+				continue
+			}
+			cumulative += segment.Count
+			if position < float64(cumulative) {
+				cell = VoteCell{Label: segment.Label, Class: segment.Class}
+				break
+			}
+		}
+
+		cells = append(cells, cell)
+	}
+
+	return cells
 }
