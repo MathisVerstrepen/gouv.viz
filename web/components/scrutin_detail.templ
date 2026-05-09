@@ -65,8 +65,17 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 						<span aria-hidden="true">/</span>
 						<span>n{ strconv.Itoa(page.Scrutin.Numero) }</span>
 					</nav>
-					<p class="eyebrow">Scrutin public</p>
-					<h1>Scrutin n{ strconv.Itoa(page.Scrutin.Numero) }</h1>
+					<div class="detail-heading__title-row">
+						<h1>Scrutin n{ strconv.Itoa(page.Scrutin.Numero) }</h1>
+						if officialScrutinURL(page.Scrutin) != "" {
+							<div class="detail-heading__actions">
+								<a class="button button--secondary" href={ officialScrutinURL(page.Scrutin) } target="_blank" rel="noopener noreferrer">
+									Lire le scrutin complet
+									<span class="fr-sr-only"> sur le site de l'Assemblee nationale (nouvelle fenetre)</span>
+								</a>
+							</div>
+						}
+					</div>
 					<p class="lead">{ page.Scrutin.Titre }</p>
 					<div class="detail-heading__meta">
 						<span>{ formatDate(page.Scrutin.Date) }</span>
@@ -80,14 +89,6 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 							<span class="result-chip">{ page.Scrutin.SortCode }</span>
 						}
 					</div>
-					if officialScrutinURL(page.Scrutin) != "" {
-						<div class="detail-heading__actions">
-							<a class="button button--secondary" href={ officialScrutinURL(page.Scrutin) } target="_blank" rel="noopener noreferrer">
-								Lire le scrutin complet
-								<span class="fr-sr-only"> sur le site de l'Assemblee nationale (nouvelle fenetre)</span>
-							</a>
-						</div>
-					}
 				</div>
 			</section>
 
