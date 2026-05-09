@@ -91,3 +91,52 @@ func TestDetailHelpers(t *testing.T) {
 		t.Fatalf("numberOrEmpty(12) = %q", got)
 	}
 }
+
+func TestOfficialLinkedTextURL(t *testing.T) {
+	if got := officialLinkedTextURL(ScrutinDetailData{LinkedTextURL: "https://example.test/text"}); got != "https://example.test/text" {
+		t.Fatalf("officialLinkedTextURL(stored) = %q", got)
+	}
+
+	scrutin := ScrutinDetailData{Legislature: 17, LinkedTextNum: "2630", LinkedTextKind: "projet-loi"}
+	if got := officialLinkedTextURL(scrutin); got != "https://www.assemblee-nationale.fr/dyn/17/textes/l17b2630_projet-loi" {
+		t.Fatalf("officialLinkedTextURL() = %q", got)
+	}
+
+	shortNum := ScrutinDetailData{Legislature: 17, LinkedTextNum: "324", LinkedTextKind: "projet-loi"}
+	if got := officialLinkedTextURL(shortNum); got != "https://www.assemblee-nationale.fr/dyn/17/textes/l17b0324_projet-loi" {
+		t.Fatalf("officialLinkedTextURL(short num) = %q", got)
+	}
+
+	if got := officialLinkedTextURL(ScrutinDetailData{Legislature: 17, LinkedTextNum: "2630"}); got != "" {
+		t.Fatalf("officialLinkedTextURL(missing kind) = %q, want empty", got)
+	}
+}
+
+func TestOfficialLinkedTextPDFURL(t *testing.T) {
+	scrutin := ScrutinDetailData{LinkedTextPDFURL: "https://www.assemblee-nationale.fr/dyn/17/textes/l17t0278_texte-adopte-seance.pdf"}
+	if got := officialLinkedTextPDFURL(scrutin); got != scrutin.LinkedTextPDFURL {
+		t.Fatalf("officialLinkedTextPDFURL() = %q", got)
+	}
+}
+
+func TestOfficialDossierURL(t *testing.T) {
+	scrutin := ScrutinDetailData{Legislature: 17, LinkedDossierRef: "DLR5L17N54083"}
+	if got := officialDossierURL(scrutin); got != "https://www.assemblee-nationale.fr/dyn/17/dossiers/DLR5L17N54083" {
+		t.Fatalf("officialDossierURL() = %q", got)
+	}
+
+	if got := officialDossierURL(ScrutinDetailData{Legislature: 17}); got != "" {
+		t.Fatalf("officialDossierURL(missing ref) = %q, want empty", got)
+	}
+}
+
+func TestOfficialAmendementURL(t *testing.T) {
+	scrutin := ScrutinDetailData{LinkedAmendementURL: "https://www.assemblee-nationale.fr/dyn/17/amendements/2695/AN/365.pdf"}
+	if got := officialAmendementURL(scrutin); got != "https://www.assemblee-nationale.fr/dyn/17/amendements/2695/AN/365.pdf" {
+		t.Fatalf("officialAmendementURL() = %q", got)
+	}
+
+	if got := officialAmendementURL(ScrutinDetailData{}); got != "" {
+		t.Fatalf("officialAmendementURL(empty) = %q, want empty", got)
+	}
+}

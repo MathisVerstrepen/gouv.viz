@@ -38,7 +38,25 @@ func main() {
 	outPath := flag.String("out", filepath.Join("data", "processed", "gouv-viz.sqlite"), "output SQLite database path")
 	flag.Parse()
 
-	result, err := buildDatabase(*rawDir, *outPath)
+	options := buildOptions{}
+	amendementsPath, hasAmendements := amendementsDirectoryPath(*rawDir)
+	if hasAmendements {
+		resolver, err := newDirectoryAmendementResolver(amendementsPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		options.AmendementResolver = resolver
+	}
+	dossiersPath, hasDossiers := dossiersDirectoryPath(*rawDir)
+	if hasDossiers {
+		resolver, err := newDirectoryDossierResolver(dossiersPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		options.DossierResolver = resolver
+	}
+
+	result, err := buildDatabaseWithOptions(*rawDir, *outPath, options)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +74,34 @@ func main() {
 	)
 }
 
+func amendementsDirectoryPath(rawDir string) (string, bool) {
+	path := filepath.Join(rawDir, "amendements")
+	jsonPath := filepath.Join(path, "json")
+	if info, err := os.Stat(jsonPath); err == nil && info.IsDir() {
+		return path, true
+	}
+	return "", false
+}
+
+func dossiersDirectoryPath(rawDir string) (string, bool) {
+	path := filepath.Join(rawDir, "dossiers")
+	jsonPath := filepath.Join(path, "json")
+	if info, err := os.Stat(jsonPath); err == nil && info.IsDir() {
+		return path, true
+	}
+	return "", false
+}
+
 func buildDatabase(rawDir, outPath string) (stats, error) {
+	return buildDatabaseWithOptions(rawDir, outPath, buildOptions{})
+}
+
+type buildOptions struct {
+	AmendementResolver amendementLinkResolver
+	DossierResolver    dossierLinkResolver
+}
+
+func buildDatabaseWithOptions(rawDir, outPath string, options buildOptions) (stats, error) {
 	var result stats
 
 	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
@@ -101,7 +146,7 @@ func buildDatabase(rawDir, outPath string) (stats, error) {
 	if err := importActeurs(tx, filepath.Join(rawDir, "acteur"), &result); err != nil {
 		return result, err
 	}
-	if err := importScrutins(tx, filepath.Join(rawDir, "scrutins-publics"), &result); err != nil {
+	if err := importScrutins(tx, filepath.Join(rawDir, "scrutins-publics"), &result, options.AmendementResolver, options.DossierResolver); err != nil {
 		return result, err
 	}
 	if err := insertMetadata(tx, result); err != nil {

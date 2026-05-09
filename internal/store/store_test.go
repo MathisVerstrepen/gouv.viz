@@ -104,6 +104,38 @@ func TestScrutinDetailPageOrdersGroupVotesByPreseance(t *testing.T) {
 	}
 }
 
+func TestScrutinDetailPageReturnsLinkedReference(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertScrutin(t, s.db, testScrutin{
+		UID:                     "linked",
+		Numero:                  42,
+		Date:                    "2024-02-02",
+		Titre:                   "Vote sur un amendement",
+		OrganeUID:               "ORG1",
+		LinkedTextNum:           "2630",
+		LinkedTextKind:          "projet-loi",
+		LinkedTextURL:           "https://www.assemblee-nationale.fr/dyn/17/textes/l17b2630_projet-loi",
+		LinkedTextPDFURL:        "https://www.assemblee-nationale.fr/dyn/17/textes/l17b2630_projet-loi.pdf",
+		LinkedDossierRef:        "DLR5L17N1",
+		LinkedDossierLibelle:    "Projet fixture",
+		LinkedAmendementNum:     "301",
+		LinkedAmendementTextNum: "2695",
+		LinkedAmendementOrgane:  "AN",
+		LinkedAmendementURL:     "https://www.assemblee-nationale.fr/dyn/17/amendements/2695/AN/301.pdf",
+		LinkedReferenceSource:   "titre",
+	})
+
+	page, err := s.ScrutinDetailPage(context.Background(), "linked")
+	if err != nil {
+		t.Fatalf("ScrutinDetailPage() error = %v", err)
+	}
+
+	if page.Scrutin.LinkedTextNum != "2630" || page.Scrutin.LinkedTextKind != "projet-loi" || page.Scrutin.LinkedTextURL != "https://www.assemblee-nationale.fr/dyn/17/textes/l17b2630_projet-loi" || page.Scrutin.LinkedTextPDFURL != "https://www.assemblee-nationale.fr/dyn/17/textes/l17b2630_projet-loi.pdf" || page.Scrutin.LinkedDossierRef != "DLR5L17N1" || page.Scrutin.LinkedDossierLibelle != "Projet fixture" || page.Scrutin.LinkedAmendementNum != "301" || page.Scrutin.LinkedAmendementTextNum != "2695" || page.Scrutin.LinkedAmendementOrgane != "AN" || page.Scrutin.LinkedAmendementURL != "https://www.assemblee-nationale.fr/dyn/17/amendements/2695/AN/301.pdf" || page.Scrutin.LinkedReferenceSource != "titre" {
+		t.Fatalf("linked reference = %+v, want text/dossier/amendment references", page.Scrutin)
+	}
+}
+
 func TestValidateAcceptsExpectedDatabase(t *testing.T) {
 	s := newValidationTestStore(t, expectedSchemaVersion, nil)
 
@@ -201,6 +233,17 @@ CREATE TABLE scrutins (
   sort_code TEXT,
   sort_libelle TEXT,
   titre TEXT,
+  linked_text_num TEXT,
+  linked_text_kind TEXT,
+  linked_text_url TEXT,
+  linked_text_pdf_url TEXT,
+  linked_dossier_ref TEXT,
+  linked_dossier_libelle TEXT,
+  linked_amendement_num TEXT,
+  linked_amendement_text_num TEXT,
+  linked_amendement_organe TEXT,
+  linked_amendement_url TEXT,
+  linked_reference_source TEXT,
   demandeur_texte TEXT,
   objet_libelle TEXT,
   mode_publication_votes TEXT,
@@ -236,11 +279,22 @@ CREATE VIRTUAL TABLE scrutin_search USING fts5(
 `
 
 type testScrutin struct {
-	UID       string
-	Numero    int
-	Date      string
-	Titre     string
-	OrganeUID string
+	UID                     string
+	Numero                  int
+	Date                    string
+	Titre                   string
+	OrganeUID               string
+	LinkedTextNum           string
+	LinkedTextKind          string
+	LinkedTextURL           string
+	LinkedTextPDFURL        string
+	LinkedDossierRef        string
+	LinkedDossierLibelle    string
+	LinkedAmendementNum     string
+	LinkedAmendementTextNum string
+	LinkedAmendementOrgane  string
+	LinkedAmendementURL     string
+	LinkedReferenceSource   string
 }
 
 func insertOrgane(t *testing.T, db *sql.DB, uid, libelle, libelleAbrege string, preseance int) {
@@ -257,11 +311,14 @@ func insertScrutin(t *testing.T, db *sql.DB, scrutin testScrutin) {
 INSERT INTO scrutins (
   uid, numero, legislature, organe_uid, date_scrutin, code_type_vote,
   libelle_type_vote, type_majorite, sort_code, sort_libelle, titre,
+  linked_text_num, linked_text_kind, linked_text_url, linked_text_pdf_url, linked_dossier_ref, linked_dossier_libelle,
+  linked_amendement_num, linked_amendement_text_num, linked_amendement_organe,
+  linked_amendement_url, linked_reference_source,
   demandeur_texte, objet_libelle, mode_publication_votes, nombre_votants,
   suffrages_exprimes, suffrages_requis, non_votants, pour, contre,
   abstentions, non_votants_volontaires, source_file
-) VALUES (?, ?, 17, ?, ?, 'SPO', 'Scrutin public ordinaire', 'simple', 'adopte', 'Adopte', ?, 'Gouvernement', 'Objet', 'Decompte', 10, 9, 5, 1, 6, 3, 0, 0, 'fixture.json')
-`, scrutin.UID, scrutin.Numero, scrutin.OrganeUID, scrutin.Date, scrutin.Titre)
+) VALUES (?, ?, 17, ?, ?, 'SPO', 'Scrutin public ordinaire', 'simple', 'adopte', 'Adopte', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Gouvernement', 'Objet', 'Decompte', 10, 9, 5, 1, 6, 3, 0, 0, 'fixture.json')
+`, scrutin.UID, scrutin.Numero, scrutin.OrganeUID, scrutin.Date, scrutin.Titre, scrutin.LinkedTextNum, scrutin.LinkedTextKind, scrutin.LinkedTextURL, scrutin.LinkedTextPDFURL, scrutin.LinkedDossierRef, scrutin.LinkedDossierLibelle, scrutin.LinkedAmendementNum, scrutin.LinkedAmendementTextNum, scrutin.LinkedAmendementOrgane, scrutin.LinkedAmendementURL, scrutin.LinkedReferenceSource)
 	if err != nil {
 		t.Fatalf("insert scrutin %s: %v", scrutin.UID, err)
 	}

@@ -30,6 +30,17 @@ type ScrutinDetailData struct {
 	SortCode                 string
 	SortLibelle              string
 	Titre                    string
+	LinkedTextNum            string
+	LinkedTextKind           string
+	LinkedTextURL            string
+	LinkedTextPDFURL         string
+	LinkedDossierRef         string
+	LinkedDossierLibelle     string
+	LinkedAmendementNum      string
+	LinkedAmendementTextNum  string
+	LinkedAmendementOrgane   string
+	LinkedAmendementURL      string
+	LinkedReferenceSource    string
 	Demandeur                string
 	Objet                    string
 	ModePublicationVotes     string
@@ -185,10 +196,11 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 								@DetailRow("Session", page.Scrutin.SessionRef)
 								@DetailRow("Seance", page.Scrutin.SeanceRef)
 								@DetailRow("Jour de seance", numberOrEmpty(page.Scrutin.QuantiemeJourSeance))
-								@DetailRow("Code type vote", page.Scrutin.CodeTypeVote)
-								@DetailRow("Source", page.Scrutin.SourceFile)
 							</dl>
 						</section>
+						if hasLinkedReference(page.Scrutin) {
+							@LinkedDocumentCard(page.Scrutin)
+						}
 					</aside>
 				</div>
 			</section>
@@ -352,6 +364,55 @@ templ DetailRow(label string, value string) {
 	</div>
 }
 
+templ LinkedDocumentCard(scrutin ScrutinDetailData) {
+	<section class="detail-card linked-document" aria-labelledby="scrutin-document-lie">
+		<div class="linked-document__header">
+			<h2 id="scrutin-document-lie">Documents liés</h2>
+		</div>
+		<dl class="detail-list linked-document__facts">
+			@CompactDetailRow("Texte", linkedTextSummary(scrutin))
+			@CompactDetailRow("Amendement", linkedAmendementSummary(scrutin))
+			@CompactDetailRow("Dossier", linkedDossierSummary(scrutin))
+			@CompactDetailRow("Source", linkedReferenceSourceLabel(scrutin.LinkedReferenceSource))
+		</dl>
+		<div class="linked-document__actions">
+			if officialAmendementURL(scrutin) != "" {
+				<a class="button button--secondary button--small" href={ officialAmendementURL(scrutin) } target="_blank" rel="noopener noreferrer">
+					Lire l'amendement
+					<span class="fr-sr-only"> sur le site de l'Assemblee nationale (nouvelle fenetre)</span>
+				</a>
+			}
+			if officialLinkedTextURL(scrutin) != "" {
+				<a class="button button--secondary button--small" href={ officialLinkedTextURL(scrutin) } target="_blank" rel="noopener noreferrer">
+					Lire le texte
+					<span class="fr-sr-only"> sur le site de l'Assemblee nationale (nouvelle fenetre)</span>
+				</a>
+			}
+			if officialLinkedTextPDFURL(scrutin) != "" {
+				<a class="button button--secondary button--small" href={ officialLinkedTextPDFURL(scrutin) } target="_blank" rel="noopener noreferrer">
+					Lire le PDF du texte
+					<span class="fr-sr-only"> sur le site de l'Assemblee nationale (nouvelle fenetre)</span>
+				</a>
+			}
+			if officialDossierURL(scrutin) != "" {
+				<a class="button button--secondary button--small" href={ officialDossierURL(scrutin) } target="_blank" rel="noopener noreferrer">
+					Voir le dossier legislatif
+					<span class="fr-sr-only"> sur le site de l'Assemblee nationale (nouvelle fenetre)</span>
+				</a>
+			}
+		</div>
+	</section>
+}
+
+templ CompactDetailRow(label string, value string) {
+	if value != "" {
+		<div>
+			<dt>{ label }</dt>
+			<dd>{ value }</dd>
+		</div>
+	}
+}
+
 func fallbackText(value string) string {
 	if value == "" {
 		return "Non renseigne"
@@ -371,6 +432,103 @@ func officialScrutinURL(scrutin ScrutinDetailData) string {
 		return ""
 	}
 	return "https://www.assemblee-nationale.fr/dyn/" + strconv.Itoa(scrutin.Legislature) + "/scrutins/" + strconv.Itoa(scrutin.Numero)
+}
+
+func hasLinkedReference(scrutin ScrutinDetailData) bool {
+	return scrutin.LinkedTextNum != "" || scrutin.LinkedTextURL != "" || scrutin.LinkedTextPDFURL != "" || scrutin.LinkedDossierRef != "" || scrutin.LinkedAmendementNum != "" || scrutin.LinkedAmendementURL != ""
+}
+
+func linkedTextSummary(scrutin ScrutinDetailData) string {
+	textNum := scrutin.LinkedTextNum
+	textKind := linkedTextKindLabel(scrutin.LinkedTextKind)
+	if textNum == "" {
+		return textKind
+	}
+	if textKind == "" {
+		return "n° " + textNum
+	}
+	return "n° " + textNum + " · " + textKind
+}
+
+func linkedAmendementSummary(scrutin ScrutinDetailData) string {
+	if scrutin.LinkedAmendementNum == "" {
+		return ""
+	}
+	parts := []string{"n° " + scrutin.LinkedAmendementNum}
+	if scrutin.LinkedAmendementTextNum != "" {
+		parts = append(parts, "texte "+scrutin.LinkedAmendementTextNum)
+	}
+	if scrutin.LinkedAmendementOrgane != "" {
+		parts = append(parts, scrutin.LinkedAmendementOrgane)
+	}
+	return strings.Join(parts, " · ")
+}
+
+func linkedDossierSummary(scrutin ScrutinDetailData) string {
+	if scrutin.LinkedDossierLibelle != "" {
+		return scrutin.LinkedDossierLibelle
+	}
+	return scrutin.LinkedDossierRef
+}
+
+func officialLinkedTextURL(scrutin ScrutinDetailData) string {
+	if scrutin.LinkedTextURL != "" {
+		return scrutin.LinkedTextURL
+	}
+	if scrutin.Legislature <= 0 || scrutin.LinkedTextNum == "" || scrutin.LinkedTextKind == "" {
+		return ""
+	}
+	return "https://www.assemblee-nationale.fr/dyn/" + strconv.Itoa(scrutin.Legislature) + "/textes/l" + strconv.Itoa(scrutin.Legislature) + "b" + leftPad(scrutin.LinkedTextNum, 4) + "_" + scrutin.LinkedTextKind
+}
+
+func officialLinkedTextPDFURL(scrutin ScrutinDetailData) string {
+	return scrutin.LinkedTextPDFURL
+}
+
+func leftPad(value string, length int) string {
+	for len(value) < length {
+		value = "0" + value
+	}
+	return value
+}
+
+func officialDossierURL(scrutin ScrutinDetailData) string {
+	if scrutin.Legislature <= 0 || scrutin.LinkedDossierRef == "" {
+		return ""
+	}
+	return "https://www.assemblee-nationale.fr/dyn/" + strconv.Itoa(scrutin.Legislature) + "/dossiers/" + scrutin.LinkedDossierRef
+}
+
+func officialAmendementURL(scrutin ScrutinDetailData) string {
+	return scrutin.LinkedAmendementURL
+}
+
+func linkedTextKindLabel(kind string) string {
+	switch kind {
+	case "projet-loi":
+		return "Projet de loi"
+	case "proposition-loi":
+		return "Proposition de loi"
+	case "texte-adopte-commission":
+		return "Texte adopte en commission"
+	case "texte-adopte-seance":
+		return "Texte adopte en seance"
+	default:
+		return kind
+	}
+}
+
+func linkedReferenceSourceLabel(source string) string {
+	switch source {
+	case "titre":
+		return "Titre"
+	case "objet":
+		return "Objet"
+	case "titre+objet":
+		return "Titre et objet"
+	default:
+		return source
+	}
 }
 
 func votersTotal(scrutin ScrutinDetailData) int {

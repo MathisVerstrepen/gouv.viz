@@ -284,16 +284,19 @@ func insertMandats(mandatStmt, mandatOrganeStmt *sql.Stmt, acteur map[string]any
 	return nil
 }
 
-func importScrutins(tx *sql.Tx, dir string, result *stats) error {
+func importScrutins(tx *sql.Tx, dir string, result *stats, amendementResolver amendementLinkResolver, dossierResolver dossierLinkResolver) error {
 	scrutinStmt, err := tx.Prepare(`
 INSERT INTO scrutins (
   uid, numero, legislature, organe_uid, session_ref, seance_ref,
   date_scrutin, quantieme_jour_seance, code_type_vote, libelle_type_vote,
-  type_majorite, sort_code, sort_libelle, titre, demandeur_texte,
-  objet_libelle, mode_publication_votes, nombre_votants, suffrages_exprimes,
+  type_majorite, sort_code, sort_libelle, titre, linked_text_num,
+  linked_text_kind, linked_text_url, linked_text_pdf_url, linked_dossier_ref, linked_dossier_libelle,
+  linked_amendement_num, linked_amendement_text_num, linked_amendement_organe,
+  linked_amendement_url, linked_reference_source, demandeur_texte, objet_libelle,
+  mode_publication_votes, nombre_votants, suffrages_exprimes,
   suffrages_requis, non_votants, pour, contre, abstentions,
   non_votants_volontaires, source_file, source_hash
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(uid) DO UPDATE SET
   numero = excluded.numero,
   legislature = excluded.legislature,
@@ -308,6 +311,17 @@ ON CONFLICT(uid) DO UPDATE SET
   sort_code = excluded.sort_code,
   sort_libelle = excluded.sort_libelle,
   titre = excluded.titre,
+  linked_text_num = excluded.linked_text_num,
+  linked_text_kind = excluded.linked_text_kind,
+  linked_text_url = excluded.linked_text_url,
+  linked_text_pdf_url = excluded.linked_text_pdf_url,
+  linked_dossier_ref = excluded.linked_dossier_ref,
+  linked_dossier_libelle = excluded.linked_dossier_libelle,
+  linked_amendement_num = excluded.linked_amendement_num,
+  linked_amendement_text_num = excluded.linked_amendement_text_num,
+  linked_amendement_organe = excluded.linked_amendement_organe,
+  linked_amendement_url = excluded.linked_amendement_url,
+  linked_reference_source = excluded.linked_reference_source,
   demandeur_texte = excluded.demandeur_texte,
   objet_libelle = excluded.objet_libelle,
   mode_publication_votes = excluded.mode_publication_votes,
@@ -368,6 +382,32 @@ ON CONFLICT(scrutin_uid, acteur_uid) DO UPDATE SET
 			return fmt.Errorf("%s: missing scrutin.uid", file.SourcePath)
 		}
 
+		title := stringAt(scrutin, "titre")
+		object := stringAt(scrutin, "objet", "libelle")
+		dossier := objectAt(scrutin, "objet", "dossierLegislatif")
+		dossierRef := stringAt(dossier, "dossierRef")
+		linkedReference := extractScrutinLinkedReference(title, object)
+		var linkedDossier officialDossierReference
+		if dossierResolver != nil {
+			hadLinkedTextNum := linkedReference.TextNum != ""
+			linkedDossier = dossierResolver.Resolve(dossierRef, title, object, stringAt(scrutin, "sort", "code"))
+			if dossierRef == "" {
+				dossierRef = linkedDossier.DossierRef
+			}
+			if !hadLinkedTextNum && linkedDossier.Text.Num != "" {
+				linkedReference.TextNum = linkedDossier.Text.Num
+				linkedReference.TextKind = linkedDossier.Text.Kind
+			}
+		}
+		var linkedAmendement officialAmendementReference
+		if amendementResolver != nil && linkedReference.AmendementNum != "" && dossierRef != "" {
+			legislature, _ := intAt(scrutin, "legislature")
+			linkedAmendement, err = amendementResolver.Resolve(legislature, dossierRef, linkedReference.AmendementNum, stringAt(scrutin, "organeRef"), stringAt(scrutin, "seanceRef"))
+			if err != nil {
+				return fmt.Errorf("%s: resolve amendement link for scrutin %s: %w", file.SourcePath, uid, err)
+			}
+		}
+
 		_, err := scrutinStmt.Exec(
 			uid,
 			nullInt(intAt(scrutin, "numero")),
@@ -382,9 +422,20 @@ ON CONFLICT(scrutin_uid, acteur_uid) DO UPDATE SET
 			nullString(stringAt(scrutin, "typeVote", "typeMajorite")),
 			nullString(stringAt(scrutin, "sort", "code")),
 			nullString(stringAt(scrutin, "sort", "libelle")),
-			nullString(stringAt(scrutin, "titre")),
+			nullString(title),
+			nullString(linkedReference.TextNum),
+			nullString(linkedReference.TextKind),
+			nullString(linkedDossier.Text.URL),
+			nullString(linkedDossier.Text.PDFURL),
+			nullString(dossierRef),
+			nullString(firstNonEmpty(stringAt(dossier, "libelle"), linkedDossier.DossierLibelle)),
+			nullString(linkedReference.AmendementNum),
+			nullString(linkedAmendement.TextNum),
+			nullString(linkedAmendement.Organe),
+			nullString(linkedAmendement.URL),
+			nullString(linkedReference.Source),
 			nullString(stringAt(scrutin, "demandeur", "texte")),
-			nullString(stringAt(scrutin, "objet", "libelle")),
+			nullString(object),
 			nullString(stringAt(scrutin, "modePublicationDesVotes")),
 			nullInt(intAt(scrutin, "syntheseVote", "nombreVotants")),
 			nullInt(intAt(scrutin, "syntheseVote", "suffragesExprimes")),
@@ -483,6 +534,15 @@ func insertVotes(stmt *sql.Stmt, bucket any, scrutinUID, groupeUID, position str
 	return nil
 }
 
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
 func insertMetadata(tx *sql.Tx, result stats) error {
 	stmt, err := tx.Prepare(`INSERT INTO dataset_meta (key, value) VALUES (?, ?)`)
 	if err != nil {
@@ -560,10 +620,19 @@ INSERT INTO scrutin_search (uid, document)
 SELECT
   s.uid,
   printf(
-    '%s %s %s %s %s %s %s %s',
+    '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s',
     s.numero,
     COALESCE(s.titre, ''),
     COALESCE(s.objet_libelle, ''),
+    COALESCE(s.linked_text_num, ''),
+    COALESCE(s.linked_text_kind, ''),
+    COALESCE(s.linked_text_url, ''),
+    COALESCE(s.linked_text_pdf_url, ''),
+    COALESCE(s.linked_dossier_ref, ''),
+    COALESCE(s.linked_dossier_libelle, ''),
+    COALESCE(s.linked_amendement_num, ''),
+    COALESCE(s.linked_amendement_text_num, ''),
+    COALESCE(s.linked_amendement_organe, ''),
     COALESCE(s.demandeur_texte, ''),
     COALESCE(s.sort_code, ''),
     COALESCE(s.sort_libelle, ''),

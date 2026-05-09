@@ -18,7 +18,9 @@ Static-first website scaffold for visualizing statistics from French Assemblee n
 - `web/assets/`: CSS, JavaScript, images, and vendored static files
 - `internal/assemblee/`: future data loading, parsing, and normalization code
 - `internal/charts/`: future graph preparation code
-- `data/raw/scrutins-publics/`: local raw JSON dataset, ignored by Git
+- `data/raw/scrutins-publics/`: local raw Scrutins publics JSON dataset, ignored by Git
+- `data/raw/amendements/`: optional extracted amendment open-data JSON files, ignored by Git
+- `data/raw/dossiers/`: optional extracted dossier open-data JSON files, ignored by Git
 - `data/processed/`: generated/preprocessed outputs, ignored by Git
 - `data/fixtures/`: small sample data safe to commit
 
@@ -28,6 +30,7 @@ Static-first website scaffold for visualizing statistics from French Assemblee n
 2. Install `templ`: `go install github.com/a-h/templ/cmd/templ@latest`.
 3. Run `make generate` before building, or `make dev` with Air installed.
 4. Put large raw Scrutins publics JSON files in `data/raw/scrutins-publics/`.
+5. Run `./scripts/download-data.sh` to download and extract the open-data datasets before `make preprocess`.
 
 ## Docker
 

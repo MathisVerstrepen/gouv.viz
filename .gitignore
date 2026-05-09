@@ -12,5 +12,9 @@ data/raw/acteur/*
 !data/raw/acteur/.gitkeep
 data/raw/organe/*
 !data/raw/organe/.gitkeep
+data/raw/amendements/*
+!data/raw/amendements/.gitkeep
+data/raw/dossiers/*
+!data/raw/dossiers/.gitkeep
 data/processed/*
 !data/processed/.gitkeep

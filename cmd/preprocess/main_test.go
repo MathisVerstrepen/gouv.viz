@@ -12,7 +12,14 @@ import (
 func TestBuildDatabaseImportsFixtureDataset(t *testing.T) {
 	outPath := filepath.Join(t.TempDir(), "gouv-viz.sqlite")
 
-	result, err := buildDatabase(filepath.Join("..", "..", "data", "fixtures", "raw"), outPath)
+	result, err := buildDatabaseWithOptions(filepath.Join("..", "..", "data", "fixtures", "raw"), outPath, buildOptions{
+		AmendementResolver: stubAmendementResolver{ref: officialAmendementReference{
+			TextNum:       "2695",
+			Organe:        "AN",
+			AmendementNum: "301",
+			URL:           "https://www.assemblee-nationale.fr/dyn/17/amendements/2695/AN/301.pdf",
+		}},
+	})
 	if err != nil {
 		t.Fatalf("buildDatabase() error = %v", err)
 	}
@@ -35,7 +42,16 @@ func TestBuildDatabaseImportsFixtureDataset(t *testing.T) {
 
 	assertScalar(t, db, `SELECT value FROM dataset_meta WHERE key = 'schema_version'`, schemaVersion)
 	assertScalar(t, db, `SELECT libelle_abrege FROM organes WHERE uid = 'PO0'`, "NI")
-	assertScalar(t, db, `SELECT titre FROM scrutins WHERE uid = 'VTANR5L17V1'`, "Projet fixture 100%_public")
+	assertScalar(t, db, `SELECT titre FROM scrutins WHERE uid = 'VTANR5L17V1'`, "Scrutin sur l'amendement n° 301 au projet de loi (n° 2630)")
+	assertScalar(t, db, `SELECT linked_text_num FROM scrutins WHERE uid = 'VTANR5L17V1'`, "2630")
+	assertScalar(t, db, `SELECT linked_text_kind FROM scrutins WHERE uid = 'VTANR5L17V1'`, "projet-loi")
+	assertScalar(t, db, `SELECT linked_dossier_ref FROM scrutins WHERE uid = 'VTANR5L17V1'`, "DLR5L17N1")
+	assertScalar(t, db, `SELECT linked_dossier_libelle FROM scrutins WHERE uid = 'VTANR5L17V1'`, "Projet fixture")
+	assertScalar(t, db, `SELECT linked_amendement_num FROM scrutins WHERE uid = 'VTANR5L17V1'`, "301")
+	assertScalar(t, db, `SELECT linked_amendement_text_num FROM scrutins WHERE uid = 'VTANR5L17V1'`, "2695")
+	assertScalar(t, db, `SELECT linked_amendement_organe FROM scrutins WHERE uid = 'VTANR5L17V1'`, "AN")
+	assertScalar(t, db, `SELECT linked_amendement_url FROM scrutins WHERE uid = 'VTANR5L17V1'`, "https://www.assemblee-nationale.fr/dyn/17/amendements/2695/AN/301.pdf")
+	assertScalar(t, db, `SELECT linked_reference_source FROM scrutins WHERE uid = 'VTANR5L17V1'`, "titre")
 	assertScalar(t, db, `SELECT COUNT(*) FROM scrutin_search WHERE scrutin_search MATCH 'fixture'`, "1")
 	assertScalar(t, db, `SELECT position FROM votes WHERE scrutin_uid = 'VTANR5L17V1' AND acteur_uid = 'PA100001'`, "pour")
 	assertScalar(t, db, `SELECT par_delegation FROM votes WHERE scrutin_uid = 'VTANR5L17V1' AND acteur_uid = 'PA100001'`, "1")
@@ -60,6 +76,14 @@ func TestValidateDatabaseRejectsForeignKeyViolations(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "foreign key violation") {
 		t.Fatalf("validateDatabase() error = %v, want foreign key violation", err)
 	}
+}
+
+type stubAmendementResolver struct {
+	ref officialAmendementReference
+}
+
+func (r stubAmendementResolver) Resolve(int, string, string, string, string) (officialAmendementReference, error) {
+	return r.ref, nil
 }
 
 func assertScalar(t *testing.T, db *sql.DB, query string, want string) {

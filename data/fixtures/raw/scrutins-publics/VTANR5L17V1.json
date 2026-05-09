@@ -17,12 +17,16 @@
       "code": "adopte",
       "libelle": "Adopte"
     },
-    "titre": "Projet fixture 100%_public",
+    "titre": "Scrutin sur l'amendement n° 301 au projet de loi (n° 2630)",
     "demandeur": {
       "texte": "Gouvernement"
     },
     "objet": {
-      "libelle": "Objet fixture"
+      "libelle": "Objet fixture 100%_public",
+      "dossierLegislatif": {
+        "libelle": "Projet fixture",
+        "dossierRef": "DLR5L17N1"
+      }
     },
     "modePublicationDesVotes": "Decompte nominatif",
     "syntheseVote": {

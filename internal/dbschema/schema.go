@@ -1,3 +1,3 @@
 package dbschema
 
-const Version = "2"
+const Version = "7"

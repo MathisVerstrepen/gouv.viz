@@ -50,33 +50,44 @@ type ScrutinDetailPage struct {
 }
 
 type ScrutinDetailData struct {
-	UID                   string
-	Numero                int
-	Legislature           int
-	OrganeUID             string
-	Organe                string
-	SessionRef            string
-	SeanceRef             string
-	Date                  string
-	QuantiemeJourSeance   int
-	CodeTypeVote          string
-	TypeVote              string
-	TypeMajorite          string
-	SortCode              string
-	SortLibelle           string
-	Titre                 string
-	Demandeur             string
-	Objet                 string
-	ModePublicationVotes  string
-	NombreVotants         int
-	SuffragesExprimes     int
-	SuffragesRequis       int
-	NonVotants            int
-	Pour                  int
-	Contre                int
-	Abstentions           int
-	NonVotantsVolontaires int
-	SourceFile            string
+	UID                     string
+	Numero                  int
+	Legislature             int
+	OrganeUID               string
+	Organe                  string
+	SessionRef              string
+	SeanceRef               string
+	Date                    string
+	QuantiemeJourSeance     int
+	CodeTypeVote            string
+	TypeVote                string
+	TypeMajorite            string
+	SortCode                string
+	SortLibelle             string
+	Titre                   string
+	LinkedTextNum           string
+	LinkedTextKind          string
+	LinkedTextURL           string
+	LinkedTextPDFURL        string
+	LinkedDossierRef        string
+	LinkedDossierLibelle    string
+	LinkedAmendementNum     string
+	LinkedAmendementTextNum string
+	LinkedAmendementOrgane  string
+	LinkedAmendementURL     string
+	LinkedReferenceSource   string
+	Demandeur               string
+	Objet                   string
+	ModePublicationVotes    string
+	NombreVotants           int
+	SuffragesExprimes       int
+	SuffragesRequis         int
+	NonVotants              int
+	Pour                    int
+	Contre                  int
+	Abstentions             int
+	NonVotantsVolontaires   int
+	SourceFile              string
 }
 
 type ScrutinGroupVote struct {
