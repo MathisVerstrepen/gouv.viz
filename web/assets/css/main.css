@@ -44,6 +44,9 @@
 	--background-vote-contre: #ce0500;
 	--background-vote-abstention: #6e4c00;
 	--background-vote-non-votant: #929292;
+	--background-result-adopte: var(--background-flat-success);
+	--background-result-rejete: var(--background-flat-error);
+	--text-inverted-result: #ffffff;
 
 	--text-title-grey: var(--grey-50-1000);
 	--text-default-grey: #3a3a3a;
@@ -844,7 +847,8 @@ code {
 }
 
 .result-chip {
-	display: inline-flex;
+	display: flex;
+    align-items: center;
 	width: fit-content;
 	padding: var(--space-1v) var(--space-2v);
 	background: var(--background-alt-blue-france);
@@ -852,6 +856,16 @@ code {
 	font-size: var(--text-xs);
 	font-weight: var(--font-weight-bold);
 	text-transform: uppercase;
+}
+
+.result-chip--adopte {
+	background: var(--background-result-adopte);
+	color: var(--text-inverted-result);
+}
+
+.result-chip--rejete {
+	background: var(--background-result-rejete);
+	color: var(--text-inverted-result);
 }
 
 .vote-counts {

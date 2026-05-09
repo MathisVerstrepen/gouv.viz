@@ -91,7 +91,7 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 							<span>{ page.Scrutin.TypeVote }</span>
 						}
 						if page.Scrutin.SortCode != "" {
-							<span class="result-chip">{ page.Scrutin.SortCode }</span>
+							<span class={ resultChipClass(page.Scrutin.SortCode) }>{ page.Scrutin.SortCode }</span>
 						}
 					</div>
 				</div>

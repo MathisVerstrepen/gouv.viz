@@ -52,6 +52,28 @@ func TestPaginationPages(t *testing.T) {
 	}
 }
 
+func TestResultChipClass(t *testing.T) {
+	tests := []struct {
+		name string
+		code string
+		want string
+	}{
+		{name: "adopte unaccented", code: "adopte", want: "result-chip result-chip--adopte"},
+		{name: "adopte accented", code: " adopt\u00e9 ", want: "result-chip result-chip--adopte"},
+		{name: "rejete unaccented", code: "rejete", want: "result-chip result-chip--rejete"},
+		{name: "rejete accented", code: "rejet\u00e9", want: "result-chip result-chip--rejete"},
+		{name: "unknown", code: "inconnu", want: "result-chip"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := resultChipClass(tt.code); got != tt.want {
+				t.Fatalf("resultChipClass(%q) = %q, want %q", tt.code, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDetailHelpers(t *testing.T) {
 	if got := ScrutinDetailURL("VT/1 2"); got != "/scrutins/VT%2F1%202" {
 		t.Fatalf("ScrutinDetailURL() = %q", got)

@@ -113,7 +113,7 @@ templ ScrutinCard(scrutin ScrutinListItem) {
 			<p>{ scrutin.TypeVote }</p>
 		</div>
 		<div class="scrutin-card__result" aria-label="Resultat du scrutin">
-			<span class="result-chip">{ scrutin.SortCode }</span>
+			<span class={ resultChipClass(scrutin.SortCode) }>{ scrutin.SortCode }</span>
 			<dl class="vote-counts">
 				<div class="vote-count--pour">
 					<dt>Pour</dt>
@@ -203,6 +203,21 @@ func sortLinkClass(active bool) string {
 		return "sort-link sort-link--active"
 	}
 	return "sort-link"
+}
+
+func resultChipClass(sortCode string) string {
+	normalized := strings.ToLower(strings.TrimSpace(sortCode))
+	normalized = strings.ReplaceAll(normalized, "\u00e9", "e")
+	normalized = strings.ReplaceAll(normalized, "\u0301", "")
+
+	switch normalized {
+	case "adopte":
+		return "result-chip result-chip--adopte"
+	case "rejete":
+		return "result-chip result-chip--rejete"
+	default:
+		return "result-chip"
+	}
 }
 
 func resultSummary(page ScrutinsPage) string {
