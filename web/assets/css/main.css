@@ -506,6 +506,13 @@ code {
 	font-size: var(--text-sm);
 }
 
+.detail-heading__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3v);
+	margin-block-start: var(--space-6v);
+}
+
 .hero {
 	position: relative;
 	overflow: clip;

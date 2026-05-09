@@ -80,6 +80,14 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 							<span class="result-chip">{ page.Scrutin.SortCode }</span>
 						}
 					</div>
+					if officialScrutinURL(page.Scrutin) != "" {
+						<div class="detail-heading__actions">
+							<a class="button button--secondary" href={ officialScrutinURL(page.Scrutin) } target="_blank" rel="noopener noreferrer">
+								Lire le scrutin complet
+								<span class="fr-sr-only"> sur le site de l'Assemblee nationale (nouvelle fenetre)</span>
+							</a>
+						</div>
+					}
 				</div>
 			</section>
 
@@ -263,6 +271,13 @@ func numberOrEmpty(value int) string {
 		return ""
 	}
 	return strconv.Itoa(value)
+}
+
+func officialScrutinURL(scrutin ScrutinDetailData) string {
+	if scrutin.Legislature <= 0 || scrutin.Numero <= 0 {
+		return ""
+	}
+	return "https://www.assemblee-nationale.fr/dyn/" + strconv.Itoa(scrutin.Legislature) + "/scrutins/" + strconv.Itoa(scrutin.Numero)
 }
 
 func votersTotal(scrutin ScrutinDetailData) int {
