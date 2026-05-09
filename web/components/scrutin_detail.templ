@@ -7,6 +7,7 @@ import (
 )
 
 const totalDeputies = 577
+const groupDeviationCellCount = 41
 
 type ScrutinDetailPage struct {
 	Scrutin    ScrutinDetailData
@@ -164,6 +165,7 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 								<p class="empty-state">Aucun detail par groupe disponible pour ce scrutin.</p>
 							} else {
 								@GroupVoteStackedChart(page.GroupVotes)
+								@GroupPourDeviationChart(page.Scrutin, page.GroupVotes)
 								<details class="group-vote-details">
 									<summary>Voir les donnees detaillees par groupe</summary>
 									@GroupVoteTable(page.GroupVotes)
@@ -262,6 +264,33 @@ templ GroupVoteStackedChart(groupVotes []ScrutinGroupVote) {
 					}
 				</div>
 			</div>
+		</div>
+	</figure>
+}
+
+templ GroupPourDeviationChart(scrutin ScrutinDetailData, groupVotes []ScrutinGroupVote) {
+	<figure class="group-deviation-chart">
+		<figcaption>
+			<h3>Ecarts au vote Pour de l'hemicycle</h3>
+			<p>Reference : { votePercent(scrutin.Pour, votersTotal(scrutin)) } de Pour parmi les votants du scrutin.</p>
+		</figcaption>
+		<div class="group-deviation-chart__list">
+			for _, groupVote := range sortedGroupVotesForChart(groupVotes) {
+				<div class="group-deviation-chart__row">
+					<span class="group-deviation-chart__group" title={ groupVote.Groupe }>{ groupVote.Groupe }</span>
+					<div class="group-deviation-chart__track" role="img" aria-label={ groupPourDeviationLabel(scrutin, groupVote) }>
+						for index := range groupDeviationCellCount {
+							<span class={ groupDeviationCellClass(index, groupPourDeviation(scrutin, groupVote)) } title={ groupPourDeviationLabel(scrutin, groupVote) } aria-hidden="true"></span>
+						}
+					</div>
+					<span class={ groupDeviationValueClass(groupPourDeviation(scrutin, groupVote)) }>{ signedPercentPoints(groupPourDeviation(scrutin, groupVote)) }</span>
+				</div>
+			}
+		</div>
+		<div class="group-deviation-chart__axis" aria-hidden="true">
+			<span>Moins de Pour</span>
+			<span>Reference hemicycle</span>
+			<span>Plus de Pour</span>
 		</div>
 	</figure>
 }
@@ -379,6 +408,56 @@ func groupVoteSegmentTitle(groupVote ScrutinGroupVote, label string) string {
 	return groupVote.Groupe + " - " + label + " : " + strconv.Itoa(count) + " voix (" + votePercent(count, groupVoteTotal(groupVote)) + ")"
 }
 
+func groupPourDeviation(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) float64 {
+	return voteRatio(groupVote.Pour, groupVoteTotal(groupVote)) - voteRatio(scrutin.Pour, votersTotal(scrutin))
+}
+
+func groupPourDeviationLabel(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) string {
+	return groupVote.Groupe + " : " + votePercent(groupVote.Pour, groupVoteTotal(groupVote)) + " de Pour, " + signedPercentPoints(groupPourDeviation(scrutin, groupVote)) + " par rapport a l'hemicycle"
+}
+
+func groupDeviationValueClass(deviation float64) string {
+	if deviation > 0 {
+		return "group-deviation-chart__value group-deviation-chart__value--positive"
+	}
+	if deviation < 0 {
+		return "group-deviation-chart__value group-deviation-chart__value--negative"
+	}
+	return "group-deviation-chart__value"
+}
+
+func groupDeviationCellClass(index int, deviation float64) string {
+	const centerIndex = groupDeviationCellCount / 2
+	const step = 5.0
+
+	position := float64(index-centerIndex) * step
+	class := "group-deviation-cell"
+	if index == centerIndex {
+		return class + " group-deviation-cell--center"
+	}
+	if deviation > 0 && position > 0 && position <= deviation+step/2 {
+		return class + " group-deviation-cell--positive"
+	}
+	if deviation < 0 && position < 0 && position >= deviation-step/2 {
+		return class + " group-deviation-cell--negative"
+	}
+	return class
+}
+
+func signedPercentPoints(value float64) string {
+	if value > 0 {
+		return "+" + strconv.FormatFloat(value, 'f', 1, 64) + " pts"
+	}
+	return strconv.FormatFloat(value, 'f', 1, 64) + " pts"
+}
+
+func voteRatio(count int, total int) float64 {
+	if count <= 0 || total <= 0 {
+		return 0
+	}
+	return (float64(count) / float64(total)) * 100
+}
+
 func sortedGroupVotesForChart(groupVotes []ScrutinGroupVote) []ScrutinGroupVote {
 	sorted := append([]ScrutinGroupVote(nil), groupVotes...)
 	sort.SliceStable(sorted, func(i int, j int) bool {
@@ -417,7 +496,7 @@ func votePercent(count int, total int) string {
 	if count <= 0 || total <= 0 {
 		return "0%"
 	}
-	percent := (float64(count) / float64(total)) * 100
+	percent := voteRatio(count, total)
 	return strconv.FormatFloat(percent, 'f', 1, 64) + "%"
 }
 
