@@ -105,15 +105,15 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 						<div class="scrutin-card__result" aria-label="Resultat du scrutin">
 							<span class="result-chip">{ scrutin.SortCode }</span>
 							<dl class="vote-counts">
-								<div>
+								<div class="vote-count--pour">
 									<dt>Pour</dt>
 									<dd>{ strconv.Itoa(scrutin.Pour) }</dd>
 								</div>
-								<div>
+								<div class="vote-count--contre">
 									<dt>Contre</dt>
 									<dd>{ strconv.Itoa(scrutin.Contre) }</dd>
 								</div>
-								<div>
+								<div class="vote-count--abstention">
 									<dt>Abst.</dt>
 									<dd>{ strconv.Itoa(scrutin.Abstentions) }</dd>
 								</div>

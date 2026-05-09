@@ -224,7 +224,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div></section><section class=\"section section--muted\"><div class=\"fr-container detail-layout\"><div class=\"detail-main\"><section class=\"detail-card\" aria-labelledby=\"scrutin-resultat\"><h2 id=\"scrutin-resultat\">Resultat du vote</h2><dl class=\"detail-metrics\"><div><dt>Pour</dt><dd>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div></section><section class=\"section section--muted\"><div class=\"fr-container detail-layout\"><div class=\"detail-main\"><section class=\"detail-card\" aria-labelledby=\"scrutin-resultat\"><h2 id=\"scrutin-resultat\">Resultat du vote</h2><dl class=\"detail-metrics\"><div class=\"detail-metric--pour\"><dt>Pour</dt><dd>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -237,7 +237,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</dd></div><div><dt>Contre</dt><dd>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</dd></div><div class=\"detail-metric--contre\"><dt>Contre</dt><dd>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -250,7 +250,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</dd></div><div><dt>Abstentions</dt><dd>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</dd></div><div class=\"detail-metric--abstention\"><dt>Abstentions</dt><dd>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

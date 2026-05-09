@@ -98,15 +98,15 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 						<section class="detail-card" aria-labelledby="scrutin-resultat">
 							<h2 id="scrutin-resultat">Resultat du vote</h2>
 							<dl class="detail-metrics">
-								<div>
+								<div class="detail-metric--pour">
 									<dt>Pour</dt>
 									<dd>{ strconv.Itoa(page.Scrutin.Pour) }</dd>
 								</div>
-								<div>
+								<div class="detail-metric--contre">
 									<dt>Contre</dt>
 									<dd>{ strconv.Itoa(page.Scrutin.Contre) }</dd>
 								</div>
-								<div>
+								<div class="detail-metric--abstention">
 									<dt>Abstentions</dt>
 									<dd>{ strconv.Itoa(page.Scrutin.Abstentions) }</dd>
 								</div>

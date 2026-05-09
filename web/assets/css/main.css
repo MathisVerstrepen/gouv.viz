@@ -867,6 +867,18 @@ code {
 	background: var(--background-alt-grey);
 }
 
+.vote-counts .vote-count--pour {
+	border-top-color: var(--background-vote-pour);
+}
+
+.vote-counts .vote-count--contre {
+	border-top-color: var(--background-vote-contre);
+}
+
+.vote-counts .vote-count--abstention {
+	border-top-color: var(--background-vote-abstention);
+}
+
 .vote-counts dt,
 .vote-counts dd {
 	margin: 0;
@@ -978,6 +990,18 @@ code {
 	padding: var(--space-3v);
 	border-top: 3px solid var(--border-action-high-blue-france);
 	background: var(--background-alt-grey);
+}
+
+.detail-metrics .detail-metric--pour {
+	border-top-color: var(--background-vote-pour);
+}
+
+.detail-metrics .detail-metric--contre {
+	border-top-color: var(--background-vote-contre);
+}
+
+.detail-metrics .detail-metric--abstention {
+	border-top-color: var(--background-vote-abstention);
 }
 
 .detail-metrics dt,
