@@ -452,6 +452,46 @@ code {
 	color: var(--text-action-high-blue-france-hover);
 }
 
+.theme-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2v);
+	min-height: 2.25rem;
+	padding: var(--space-1v) var(--space-3v);
+	border: 1px solid var(--border-default-blue-france);
+	border-radius: 999rem;
+	background: var(--background-default-grey);
+	color: var(--text-action-high-blue-france);
+	font-size: var(--text-sm);
+	font-weight: var(--font-weight-bold);
+	cursor: pointer;
+	transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.theme-toggle:hover {
+	border-color: var(--border-action-high-blue-france);
+	background: var(--background-alt-blue-france);
+	color: var(--text-action-high-blue-france-hover);
+}
+
+.theme-toggle__icon {
+	position: relative;
+	inline-size: 1.125rem;
+	block-size: 1.125rem;
+	border: 2px solid currentColor;
+	border-radius: 50%;
+	background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+:root[data-fr-scheme="light"] .theme-toggle__icon {
+	background: currentColor;
+}
+
+:root[data-fr-scheme="dark"] .theme-toggle__icon {
+	background: transparent;
+}
+
 .section {
 	padding-block: var(--space-12v);
 }
@@ -1570,6 +1610,10 @@ code {
 		margin-inline-start: 0;
 	}
 
+	.theme-toggle {
+		width: 100%;
+	}
+
 	.button {
 		width: 100%;
 	}
@@ -1642,6 +1686,7 @@ code {
 	.scrutin-card,
 	.sort-link,
 	.sort-panel,
+	.theme-toggle,
 	.vote-breakdown__bar,
 	.vote-breakdown__legend li,
 	.vote-counts div {

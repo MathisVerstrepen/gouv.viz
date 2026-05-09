@@ -15,6 +15,7 @@ templ layout(content templ.Component, title string) {
 			<meta name="description" content="Visualisation des scrutins publics de l'Assemblee nationale"/>
 			<meta name="htmx-config" content='{"includeIndicatorStyles": false}'/>
 			<title>{ title }</title>
+			<script src="/assets/js/theme.js"></script>
 			<link rel="stylesheet" href="/assets/css/main.css"/>
 			<script src="/assets/js/htmx.min.js" defer></script>
 			if environment() != "prod" {
@@ -59,6 +60,10 @@ templ SiteHeader(active string) {
 				<a href="/" class={ navLinkClass(active == "home") }>Accueil</a>
 				<a href="/scrutins" class={ navLinkClass(active == "scrutins") }>Scrutins</a>
 			</nav>
+			<button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+				<span class="theme-toggle__icon" aria-hidden="true"></span>
+				<span data-theme-toggle-label>Mode clair</span>
+			</button>
 		</div>
 	</header>
 }
