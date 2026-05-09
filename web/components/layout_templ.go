@@ -124,7 +124,7 @@ func SiteHeader(active string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-block\" href=\"/\" aria-label=\"Accueil - gouv.viz\"><span>Republique</span> <span>Francaise</span></a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">gouv.viz</p><p class=\"service-title__tagline\">Scrutins publics de l'Assemblee nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-block\" href=\"/\" aria-label=\"Accueil - gouv.viz\">gouv.viz</a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">Non officiel</p><p class=\"service-title__tagline\">Scrutins publics de l'Assemblee nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
