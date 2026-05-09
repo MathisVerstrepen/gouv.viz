@@ -18,7 +18,12 @@ func (s *Server) Scrutins(ctx echo.Context) error {
 		return fmt.Errorf("load scrutins page: %w", err)
 	}
 
-	return Render(ctx, http.StatusOK, components.Root(components.Scrutins(scrutinsView(page)), "Scrutins publics - gouv.viz"))
+	view := scrutinsView(page)
+	if ctx.Request().Header.Get("HX-Request") == "true" {
+		return Render(ctx, http.StatusOK, components.ScrutinsExplorer(view))
+	}
+
+	return Render(ctx, http.StatusOK, components.Root(components.Scrutins(view), "Scrutins publics - gouv.viz"))
 }
 
 func parseScrutinsQuery(ctx echo.Context) store.ScrutinsQuery {

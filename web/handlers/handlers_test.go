@@ -58,6 +58,29 @@ func TestScrutinsHandlerRendersOK(t *testing.T) {
 	}
 }
 
+func TestScrutinsHandlerRendersHTMXPartial(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=budget&sort=numero_asc&page=1", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.Scrutins(ctx); err != nil {
+		t.Fatalf("Scrutins() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `id="scrutins-explorer"`) {
+		t.Fatalf("response body does not contain scrutins explorer partial")
+	}
+	if strings.Contains(body, "<!DOCTYPE html>") {
+		t.Fatalf("response body contains full document, want partial")
+	}
+}
+
 func TestScrutinDetailHandlerReturns404ForMissing(t *testing.T) {
 	server := NewServer(store.New(newHandlerTestDB(t, false)))
 	e := echo.New()

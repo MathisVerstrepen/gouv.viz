@@ -15,7 +15,7 @@ templ layout(content templ.Component, title string) {
 			<meta name="description" content="Visualisation des scrutins publics de l'Assemblee nationale"/>
 			<title>{ title }</title>
 			<link rel="stylesheet" href="/assets/css/main.css"/>
-			<script src="https://unpkg.com/htmx.org@2.0.10" defer></script>
+			<script src="/assets/js/htmx.min.js" defer></script>
 			if environment() != "prod" {
 				<script>
 					const socket = new WebSocket(`ws://${window.location.hostname}:9456/ws`);
