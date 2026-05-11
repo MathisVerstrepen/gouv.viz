@@ -74,6 +74,27 @@ func TestResultChipClass(t *testing.T) {
 	}
 }
 
+func TestCapitalizeFirstLetter(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		want  string
+	}{
+		{name: "empty", value: "", want: ""},
+		{name: "lowercase", value: "projet de loi", want: "Projet de loi"},
+		{name: "accented", value: "évaluation", want: "Évaluation"},
+		{name: "already uppercase", value: "Budget", want: "Budget"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := capitalizeFirstLetter(tt.value); got != tt.want {
+				t.Fatalf("capitalizeFirstLetter() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDetailHelpers(t *testing.T) {
 	if got := ScrutinDetailURL("VT/1 2"); got != "/scrutins/VT%2F1%202" {
 		t.Fatalf("ScrutinDetailURL() = %q", got)

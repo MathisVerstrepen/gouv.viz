@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 type ScrutinsQuery struct {
@@ -109,7 +111,7 @@ templ ScrutinCard(scrutin ScrutinListItem) {
 			}
 		</div>
 		<div class="scrutin-card__body">
-			<h2><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ scrutin.Titre }</a></h2>
+			<h2><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ capitalizeFirstLetter(scrutin.Titre) }</a></h2>
 			<p>{ scrutin.TypeVote }</p>
 		</div>
 		<div class="scrutin-card__result" aria-label="Resultat du scrutin">
@@ -234,6 +236,14 @@ func currentSortLabel(page ScrutinsPage) string {
 		}
 	}
 	return page.Query.Sort
+}
+
+func capitalizeFirstLetter(value string) string {
+	first, size := utf8.DecodeRuneInString(value)
+	if size == 0 {
+		return value
+	}
+	return string(unicode.ToUpper(first)) + value[size:]
 }
 
 func scrutinVoteSegments(scrutin ScrutinListItem) []VoteSegment {
