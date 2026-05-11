@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"net/url"
+	"path/filepath"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -26,7 +28,7 @@ func main() {
 
 	e.Static("/assets", cfg.AssetsPath)
 
-	db, err := sql.Open("sqlite", cfg.DatabasePath)
+	db, err := openWebDatabase(cfg.DatabasePath)
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
@@ -51,6 +53,35 @@ func main() {
 	}
 
 	e.Logger.Fatal(e.StartServer(newHTTPServer(cfg.Addr())))
+}
+
+func openWebDatabase(databasePath string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", sqliteReadOnlyDSN(databasePath))
+	if err != nil {
+		return nil, err
+	}
+
+	db.SetMaxIdleConns(4)
+	db.SetMaxOpenConns(4)
+	return db, nil
+}
+
+func sqliteReadOnlyDSN(databasePath string) string {
+	query := url.Values{}
+	query.Set("mode", "ro")
+	query.Set("immutable", "1")
+	query.Add("_pragma", "busy_timeout(5000)")
+	query.Add("_pragma", "query_only(1)")
+
+	if !filepath.IsAbs(databasePath) {
+		return "file:" + (&url.URL{Path: databasePath}).EscapedPath() + "?" + query.Encode()
+	}
+
+	return (&url.URL{
+		Scheme:   "file",
+		Path:     databasePath,
+		RawQuery: query.Encode(),
+	}).String()
 }
 
 func newEcho(cfg config.Config) *echo.Echo {
