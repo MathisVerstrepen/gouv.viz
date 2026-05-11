@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+
+	"gouv.viz/internal/config"
 )
 
 func TestNewEchoAddsSecurityHeadersAndRequestID(t *testing.T) {
-	e := newEcho()
+	e := newEcho(config.Config{Env: "prod"})
 	e.Logger.SetOutput(io.Discard)
 	e.GET("/ok", func(ctx echo.Context) error {
 		return ctx.String(http.StatusOK, "ok")
@@ -33,6 +35,54 @@ func TestNewEchoAddsSecurityHeadersAndRequestID(t *testing.T) {
 	assertHeader(t, rec, echo.HeaderReferrerPolicy, "strict-origin-when-cross-origin")
 	if got := rec.Header().Get(echo.HeaderContentSecurityPolicy); !strings.Contains(got, "default-src 'self'") {
 		t.Fatalf("Content-Security-Policy = %q, want default-src 'self'", got)
+	}
+}
+
+func TestNewEchoContentSecurityPolicy(t *testing.T) {
+	tests := []struct {
+		name         string
+		env          string
+		wantContains []string
+		wantExcludes []string
+	}{
+		{
+			name:         "prod",
+			env:          "prod",
+			wantContains: []string{"script-src 'self'", "connect-src 'self'"},
+			wantExcludes: []string{"'unsafe-inline'", "ws:", "wss:"},
+		},
+		{
+			name:         "dev",
+			env:          "dev",
+			wantContains: []string{"script-src 'self'", "connect-src 'self' ws: wss:"},
+			wantExcludes: []string{"'unsafe-inline'"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := newEcho(config.Config{Env: tt.env})
+			e.Logger.SetOutput(io.Discard)
+			e.GET("/ok", func(ctx echo.Context) error {
+				return ctx.String(http.StatusOK, "ok")
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/ok", nil)
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			got := rec.Header().Get(echo.HeaderContentSecurityPolicy)
+			for _, want := range tt.wantContains {
+				if !strings.Contains(got, want) {
+					t.Fatalf("Content-Security-Policy = %q, want %q", got, want)
+				}
+			}
+			for _, excluded := range tt.wantExcludes {
+				if strings.Contains(got, excluded) {
+					t.Fatalf("Content-Security-Policy = %q, should not contain %q", got, excluded)
+				}
+			}
+		})
 	}
 }
 

@@ -22,7 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	e := newEcho()
+	e := newEcho(cfg)
 
 	e.Static("/assets", cfg.AssetsPath)
 
@@ -53,8 +53,13 @@ func main() {
 	e.Logger.Fatal(e.StartServer(newHTTPServer(cfg.Addr())))
 }
 
-func newEcho() *echo.Echo {
+func newEcho(cfg config.Config) *echo.Echo {
 	e := echo.New()
+	csp := "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	if !cfg.IsProd() {
+		csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	}
+
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -63,7 +68,7 @@ func newEcho() *echo.Echo {
 		ContentTypeNosniff:    "nosniff",
 		HSTSMaxAge:            31536000,
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
-		ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+		ContentSecurityPolicy: csp,
 	}))
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	e.HTTPErrorHandler = handlers.NewHTTPErrorHandler(e)

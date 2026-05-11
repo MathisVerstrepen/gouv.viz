@@ -53,7 +53,7 @@ func layout(content templ.Component, title string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if environment() != "prod" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<script>\n\t\t\t\t\tconst socket = new WebSocket(`ws://${window.location.hostname}:9456/ws`);\n\t\t\t\t\twindow.addEventListener(\"beforeunload\", () => socket.close());\n\t\t\t\t\tsocket.addEventListener(\"close\", (event) => {\n\t\t\t\t\t\tif (event.code === 1000) return;\n\t\t\t\t\t\tconst interval = setInterval(() => {\n\t\t\t\t\t\t\tfetch(\"/ping\").then((response) => {\n\t\t\t\t\t\t\t\tif (!response.ok) return;\n\t\t\t\t\t\t\t\tclearInterval(interval);\n\t\t\t\t\t\t\t\tsetTimeout(() => window.location.reload(), 100);\n\t\t\t\t\t\t\t});\n\t\t\t\t\t\t}, 200);\n\t\t\t\t\t});\n\t\t\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<script src=\"/assets/js/hot-reload.js\" defer></script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

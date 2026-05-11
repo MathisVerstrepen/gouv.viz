@@ -19,20 +19,7 @@ templ layout(content templ.Component, title string) {
 			<link rel="stylesheet" href="/assets/css/main.css"/>
 			<script src="/assets/js/htmx.min.js" defer></script>
 			if environment() != "prod" {
-				<script>
-					const socket = new WebSocket(`ws://${window.location.hostname}:9456/ws`);
-					window.addEventListener("beforeunload", () => socket.close());
-					socket.addEventListener("close", (event) => {
-						if (event.code === 1000) return;
-						const interval = setInterval(() => {
-							fetch("/ping").then((response) => {
-								if (!response.ok) return;
-								clearInterval(interval);
-								setTimeout(() => window.location.reload(), 100);
-							});
-						}, 200);
-					});
-				</script>
+				<script src="/assets/js/hot-reload.js" defer></script>
 			}
 		</head>
 		<body>
