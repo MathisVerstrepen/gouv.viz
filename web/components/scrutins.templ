@@ -104,7 +104,7 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 templ ScrutinCard(scrutin ScrutinListItem) {
 	<article class="scrutin-card">
 		<div class="scrutin-card__meta">
-			<span>Scrutin n{ strconv.Itoa(scrutin.Numero) }</span>
+			<span>Scrutin n°{ strconv.Itoa(scrutin.Numero) }</span>
 			<span>{ formatDate(scrutin.Date) }</span>
 			if scrutin.Organe != "" {
 				<span>{ scrutin.Organe }</span>
