@@ -16,14 +16,14 @@ import (
 
 func TestParseScrutinsQueryParsesSearchSortAndPage(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=%20budget%20&sort=numero_asc&page=3", nil)
+	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=%20budget%20&sort=closest&page=3", nil)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
 	query := parseScrutinsQuery(ctx)
 
-	if query.Search != "budget" || query.Sort != "numero_asc" || query.Page != 3 || query.PerPage != store.ScrutinsPerPage {
-		t.Fatalf("query = %+v, want search budget, sort numero_asc, page 3, per-page %d", query, store.ScrutinsPerPage)
+	if query.Search != "budget" || query.Sort != "closest" || query.Page != 3 || query.PerPage != store.ScrutinsPerPage {
+		t.Fatalf("query = %+v, want search budget, sort closest, page 3, per-page %d", query, store.ScrutinsPerPage)
 	}
 }
 
@@ -43,7 +43,7 @@ func TestParseScrutinsQueryIgnoresInvalidPageAndSort(t *testing.T) {
 func TestScrutinsHandlerRendersOK(t *testing.T) {
 	server := NewServer(store.New(newHandlerTestDB(t, true)))
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=budget&sort=numero_asc&page=1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=budget&sort=closest&page=1", nil)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
@@ -61,7 +61,7 @@ func TestScrutinsHandlerRendersOK(t *testing.T) {
 func TestScrutinsHandlerRendersHTMXPartial(t *testing.T) {
 	server := NewServer(store.New(newHandlerTestDB(t, true)))
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=budget&sort=numero_asc&page=1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=budget&sort=closest&page=1", nil)
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)

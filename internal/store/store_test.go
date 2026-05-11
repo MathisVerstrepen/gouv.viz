@@ -61,7 +61,7 @@ func TestScrutinsPageClampsPagePastTotal(t *testing.T) {
 	insertScrutin(t, s.db, testScrutin{UID: "two", Numero: 2, Date: "2024-01-02", Titre: "Deuxieme", OrganeUID: "ORG1"})
 	insertScrutin(t, s.db, testScrutin{UID: "three", Numero: 3, Date: "2024-01-03", Titre: "Troisieme", OrganeUID: "ORG1"})
 
-	page, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Sort: "numero_asc", Page: 99, PerPage: 2})
+	page, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Sort: "date_asc", Page: 99, PerPage: 2})
 	if err != nil {
 		t.Fatalf("ScrutinsPage() error = %v", err)
 	}
@@ -71,6 +71,26 @@ func TestScrutinsPageClampsPagePastTotal(t *testing.T) {
 	}
 	if got := uids(page.Scrutins); len(got) != 1 || got[0] != "three" {
 		t.Fatalf("scrutins = %v, want [three]", got)
+	}
+}
+
+func TestScrutinsPageSortsClosestPourContreFirst(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertScrutin(t, s.db, testScrutin{UID: "wide", Numero: 1, Date: "2024-01-01", Titre: "Ecart large", OrganeUID: "ORG1"})
+	insertScrutin(t, s.db, testScrutin{UID: "tie", Numero: 2, Date: "2024-01-02", Titre: "Egalite", OrganeUID: "ORG1"})
+	insertScrutin(t, s.db, testScrutin{UID: "close", Numero: 3, Date: "2024-01-03", Titre: "Ecart serre", OrganeUID: "ORG1"})
+	updateScrutinVoteCounts(t, s.db, "wide", 90, 10)
+	updateScrutinVoteCounts(t, s.db, "tie", 50, 50)
+	updateScrutinVoteCounts(t, s.db, "close", 49, 51)
+
+	page, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Sort: "closest", Page: 1, PerPage: 25})
+	if err != nil {
+		t.Fatalf("ScrutinsPage() error = %v", err)
+	}
+
+	if got := uids(page.Scrutins); len(got) != 3 || got[0] != "tie" || got[1] != "close" || got[2] != "wide" {
+		t.Fatalf("scrutins = %v, want [tie close wide]", got)
 	}
 }
 
@@ -326,6 +346,14 @@ INSERT INTO scrutins (
 	_, err = db.Exec(`INSERT INTO scrutin_search (uid, document) VALUES (?, ?)`, scrutin.UID, scrutin.Titre)
 	if err != nil {
 		t.Fatalf("insert scrutin search %s: %v", scrutin.UID, err)
+	}
+}
+
+func updateScrutinVoteCounts(t *testing.T, db *sql.DB, uid string, pour int, contre int) {
+	t.Helper()
+	_, err := db.Exec(`UPDATE scrutins SET pour = ?, contre = ? WHERE uid = ?`, pour, contre, uid)
+	if err != nil {
+		t.Fatalf("update scrutin counts %s: %v", uid, err)
 	}
 }
 

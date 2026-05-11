@@ -17,10 +17,10 @@ func TestScrutinListURL(t *testing.T) {
 	if got := scrutinListURL(query, "date_desc", 1, "date_desc"); got != "/scrutins?q=+budget+public+" {
 		t.Fatalf("scrutinListURL(default sort) = %q", got)
 	}
-	if got := scrutinListURL(query, "date_desc", 2, "numero_asc"); got != "/scrutins?page=2&q=+budget+public+&sort=numero_asc" {
+	if got := scrutinListURL(query, "date_desc", 2, "closest"); got != "/scrutins?page=2&q=+budget+public+&sort=closest" {
 		t.Fatalf("scrutinListURL(custom sort) = %q", got)
 	}
-	if got := scrutinListURL(query, "numero_asc", 1, "date_desc"); got != "/scrutins?q=+budget+public+&sort=date_desc" {
+	if got := scrutinListURL(query, "closest", 1, "date_desc"); got != "/scrutins?q=+budget+public+&sort=date_desc" {
 		t.Fatalf("scrutinListURL(non-hardcoded default) = %q", got)
 	}
 }
