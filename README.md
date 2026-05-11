@@ -27,7 +27,7 @@ Static-first website scaffold for visualizing statistics from French Assemblee n
 ## Development
 
 1. Copy `.env.example` to `.env` if you want local overrides.
-2. Install `templ`: `go install github.com/a-h/templ/cmd/templ@latest`.
+2. Install `templ`: `go install github.com/a-h/templ/cmd/templ@v0.3.1001`.
 3. Run `make generate` before building, or `make dev` with Air installed.
 4. Put large raw Scrutins publics JSON files in `data/raw/scrutins-publics/`.
 5. Run `./scripts/download-data.sh` to download and extract the open-data datasets before `make preprocess`.
