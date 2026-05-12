@@ -26,6 +26,19 @@ jobs:
       - name: Check generated files are current
         run: git diff --exit-code -- web/components
 
+      - name: Check Go formatting
+        run: |
+          unformatted="$(gofmt -l ./cmd ./internal ./web)"
+          if [ -n "$unformatted" ]; then
+            printf '%s\n' "$unformatted"
+            exit 1
+          fi
+
+      - name: Check module files are tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
       - name: Test
         run: go test ./...
 
