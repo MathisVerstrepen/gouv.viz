@@ -122,6 +122,85 @@ func TestScrutinDetailHandlerReturns404ForMissing(t *testing.T) {
 	}
 }
 
+func TestDeputyDetailHandlerRendersOK(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/deputes/PA1", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetPath("/deputes/:uid")
+	ctx.SetParamNames("uid")
+	ctx.SetParamValues("PA1")
+
+	if err := server.DeputyDetail(ctx); err != nil {
+		t.Fatalf("DeputyDetail() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Alice Martin") || !strings.Contains(body, "Votes nominatifs") || !strings.Contains(body, "Budget fixture") {
+		t.Fatalf("response body does not contain deputy detail content: %s", body)
+	}
+}
+
+func TestDeputyDetailHandlerReturns404ForMissing(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, false)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/deputes/missing", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetPath("/deputes/:uid")
+	ctx.SetParamNames("uid")
+	ctx.SetParamValues("missing")
+
+	err := server.DeputyDetail(ctx)
+	if err == nil {
+		t.Fatal("DeputyDetail() error = nil, want HTTP 404")
+	}
+	he, ok := err.(*echo.HTTPError)
+	if !ok || he.Code != http.StatusNotFound {
+		t.Fatalf("DeputyDetail() error = %#v, want HTTP 404", err)
+	}
+}
+
+func TestDeputyDetailHandlerRendersVotesPanelForHTMX(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/deputes/PA1?votes_page=1", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetPath("/deputes/:uid")
+	ctx.SetParamNames("uid")
+	ctx.SetParamValues("PA1")
+
+	if err := server.DeputyDetail(ctx); err != nil {
+		t.Fatalf("DeputyDetail() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `id="depute-votes-panel"`) || !strings.Contains(body, "Budget fixture") {
+		t.Fatalf("response body does not contain votes panel content: %s", body)
+	}
+	if strings.Contains(body, "<!doctype html") || strings.Contains(body, "SiteHeader") {
+		t.Fatalf("response body contains full-page content: %s", body)
+	}
+}
+
+func TestParseDeputyDetailQuery(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/deputes/PA1?votes_page=3&votes_q=budget&votes_sort=date_asc&votes_position=pour", nil)
+	ctx := e.NewContext(req, httptest.NewRecorder())
+
+	query := parseDeputyDetailQuery(ctx)
+	if query.VotesPage != 3 || query.VotesPerPage != store.DeputyVotesPerPage || query.VotesSearch != "budget" || query.VotesSort != "date_asc" || query.VotesPosition != "pour" {
+		t.Fatalf("parseDeputyDetailQuery() = %+v", query)
+	}
+}
+
 func TestHTTPErrorHandlerRendersCustomPage(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/missing", nil)
@@ -147,6 +226,9 @@ func newHandlerTestDB(t *testing.T, withScrutin bool) *sql.DB {
 		t.Fatalf("insert organe: %v", err)
 	}
 	if withScrutin {
+		if _, err := db.Exec(`INSERT INTO acteurs (uid, prenom, nom, alpha, profession, source_file) VALUES ('PA1', 'Alice', 'Martin', 'MARTIN', 'Juriste', 'acteur.json')`); err != nil {
+			t.Fatalf("insert acteur: %v", err)
+		}
 		_, err := db.Exec(`
 INSERT INTO scrutins (
   uid, numero, legislature, organe_uid, date_scrutin, code_type_vote,
@@ -164,6 +246,12 @@ INSERT INTO scrutins (
 		}
 		if _, err := db.Exec(`INSERT INTO scrutin_search (uid, document) VALUES ('scrutin-1', 'Budget fixture')`); err != nil {
 			t.Fatalf("insert scrutin search: %v", err)
+		}
+		if _, err := db.Exec(`INSERT INTO votes (scrutin_uid, acteur_uid, groupe_uid, position, par_delegation, num_place) VALUES ('scrutin-1', 'PA1', 'ORG1', 'pour', 0, '12')`); err != nil {
+			t.Fatalf("insert vote: %v", err)
+		}
+		if _, err := db.Exec(`INSERT INTO acteur_vote_stats (acteur_uid, legislature, total_votes, pour, contre, abstentions, non_votants) VALUES ('PA1', 17, 1, 1, 0, 0, 0)`); err != nil {
+			t.Fatalf("insert acteur vote stats: %v", err)
 		}
 	}
 

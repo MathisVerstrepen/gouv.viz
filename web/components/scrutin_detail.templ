@@ -408,7 +408,7 @@ templ IndividualVoteTable(votes []ScrutinIndividualVote) {
 				for _, vote := range votes {
 					<tr>
 						<th scope="row">
-							<span class="individual-vote-table__name">{ vote.Depute }</span>
+							<a class="individual-vote-table__name" href={ DeputyDetailURL(vote.ActeurUID) }>{ vote.Depute }</a>
 							<span class="individual-vote-table__uid">{ vote.ActeurUID }</span>
 						</th>
 						<td><span class={ individualVotePositionClass(vote.Position) }>{ individualVotePositionLabel(vote.Position) }</span></td>

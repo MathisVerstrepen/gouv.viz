@@ -224,6 +224,103 @@ func TestScrutinDetailPageReturnsLinkedReference(t *testing.T) {
 	}
 }
 
+func TestDeputyDetailPageReturnsProfileMandatsStatsAndVotes(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 2)
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN")
+	if _, err := s.db.Exec(`
+UPDATE acteurs
+SET civilite = 'Mme', date_naissance = '1980-01-02', ville_naissance = 'Lille', dep_naissance = '59', pays_naissance = 'France', profession = 'Juriste', uri_hatvp = 'https://hatvp.example/pa1', source_file = 'acteur.json'
+WHERE uid = 'PA1'
+`); err != nil {
+		t.Fatalf("update acteur details: %v", err)
+	}
+	insertMandat(t, s.db, "M1", "PA1", 17, "ASSEMBLEE", "2024-01-01", "", "Députée", true)
+	insertMandatOrgane(t, s.db, "M1", "GRP1")
+	insertScrutin(t, s.db, testScrutin{UID: "old", Numero: 1, Date: "2024-01-10", Titre: "Ancien vote", OrganeUID: "ORG1", Result: "rejete", ResultLabel: "Rejeté"})
+	insertScrutin(t, s.db, testScrutin{UID: "new", Numero: 2, Date: "2024-02-10", Titre: "Nouveau vote", OrganeUID: "ORG1", Result: "adopte", ResultLabel: "Adopté"})
+	insertIndividualVoteWithMandat(t, s.db, "old", "PA1", "M1", "GRP1", "contre", false, "")
+	insertIndividualVoteWithMandat(t, s.db, "new", "PA1", "M1", "GRP1", "pour", true, "12")
+	if _, err := s.db.Exec(`INSERT INTO acteur_vote_stats (acteur_uid, legislature, total_votes, pour, contre, abstentions, non_votants) VALUES ('PA1', 17, 2, 1, 1, 0, 0)`); err != nil {
+		t.Fatalf("insert actor vote stats: %v", err)
+	}
+
+	page, err := s.DeputyDetailPage(context.Background(), "PA1", DeputyDetailQuery{})
+	if err != nil {
+		t.Fatalf("DeputyDetailPage() error = %v", err)
+	}
+
+	if page.Deputy.DisplayName != "Alice Martin" || page.Deputy.Civilite != "Mme" || page.Deputy.URIHATVP != "https://hatvp.example/pa1" {
+		t.Fatalf("deputy = %+v, want detailed profile", page.Deputy)
+	}
+	if len(page.Mandats) != 1 || page.Mandats[0].UID != "M1" || !page.Mandats[0].NominPrincipale || len(page.Mandats[0].Organes) != 1 || page.Mandats[0].Organes[0].UID != "GRP1" {
+		t.Fatalf("mandats = %+v, want M1 with GRP1", page.Mandats)
+	}
+	if len(page.Stats) != 1 || page.Stats[0].TotalVotes != 2 || page.Stats[0].Pour != 1 || page.Stats[0].Contre != 1 {
+		t.Fatalf("stats = %+v, want 2 total votes", page.Stats)
+	}
+	if len(page.Votes) != 2 || page.Votes[0].ScrutinUID != "new" || page.Votes[0].Position != "pour" || !page.Votes[0].ParDelegation || page.Votes[0].Groupe != "G1" || page.Votes[1].ScrutinUID != "old" {
+		t.Fatalf("votes = %+v, want reverse chronological votes with group", page.Votes)
+	}
+	if page.Query.VotesPage != 1 || page.VotesTotalResults != 2 || page.VotesTotalPages != 1 || page.VotesStartItem != 1 || page.VotesEndItem != 2 {
+		t.Fatalf("vote pagination = query:%+v total:%d pages:%d start:%d end:%d", page.Query, page.VotesTotalResults, page.VotesTotalPages, page.VotesStartItem, page.VotesEndItem)
+	}
+}
+
+func TestDeputyDetailPagePaginatesVotes(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 2)
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN")
+	insertScrutin(t, s.db, testScrutin{UID: "vote-1", Numero: 1, Date: "2024-01-01", Titre: "Premier vote", OrganeUID: "ORG1"})
+	insertScrutin(t, s.db, testScrutin{UID: "vote-2", Numero: 2, Date: "2024-01-02", Titre: "Deuxième vote", OrganeUID: "ORG1"})
+	insertScrutin(t, s.db, testScrutin{UID: "vote-3", Numero: 3, Date: "2024-01-03", Titre: "Troisième vote", OrganeUID: "ORG1"})
+	insertIndividualVote(t, s.db, "vote-1", "PA1", "GRP1", "pour", false, "")
+	insertIndividualVote(t, s.db, "vote-2", "PA1", "GRP1", "contre", false, "")
+	insertIndividualVote(t, s.db, "vote-3", "PA1", "GRP1", "abstention", false, "")
+
+	page, err := s.DeputyDetailPage(context.Background(), "PA1", DeputyDetailQuery{VotesPage: 2, VotesPerPage: 1})
+	if err != nil {
+		t.Fatalf("DeputyDetailPage() error = %v", err)
+	}
+
+	if len(page.Votes) != 1 || page.Votes[0].ScrutinUID != "vote-2" {
+		t.Fatalf("votes page = %+v, want second newest vote", page.Votes)
+	}
+	if page.Query.VotesPage != 2 || page.Query.VotesPerPage != 1 || page.VotesTotalResults != 3 || page.VotesTotalPages != 3 || page.VotesStartItem != 2 || page.VotesEndItem != 2 {
+		t.Fatalf("vote pagination = query:%+v total:%d pages:%d start:%d end:%d", page.Query, page.VotesTotalResults, page.VotesTotalPages, page.VotesStartItem, page.VotesEndItem)
+	}
+
+	page, err = s.DeputyDetailPage(context.Background(), "PA1", DeputyDetailQuery{VotesSearch: "deuxième", VotesPosition: "contre", VotesSort: "date_asc", VotesPerPage: 10})
+	if err != nil {
+		t.Fatalf("DeputyDetailPage(filtered) error = %v", err)
+	}
+	if len(page.Votes) != 1 || page.Votes[0].ScrutinUID != "vote-2" || page.VotesTotalResults != 1 {
+		t.Fatalf("filtered votes = %+v total=%d, want vote-2 only", page.Votes, page.VotesTotalResults)
+	}
+	if page.Query.VotesSearch != "deuxième" || page.Query.VotesPosition != "contre" || page.Query.VotesSort != "date_asc" {
+		t.Fatalf("normalized filter query = %+v", page.Query)
+	}
+
+	page, err = s.DeputyDetailPage(context.Background(), "PA1", DeputyDetailQuery{VotesSort: "date_asc", VotesPerPage: 10})
+	if err != nil {
+		t.Fatalf("DeputyDetailPage(sorted) error = %v", err)
+	}
+	if len(page.Votes) != 3 || page.Votes[0].ScrutinUID != "vote-1" || page.Votes[2].ScrutinUID != "vote-3" {
+		t.Fatalf("date ascending votes = %+v", page.Votes)
+	}
+}
+
+func TestDeputyDetailPageReturnsErrNotFound(t *testing.T) {
+	s := newTestStore(t)
+
+	_, err := s.DeputyDetailPage(context.Background(), "missing", DeputyDetailQuery{})
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("DeputyDetailPage() error = %v, want ErrNotFound", err)
+	}
+}
+
 func TestValidateAcceptsExpectedDatabase(t *testing.T) {
 	s := newValidationTestStore(t, expectedSchemaVersion, nil)
 
@@ -409,17 +506,52 @@ func insertActeur(t *testing.T, db *sql.DB, uid, prenom, nom, alpha string) {
 
 func insertIndividualVote(t *testing.T, db *sql.DB, scrutinUID, acteurUID, groupeUID, position string, parDelegation bool, numPlace string) {
 	t.Helper()
+	insertIndividualVoteWithMandat(t, db, scrutinUID, acteurUID, "", groupeUID, position, parDelegation, numPlace)
+}
+
+func insertIndividualVoteWithMandat(t *testing.T, db *sql.DB, scrutinUID, acteurUID, mandatUID, groupeUID, position string, parDelegation bool, numPlace string) {
+	t.Helper()
 	delegation := 0
 	if parDelegation {
 		delegation = 1
 	}
 	_, err := db.Exec(`
-INSERT INTO votes (scrutin_uid, acteur_uid, groupe_uid, position, par_delegation, num_place)
-VALUES (?, ?, ?, ?, ?, ?)
-`, scrutinUID, acteurUID, groupeUID, position, delegation, numPlace)
+INSERT INTO votes (scrutin_uid, acteur_uid, mandat_uid, groupe_uid, position, par_delegation, num_place)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+`, scrutinUID, acteurUID, nullStringTest(mandatUID), groupeUID, position, delegation, numPlace)
 	if err != nil {
 		t.Fatalf("insert individual vote %s/%s: %v", scrutinUID, acteurUID, err)
 	}
+}
+
+func insertMandat(t *testing.T, db *sql.DB, uid, acteurUID string, legislature int, typeOrgane, dateDebut, dateFin, libQualite string, nominPrincipale bool) {
+	t.Helper()
+	nomin := 0
+	if nominPrincipale {
+		nomin = 1
+	}
+	_, err := db.Exec(`
+INSERT INTO mandats (uid, acteur_uid, legislature, type_organe, date_debut, date_fin, nomin_principale, lib_qualite)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`, uid, acteurUID, legislature, typeOrgane, dateDebut, nullStringTest(dateFin), nomin, libQualite)
+	if err != nil {
+		t.Fatalf("insert mandat %s: %v", uid, err)
+	}
+}
+
+func insertMandatOrgane(t *testing.T, db *sql.DB, mandatUID, organeUID string) {
+	t.Helper()
+	_, err := db.Exec(`INSERT INTO mandat_organes (mandat_uid, organe_uid) VALUES (?, ?)`, mandatUID, organeUID)
+	if err != nil {
+		t.Fatalf("insert mandat organe %s/%s: %v", mandatUID, organeUID, err)
+	}
+}
+
+func nullStringTest(value string) any {
+	if value == "" {
+		return nil
+	}
+	return value
 }
 
 func uids(items []ScrutinListItem) []string {

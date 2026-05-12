@@ -52,13 +52,13 @@ func TestNewEchoContentSecurityPolicy(t *testing.T) {
 		{
 			name:         "prod",
 			env:          "prod",
-			wantContains: []string{"script-src 'self'", "connect-src 'self'"},
+			wantContains: []string{"script-src 'self'", "img-src 'self' data: https://www.assemblee-nationale.fr", "connect-src 'self'"},
 			wantExcludes: []string{"'unsafe-inline'", "ws:", "wss:"},
 		},
 		{
 			name:         "dev",
 			env:          "dev",
-			wantContains: []string{"script-src 'self'", "connect-src 'self' ws: wss:"},
+			wantContains: []string{"script-src 'self'", "img-src 'self' data: https://www.assemblee-nationale.fr", "connect-src 'self' ws: wss:"},
 			wantExcludes: []string{"'unsafe-inline'"},
 		},
 	}

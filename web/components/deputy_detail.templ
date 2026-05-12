@@ -1,0 +1,611 @@
+package components
+
+import (
+	"net/url"
+	"strconv"
+	"strings"
+)
+
+const defaultDeputyVotesSort = "date_desc"
+
+type DeputyDetailPage struct {
+	Deputy            DeputyDetailData
+	Query             DeputyDetailQuery
+	Mandats           []DeputyMandat
+	Stats             []DeputyVoteStat
+	Votes             []DeputyVote
+	VotesTotalResults int
+	VotesTotalPages   int
+	VotesStartItem    int
+	VotesEndItem      int
+}
+
+type DeputyDetailQuery struct {
+	VotesPage     int
+	VotesPerPage  int
+	VotesSearch   string
+	VotesSort     string
+	VotesPosition string
+}
+
+type DeputyVoteOption struct {
+	Value string
+	Label string
+}
+
+type DeputyDetailData struct {
+	UID            string
+	Civilite       string
+	Prenom         string
+	Nom            string
+	Alpha          string
+	DisplayName    string
+	DateNaissance  string
+	VilleNaissance string
+	DepNaissance   string
+	PaysNaissance  string
+	DateDeces      string
+	Profession     string
+	URIHATVP       string
+	SourceFile     string
+}
+
+type DeputyMandat struct {
+	UID             string
+	Legislature     int
+	TypeOrgane      string
+	DateDebut       string
+	DateFin         string
+	DatePublication string
+	Preseance       int
+	NominPrincipale bool
+	CodeQualite     string
+	LibQualite      string
+	LibQualiteSex   string
+	Organes         []DeputyMandatOrgane
+}
+
+type DeputyMandatOrgane struct {
+	UID     string
+	Libelle string
+}
+
+type DeputyVoteStat struct {
+	Legislature int
+	TotalVotes  int
+	Pour        int
+	Contre      int
+	Abstentions int
+	NonVotants  int
+}
+
+type DeputyVote struct {
+	ScrutinUID    string
+	Numero        int
+	Legislature   int
+	Date          string
+	Titre         string
+	SortCode      string
+	SortLibelle   string
+	TypeVote      string
+	Organe        string
+	GroupeUID     string
+	Groupe        string
+	MandatUID     string
+	Position      string
+	ParDelegation bool
+	NumPlace      string
+}
+
+templ DeputyDetail(page DeputyDetailPage) {
+	<div class="page-shell">
+		@SiteHeader("deputes")
+
+		<main id="contenu" class="page-main">
+			<section class="section page-heading detail-heading">
+				<div class="fr-container">
+					<nav class="breadcrumb" aria-label="Fil d'Ariane">
+						<a href="/">Accueil</a>
+						<span aria-hidden="true">/</span>
+						<span>Députés</span>
+						<span aria-hidden="true">/</span>
+						<span>{ page.Deputy.DisplayName }</span>
+					</nav>
+					<div class="detail-heading__title-row">
+						<div>
+							<p class="eyebrow">Député</p>
+							<h1>{ page.Deputy.DisplayName }</h1>
+						</div>
+						<div class="detail-heading__actions">
+							<a class="button button--secondary" href={ officialDeputyURL(page.Deputy) } target="_blank" rel="noopener noreferrer">
+								Fiche Assemblée nationale
+								<span class="fr-sr-only"> (nouvelle fenêtre)</span>
+							</a>
+						</div>
+					</div>
+					<div class="detail-heading__meta">
+						if page.Deputy.Alpha != "" {
+							<span>{ page.Deputy.Alpha }</span>
+						}
+						if latestMandatLabel(page.Mandats) != "" {
+							<span>{ latestMandatLabel(page.Mandats) }</span>
+						}
+						<span>{ strconv.Itoa(deputyTotalVotes(page)) } votes recensés</span>
+					</div>
+				</div>
+			</section>
+
+			<section class="section section--muted">
+				<div class="fr-container detail-layout">
+					<div class="detail-main">
+						<section class="detail-card" aria-labelledby="depute-statistiques">
+							<h2 id="depute-statistiques">Synthèse des votes</h2>
+							if len(page.Stats) == 0 {
+								<p class="empty-state">Aucune statistique de vote disponible pour ce député.</p>
+							} else {
+								<dl class="detail-metrics">
+									<div>
+										<dt>Total</dt>
+										<dd>{ strconv.Itoa(deputyTotalVotes(page)) }</dd>
+									</div>
+									<div class="detail-metric--pour">
+										<dt>Pour</dt>
+										<dd>{ strconv.Itoa(deputyTotalPour(page.Stats)) }</dd>
+									</div>
+									<div class="detail-metric--contre">
+										<dt>Contre</dt>
+										<dd>{ strconv.Itoa(deputyTotalContre(page.Stats)) }</dd>
+									</div>
+								</dl>
+								@DeputyStatsTable(page.Stats)
+							}
+						</section>
+
+						<section class="detail-card" aria-labelledby="depute-mandats">
+							<h2 id="depute-mandats">Mandats et rattachements</h2>
+							if len(page.Mandats) == 0 {
+								<p class="empty-state">Aucun mandat disponible pour ce député.</p>
+							} else {
+								<div class="deputy-mandat-list">
+									@DeputyMandatCard(page.Mandats[0])
+									if len(page.Mandats) > 1 {
+										<details class="deputy-mandat-disclosure">
+											<summary>{ deputyRemainingMandatsLabel(len(page.Mandats) - 1) }</summary>
+											<div class="deputy-mandat-list deputy-mandat-list--nested">
+												for _, mandat := range page.Mandats[1:] {
+													@DeputyMandatCard(mandat)
+												}
+											</div>
+										</details>
+									}
+								</div>
+							}
+						</section>
+
+						<section class="detail-card" aria-labelledby="depute-votes">
+							<h2 id="depute-votes">Votes nominatifs</h2>
+							@DeputyVotesPanel(page)
+						</section>
+					</div>
+
+					<aside class="detail-aside" aria-labelledby="depute-informations">
+						if deputyPhotoURL(page) != "" {
+							<section class="detail-card deputy-photo-card" aria-label="Portrait officiel">
+								<img class="deputy-photo-card__image" src={ deputyPhotoURL(page) } alt={ "Portrait officiel de " + page.Deputy.DisplayName } loading="lazy" width="320" height="320"/>
+								<p>Portrait officiel Assemblée nationale</p>
+							</section>
+						}
+						<section class="detail-card">
+							<h2 id="depute-informations">Informations</h2>
+							<dl class="detail-list">
+								@DetailRow("UID", page.Deputy.UID)
+								@DetailRow("Civilité", page.Deputy.Civilite)
+								@DetailRow("Prénom", page.Deputy.Prenom)
+								@DetailRow("Nom", page.Deputy.Nom)
+								@DetailRow("Nom alphabétique", page.Deputy.Alpha)
+								@DetailRow("Profession", page.Deputy.Profession)
+								@DetailRow("Date de naissance", formatDate(page.Deputy.DateNaissance))
+								@DetailRow("Lieu de naissance", deputyBirthPlace(page.Deputy))
+							</dl>
+						</section>
+						if page.Deputy.URIHATVP != "" {
+							<section class="detail-card">
+								<h2>Transparence</h2>
+								<a class="button button--secondary button--small" href={ page.Deputy.URIHATVP } target="_blank" rel="noopener noreferrer">
+									Déclaration HATVP
+									<span class="fr-sr-only"> (nouvelle fenêtre)</span>
+								</a>
+							</section>
+						}
+					</aside>
+				</div>
+			</section>
+		</main>
+
+		@SiteFooter()
+	</div>
+}
+
+templ DeputyMandatCard(mandat DeputyMandat) {
+	<article class="deputy-mandat-card">
+		<h3>{ deputyMandatTitle(mandat) }</h3>
+		<p>{ deputyMandatPeriod(mandat) }</p>
+		if len(mandat.Organes) > 0 {
+			<ul class="deputy-tag-list" aria-label="Organes rattachés">
+				for _, organe := range mandat.Organes {
+					<li>{ organe.Libelle }</li>
+				}
+			</ul>
+		}
+		<dl class="detail-list deputy-mandat-card__details">
+			@DetailRow("UID du mandat", mandat.UID)
+			@DetailRow("Type d'organe", mandat.TypeOrgane)
+			@DetailRow("Qualité", firstNonEmpty(mandat.LibQualite, mandat.LibQualiteSex, mandat.CodeQualite))
+			@DetailRow("Mandat principal", delegationLabel(mandat.NominPrincipale))
+		</dl>
+	</article>
+}
+
+templ DeputyStatsTable(stats []DeputyVoteStat) {
+	<div class="table-scroll deputy-stats-table">
+		<table class="data-table">
+			<thead>
+				<tr>
+					<th scope="col">Législature</th>
+					<th scope="col">Total</th>
+					<th scope="col">Pour</th>
+					<th scope="col">Contre</th>
+					<th scope="col">Abstentions</th>
+					<th scope="col">Non votants</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, stat := range stats {
+					<tr>
+						<th scope="row">{ strconv.Itoa(stat.Legislature) }</th>
+						<td>{ strconv.Itoa(stat.TotalVotes) }</td>
+						<td>{ strconv.Itoa(stat.Pour) }</td>
+						<td>{ strconv.Itoa(stat.Contre) }</td>
+						<td>{ strconv.Itoa(stat.Abstentions) }</td>
+						<td>{ strconv.Itoa(stat.NonVotants) }</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+templ DeputyVotesPanel(page DeputyDetailPage) {
+	<div id="depute-votes-panel">
+		@DeputyVotesToolbar(page)
+		if len(page.Votes) == 0 {
+			if hasDeputyVoteControls(page.Query) {
+				<p class="empty-state">Aucun vote nominatif ne correspond aux critères.</p>
+			} else {
+				<p class="empty-state">Aucun vote nominatif disponible pour ce député.</p>
+			}
+		} else {
+			<div class="list-status" aria-live="polite">
+				<p>{ deputyVotesSummary(page) }</p>
+				<p>{ deputyVotesSortSummary(page.Query) }</p>
+			</div>
+			@DeputyVotesTable(page.Votes)
+			@DeputyVotesPagination(page)
+		}
+	</div>
+}
+
+templ DeputyVotesToolbar(page DeputyDetailPage) {
+	<form class="scrutin-toolbar deputy-votes-toolbar" method="get" action={ DeputyDetailURL(page.Deputy.UID) } hx-get={ DeputyDetailURL(page.Deputy.UID) } hx-target="#depute-votes-panel" hx-swap="outerHTML" hx-push-url="true">
+		<label class="field field--search" for="votes_q">
+			<span>Recherche</span>
+			<input id="votes_q" name="votes_q" type="search" value={ page.Query.VotesSearch } placeholder="Ex. budget, commission, rejet"/>
+		</label>
+		<div class="scrutin-filters" aria-label="Filtres des votes nominatifs">
+			<label class="field" for="votes_position">
+				<span>Vote</span>
+				<select id="votes_position" name="votes_position">
+					<option value="">Tous</option>
+					for _, option := range deputyVotePositionOptions() {
+						<option value={ option.Value } selected?={ option.Value == page.Query.VotesPosition }>{ option.Label }</option>
+					}
+				</select>
+			</label>
+			<label class="field" for="votes_sort">
+				<span>Tri</span>
+				<select id="votes_sort" name="votes_sort">
+					for _, option := range deputyVoteSortOptions() {
+						<option value={ option.Value } selected?={ option.Value == page.Query.VotesSort }>{ option.Label }</option>
+					}
+				</select>
+			</label>
+		</div>
+		<div class="scrutin-toolbar__actions">
+			<button class="button" type="submit">Appliquer</button>
+			if hasDeputyVoteControls(page.Query) {
+				<a class="button button--secondary" href={ clearDeputyVotesURL(page.Deputy.UID) } hx-get={ clearDeputyVotesURL(page.Deputy.UID) } hx-target="#depute-votes-panel" hx-swap="outerHTML" hx-push-url="true">Effacer</a>
+			}
+		</div>
+	</form>
+}
+
+templ DeputyVotesTable(votes []DeputyVote) {
+	<div class="table-scroll">
+		<table class="data-table deputy-votes-table">
+			<thead>
+				<tr>
+					<th scope="col">Date</th>
+					<th scope="col">Scrutin</th>
+					<th scope="col">Vote</th>
+					<th scope="col">Groupe</th>
+					<th scope="col">Résultat</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, vote := range votes {
+					<tr>
+						<td>{ formatDate(vote.Date) }</td>
+						<th scope="row">
+							<a href={ ScrutinDetailURL(vote.ScrutinUID) }>Scrutin n° { strconv.Itoa(vote.Numero) }</a>
+							<span class="deputy-votes-table__title">{ capitalizeFirstLetter(vote.Titre) }</span>
+						</th>
+						<td><span class={ individualVotePositionClass(vote.Position) }>{ individualVotePositionLabel(vote.Position) }</span></td>
+						<td>{ fallbackText(vote.Groupe) }</td>
+						<td><span class={ resultChipClass(vote.SortCode) }>{ deputyVoteResultLabel(vote) }</span></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+templ DeputyVotesPagination(page DeputyDetailPage) {
+	<nav class="pagination" aria-label="Pagination des votes nominatifs">
+		if page.Query.VotesPage > 1 {
+			<a class="pagination__link" href={ deputyVotesPageURL(page, page.Query.VotesPage - 1) } hx-get={ deputyVotesPageURL(page, page.Query.VotesPage - 1) } hx-target="#depute-votes-panel" hx-swap="outerHTML" hx-push-url="true">Précédent</a>
+		} else {
+			<span class="pagination__link pagination__link--disabled">Précédent</span>
+		}
+
+		<div class="pagination__pages">
+			for _, pageNumber := range paginationPages(page.Query.VotesPage, page.VotesTotalPages) {
+				if pageNumber == 0 {
+					<span class="pagination__ellipsis" aria-hidden="true">...</span>
+				} else if pageNumber == page.Query.VotesPage {
+					<span class="pagination__link pagination__link--current" aria-current="page">{ strconv.Itoa(pageNumber) }</span>
+				} else {
+					<a class="pagination__link" href={ deputyVotesPageURL(page, pageNumber) } hx-get={ deputyVotesPageURL(page, pageNumber) } hx-target="#depute-votes-panel" hx-swap="outerHTML" hx-push-url="true">{ strconv.Itoa(pageNumber) }</a>
+				}
+			}
+		</div>
+
+		if page.Query.VotesPage < page.VotesTotalPages {
+			<a class="pagination__link" href={ deputyVotesPageURL(page, page.Query.VotesPage + 1) } hx-get={ deputyVotesPageURL(page, page.Query.VotesPage + 1) } hx-target="#depute-votes-panel" hx-swap="outerHTML" hx-push-url="true">Suivant</a>
+		} else {
+			<span class="pagination__link pagination__link--disabled">Suivant</span>
+		}
+	</nav>
+}
+
+func DeputyDetailURL(uid string) string {
+	return "/deputes/" + url.PathEscape(uid)
+}
+
+func deputyVoteResultLabel(vote DeputyVote) string {
+	label := strings.TrimSpace(firstNonEmpty(vote.SortLibelle, vote.SortCode))
+	normalized := strings.ToLower(label)
+	normalized = strings.ReplaceAll(normalized, "’", "'")
+	normalized = strings.Join(strings.Fields(normalized), " ")
+
+	switch normalized {
+	case "l'assemblée nationale a adopté":
+		return "Adopté"
+	case "l'assemblée nationale n'a pas adopté":
+		return "Non adopté"
+	default:
+		return fallbackText(label)
+	}
+}
+
+func deputyVotesPageURL(detail DeputyDetailPage, page int) string {
+	values := url.Values{}
+	if strings.TrimSpace(detail.Query.VotesSearch) != "" {
+		values.Set("votes_q", detail.Query.VotesSearch)
+	}
+	if detail.Query.VotesPosition != "" {
+		values.Set("votes_position", detail.Query.VotesPosition)
+	}
+	if detail.Query.VotesSort != "" && detail.Query.VotesSort != defaultDeputyVotesSort {
+		values.Set("votes_sort", detail.Query.VotesSort)
+	}
+	if page > 1 {
+		values.Set("votes_page", strconv.Itoa(page))
+	}
+	encoded := values.Encode()
+	if encoded == "" {
+		return DeputyDetailURL(detail.Deputy.UID) + "#depute-votes"
+	}
+	return DeputyDetailURL(detail.Deputy.UID) + "?" + encoded + "#depute-votes"
+}
+
+func clearDeputyVotesURL(uid string) string {
+	return DeputyDetailURL(uid) + "#depute-votes"
+}
+
+func officialDeputyURL(deputy DeputyDetailData) string {
+	if deputy.UID == "" {
+		return "https://www.assemblee-nationale.fr/dyn/deputes"
+	}
+	return "https://www.assemblee-nationale.fr/dyn/deputes/" + deputy.UID
+}
+
+func deputyPhotoURL(page DeputyDetailPage) string {
+	photoID := deputyPhotoID(page.Deputy.UID)
+	if photoID == "" {
+		return ""
+	}
+
+	legislature := deputyPhotoLegislature(page)
+	if legislature == 0 {
+		legislature = 17
+	}
+
+	return "https://www.assemblee-nationale.fr/dyn/static/tribun/" + strconv.Itoa(legislature) + "/photos/carre/" + photoID + ".jpg"
+}
+
+func deputyPhotoID(uid string) string {
+	if len(uid) >= 2 && strings.EqualFold(uid[:2], "PA") {
+		uid = uid[2:]
+	}
+	if uid == "" {
+		return ""
+	}
+	for _, char := range uid {
+		if char < '0' || char > '9' {
+			return ""
+		}
+	}
+	return uid
+}
+
+func deputyPhotoLegislature(page DeputyDetailPage) int {
+	for _, mandat := range page.Mandats {
+		if mandat.Legislature > 0 {
+			return mandat.Legislature
+		}
+	}
+	for _, stat := range page.Stats {
+		if stat.Legislature > 0 {
+			return stat.Legislature
+		}
+	}
+	for _, vote := range page.Votes {
+		if vote.Legislature > 0 {
+			return vote.Legislature
+		}
+	}
+	return 0
+}
+
+func deputyTotalVotes(page DeputyDetailPage) int {
+	total := 0
+	for _, stat := range page.Stats {
+		total += stat.TotalVotes
+	}
+	if total == 0 {
+		if page.VotesTotalResults > 0 {
+			return page.VotesTotalResults
+		}
+		return len(page.Votes)
+	}
+	return total
+}
+
+func deputyVotesSummary(page DeputyDetailPage) string {
+	if page.VotesTotalResults == 0 {
+		return "0 vote nominatif trouvé."
+	}
+	return strconv.Itoa(page.VotesStartItem) + "-" + strconv.Itoa(page.VotesEndItem) + " sur " + strconv.Itoa(page.VotesTotalResults) + " votes nominatifs."
+}
+
+func deputyVotesSortSummary(query DeputyDetailQuery) string {
+	for _, option := range deputyVoteSortOptions() {
+		if option.Value == query.VotesSort {
+			return "Tri actuel : " + strings.ToLower(option.Label) + "."
+		}
+	}
+	return "Tri actuel : date récente."
+}
+
+func hasDeputyVoteControls(query DeputyDetailQuery) bool {
+	return strings.TrimSpace(query.VotesSearch) != "" ||
+		query.VotesPosition != "" ||
+		(query.VotesSort != "" && query.VotesSort != defaultDeputyVotesSort)
+}
+
+func deputyVoteSortOptions() []DeputyVoteOption {
+	return []DeputyVoteOption{
+		{Value: "date_desc", Label: "Date récente"},
+		{Value: "date_asc", Label: "Date ancienne"},
+	}
+}
+
+func deputyVotePositionOptions() []DeputyVoteOption {
+	return []DeputyVoteOption{
+		{Value: "pour", Label: "Pour"},
+		{Value: "contre", Label: "Contre"},
+		{Value: "abstention", Label: "Abstention"},
+		{Value: "non_votant", Label: "Non votant"},
+		{Value: "non_votant_volontaire", Label: "Non votant volontaire"},
+	}
+}
+
+func deputyTotalPour(stats []DeputyVoteStat) int {
+	total := 0
+	for _, stat := range stats {
+		total += stat.Pour
+	}
+	return total
+}
+
+func deputyTotalContre(stats []DeputyVoteStat) int {
+	total := 0
+	for _, stat := range stats {
+		total += stat.Contre
+	}
+	return total
+}
+
+func latestMandatLabel(mandats []DeputyMandat) string {
+	if len(mandats) == 0 {
+		return ""
+	}
+	mandat := mandats[0]
+	return firstNonEmpty(mandat.LibQualite, mandat.LibQualiteSex, mandat.CodeQualite, mandat.TypeOrgane)
+}
+
+func deputyMandatTitle(mandat DeputyMandat) string {
+	parts := make([]string, 0, 2)
+	if mandat.Legislature > 0 {
+		parts = append(parts, strconv.Itoa(mandat.Legislature)+"e législature")
+	}
+	if label := firstNonEmpty(mandat.LibQualite, mandat.LibQualiteSex, mandat.CodeQualite); label != "" {
+		parts = append(parts, label)
+	}
+	if len(parts) == 0 {
+		return fallbackText(mandat.UID)
+	}
+	return strings.Join(parts, " · ")
+}
+
+func deputyMandatPeriod(mandat DeputyMandat) string {
+	start := formatDate(mandat.DateDebut)
+	end := formatDate(mandat.DateFin)
+	if start == "" && end == "" {
+		return "Dates non renseignées"
+	}
+	if end == "" {
+		return "Depuis le " + start
+	}
+	if start == "" {
+		return "Jusqu’au " + end
+	}
+	return "Du " + start + " au " + end
+}
+
+func deputyRemainingMandatsLabel(count int) string {
+	if count == 1 {
+		return "Voir 1 autre mandat"
+	}
+	return "Voir " + strconv.Itoa(count) + " autres mandats"
+}
+
+func deputyBirthPlace(deputy DeputyDetailData) string {
+	parts := make([]string, 0, 3)
+	for _, value := range []string{deputy.VilleNaissance, deputy.DepNaissance, deputy.PaysNaissance} {
+		if value != "" {
+			parts = append(parts, value)
+		}
+	}
+	return strings.Join(parts, " · ")
+}

@@ -134,3 +134,87 @@ type ScrutinIndividualVote struct {
 	ParDelegation bool
 	NumPlace      string
 }
+
+type DeputyDetailPage struct {
+	Deputy            DeputyDetailData
+	Query             DeputyDetailQuery
+	Mandats           []DeputyMandat
+	Stats             []DeputyVoteStat
+	Votes             []DeputyVote
+	VotesTotalResults int
+	VotesTotalPages   int
+	VotesStartItem    int
+	VotesEndItem      int
+}
+
+type DeputyDetailQuery struct {
+	VotesPage     int
+	VotesPerPage  int
+	VotesSearch   string
+	VotesSort     string
+	VotesPosition string
+}
+
+type DeputyDetailData struct {
+	UID            string
+	Civilite       string
+	Prenom         string
+	Nom            string
+	Alpha          string
+	DisplayName    string
+	DateNaissance  string
+	VilleNaissance string
+	DepNaissance   string
+	PaysNaissance  string
+	DateDeces      string
+	Profession     string
+	URIHATVP       string
+	SourceFile     string
+}
+
+type DeputyMandat struct {
+	UID             string
+	Legislature     int
+	TypeOrgane      string
+	DateDebut       string
+	DateFin         string
+	DatePublication string
+	Preseance       int
+	NominPrincipale bool
+	CodeQualite     string
+	LibQualite      string
+	LibQualiteSex   string
+	Organes         []DeputyMandatOrgane
+}
+
+type DeputyMandatOrgane struct {
+	UID     string
+	Libelle string
+}
+
+type DeputyVoteStat struct {
+	Legislature int
+	TotalVotes  int
+	Pour        int
+	Contre      int
+	Abstentions int
+	NonVotants  int
+}
+
+type DeputyVote struct {
+	ScrutinUID    string
+	Numero        int
+	Legislature   int
+	Date          string
+	Titre         string
+	SortCode      string
+	SortLibelle   string
+	TypeVote      string
+	Organe        string
+	GroupeUID     string
+	Groupe        string
+	MandatUID     string
+	Position      string
+	ParDelegation bool
+	NumPlace      string
+}

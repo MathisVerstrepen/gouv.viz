@@ -104,6 +104,9 @@ func TestDetailHelpers(t *testing.T) {
 	if got := ScrutinDetailURL("VT/1 2"); got != "/scrutins/VT%2F1%202" {
 		t.Fatalf("ScrutinDetailURL() = %q", got)
 	}
+	if got := DeputyDetailURL("PA/1 2"); got != "/deputes/PA%2F1%202" {
+		t.Fatalf("DeputyDetailURL() = %q", got)
+	}
 	if got := fallbackText(""); got != "Non renseigné" {
 		t.Fatalf("fallbackText(empty) = %q", got)
 	}
@@ -115,6 +118,69 @@ func TestDetailHelpers(t *testing.T) {
 	}
 	if got := numberOrEmpty(12); got != "12" {
 		t.Fatalf("numberOrEmpty(12) = %q", got)
+	}
+}
+
+func TestDeputyDetailHelpers(t *testing.T) {
+	page := DeputyDetailPage{
+		Stats: []DeputyVoteStat{
+			{Legislature: 17, TotalVotes: 3, Pour: 2, Contre: 1},
+			{Legislature: 16, TotalVotes: 2, Pour: 1, Contre: 0},
+		},
+	}
+	if got := deputyTotalVotes(page); got != 5 {
+		t.Fatalf("deputyTotalVotes() = %d, want 5", got)
+	}
+	if got := deputyTotalPour(page.Stats); got != 3 {
+		t.Fatalf("deputyTotalPour() = %d, want 3", got)
+	}
+	if got := deputyTotalContre(page.Stats); got != 1 {
+		t.Fatalf("deputyTotalContre() = %d, want 1", got)
+	}
+	if got := latestMandatLabel([]DeputyMandat{{LibQualite: "Députée", TypeOrgane: "ASSEMBLEE"}}); got != "Députée" {
+		t.Fatalf("latestMandatLabel() = %q, want Députée", got)
+	}
+	if got := deputyBirthPlace(DeputyDetailData{VilleNaissance: "Lille", DepNaissance: "59", PaysNaissance: "France"}); got != "Lille · 59 · France" {
+		t.Fatalf("deputyBirthPlace() = %q", got)
+	}
+	photoPage := DeputyDetailPage{
+		Deputy:  DeputyDetailData{UID: "PA794598"},
+		Mandats: []DeputyMandat{{Legislature: 17}},
+	}
+	if got := deputyPhotoURL(photoPage); got != "https://www.assemblee-nationale.fr/dyn/static/tribun/17/photos/carre/794598.jpg" {
+		t.Fatalf("deputyPhotoURL() = %q", got)
+	}
+	if got := deputyPhotoID("PA/1"); got != "" {
+		t.Fatalf("deputyPhotoID() = %q, want empty for non-numeric UID", got)
+	}
+	if got := deputyRemainingMandatsLabel(1); got != "Voir 1 autre mandat" {
+		t.Fatalf("deputyRemainingMandatsLabel(1) = %q", got)
+	}
+	if got := deputyRemainingMandatsLabel(3); got != "Voir 3 autres mandats" {
+		t.Fatalf("deputyRemainingMandatsLabel(3) = %q", got)
+	}
+	votesPage := DeputyDetailPage{Deputy: DeputyDetailData{UID: "PA/1"}, Query: DeputyDetailQuery{VotesPage: 2, VotesSort: "date_desc"}, VotesTotalResults: 75, VotesStartItem: 51, VotesEndItem: 75}
+	if got := deputyVotesPageURL(votesPage, 2); got != "/deputes/PA%2F1?votes_page=2#depute-votes" {
+		t.Fatalf("deputyVotesPageURL() = %q", got)
+	}
+	if got := deputyVotesPageURL(votesPage, 1); got != "/deputes/PA%2F1#depute-votes" {
+		t.Fatalf("deputyVotesPageURL(first) = %q", got)
+	}
+	filteredVotesPage := DeputyDetailPage{Deputy: DeputyDetailData{UID: "PA/1"}, Query: DeputyDetailQuery{VotesSearch: "budget", VotesPosition: "pour", VotesSort: "date_asc"}}
+	if got := deputyVotesPageURL(filteredVotesPage, 3); got != "/deputes/PA%2F1?votes_page=3&votes_position=pour&votes_q=budget&votes_sort=date_asc#depute-votes" {
+		t.Fatalf("deputyVotesPageURL(filtered) = %q", got)
+	}
+	if got := deputyVotesSummary(votesPage); got != "51-75 sur 75 votes nominatifs." {
+		t.Fatalf("deputyVotesSummary() = %q", got)
+	}
+	if !hasDeputyVoteControls(filteredVotesPage.Query) {
+		t.Fatal("hasDeputyVoteControls(filtered) = false, want true")
+	}
+	if got := deputyVoteResultLabel(DeputyVote{SortLibelle: "l'Assemblée nationale a adopté"}); got != "Adopté" {
+		t.Fatalf("deputyVoteResultLabel(adopted) = %q", got)
+	}
+	if got := deputyVoteResultLabel(DeputyVote{SortLibelle: "L’Assemblée nationale n’a pas adopté"}); got != "Non adopté" {
+		t.Fatalf("deputyVoteResultLabel(not adopted) = %q", got)
 	}
 }
 

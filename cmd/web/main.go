@@ -46,6 +46,7 @@ func main() {
 	e.GET("/", server.Home)
 	e.GET("/scrutins", server.Scrutins)
 	e.GET("/scrutins/:uid", server.ScrutinDetail)
+	e.GET("/deputes/:uid", server.DeputyDetail)
 	e.GET("/ping", handlers.Ping)
 
 	if !cfg.IsProd() {
@@ -86,9 +87,9 @@ func sqliteReadOnlyDSN(databasePath string) string {
 
 func newEcho(cfg config.Config) *echo.Echo {
 	e := echo.New()
-	csp := "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	csp := "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.assemblee-nationale.fr; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	if !cfg.IsProd() {
-		csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.assemblee-nationale.fr; connect-src 'self' ws: wss:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 	}
 
 	e.Use(middleware.RequestID())
