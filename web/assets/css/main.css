@@ -579,7 +579,7 @@ code {
 	block-size: clamp(5rem, 16vw, 7rem);
 	padding: var(--space-2v);
 	border: 1px solid var(--border-default-grey);
-	background: var(--background-default-grey);
+	background: #fff;
 	object-fit: contain;
 }
 
