@@ -118,11 +118,11 @@ func PoliticalGroupDetail(page PoliticalGroupDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = SiteHeader("deputes").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = SiteHeader("groupes").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"section page-heading detail-heading\"><div class=\"fr-container\"><nav class=\"breadcrumb\" aria-label=\"Fil d'Ariane\"><a href=\"/\">Accueil</a> <span aria-hidden=\"true\">/</span> <a href=\"/deputes\">Députés</a> <span aria-hidden=\"true\">/</span> <span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"section page-heading detail-heading\"><div class=\"fr-container\"><nav class=\"breadcrumb\" aria-label=\"Fil d'Ariane\"><a href=\"/\">Accueil</a> <span aria-hidden=\"true\">/</span> <a href=\"/groupes\">Groupes politiques</a> <span aria-hidden=\"true\">/</span> <span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1493,6 +1493,9 @@ func politicalGroupDeputyMeta(deputy PoliticalGroupDeputy) string {
 	}
 	if deputy.Legislature > 0 {
 		parts = append(parts, strconv.Itoa(deputy.Legislature)+"e législature")
+	}
+	if deputy.Qualite != "" {
+		parts = append(parts, deputy.Qualite)
 	}
 	return fallbackText(strings.Join(parts, " · "))
 }

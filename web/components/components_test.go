@@ -48,6 +48,24 @@ func TestDeputyListURL(t *testing.T) {
 	}
 }
 
+func TestPoliticalGroupListURL(t *testing.T) {
+	query := PoliticalGroupsQuery{Search: " groupe ", Sort: "preseance_asc", Page: 3, PerPage: 25}
+	if got := politicalGroupListURL(query, "preseance_asc", 1, "preseance_asc"); got != "/groupes?q=+groupe+" {
+		t.Fatalf("politicalGroupListURL(default sort) = %q", got)
+	}
+	if got := politicalGroupListURL(query, "preseance_asc", 2, "deputies_desc"); got != "/groupes?page=2&q=+groupe+&sort=deputies_desc" {
+		t.Fatalf("politicalGroupListURL(custom sort) = %q", got)
+	}
+
+	query = PoliticalGroupsQuery{Legislature: 17}
+	if got := politicalGroupListURL(query, "preseance_asc", 1, "preseance_asc"); got != "/groupes?legislature=17" {
+		t.Fatalf("politicalGroupListURL(filters) = %q", got)
+	}
+	if !hasPoliticalGroupFilters(query) {
+		t.Fatal("hasPoliticalGroupFilters() = false, want true")
+	}
+}
+
 func TestPaginationPages(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -263,6 +281,16 @@ func TestPoliticalGroupDetailHelpers(t *testing.T) {
 	}
 	if got := politicalGroupVoteResultLabel(PoliticalGroupVote{SortLibelle: "l'Assemblée nationale a adopté"}); got != "Adopté" {
 		t.Fatalf("politicalGroupVoteResultLabel() = %q", got)
+	}
+	listGroup := PoliticalGroupListItem{UID: "GRP1", Libelle: "Groupe complet", LibelleAbrev: "EPR", DateDebut: "2024-01-01"}
+	if got := politicalGroupListLabel(listGroup); got != "Groupe complet" {
+		t.Fatalf("politicalGroupListLabel() = %q", got)
+	}
+	if got := politicalGroupListLogoURL(listGroup); got != "/assets/img/groups/EPR.png" {
+		t.Fatalf("politicalGroupListLogoURL() = %q", got)
+	}
+	if got := politicalGroupListPeriod(listGroup); got != "Depuis le 01/01/2024" {
+		t.Fatalf("politicalGroupListPeriod() = %q", got)
 	}
 	deputies := make([]PoliticalGroupDeputy, visiblePoliticalGroupDeputiesCount+2)
 	for i := range deputies {

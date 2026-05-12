@@ -87,7 +87,7 @@ type PoliticalGroupVote struct {
 
 templ PoliticalGroupDetail(page PoliticalGroupDetailPage) {
 	<div class="page-shell">
-		@SiteHeader("deputes")
+		@SiteHeader("groupes")
 
 		<main id="contenu" class="page-main">
 			<section class="section page-heading detail-heading">
@@ -95,7 +95,7 @@ templ PoliticalGroupDetail(page PoliticalGroupDetailPage) {
 					<nav class="breadcrumb" aria-label="Fil d'Ariane">
 						<a href="/">Accueil</a>
 						<span aria-hidden="true">/</span>
-						<a href="/deputes">Députés</a>
+						<a href="/groupes">Groupes politiques</a>
 						<span aria-hidden="true">/</span>
 						<span>{ PoliticalGroupLabel(page.Group) }</span>
 					</nav>
@@ -475,6 +475,9 @@ func politicalGroupDeputyMeta(deputy PoliticalGroupDeputy) string {
 	}
 	if deputy.Legislature > 0 {
 		parts = append(parts, strconv.Itoa(deputy.Legislature)+"e législature")
+	}
+	if deputy.Qualite != "" {
+		parts = append(parts, deputy.Qualite)
 	}
 	return fallbackText(strings.Join(parts, " · "))
 }

@@ -375,6 +375,63 @@ func TestDeputiesPageAppliesSearchFiltersSortAndPagination(t *testing.T) {
 	}
 }
 
+func TestPoliticalGroupsPageAppliesSearchFiltersSortAndPagination(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 1)
+	insertOrgane(t, s.db, "GRP2", "Groupe deux", "G2", 2)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 3)
+	if _, err := s.db.Exec(`UPDATE organes SET legislature = 17, position_politique = 'Gauche', date_debut = '2024-01-01' WHERE uid = 'GRP1'`); err != nil {
+		t.Fatalf("update group 1: %v", err)
+	}
+	if _, err := s.db.Exec(`UPDATE organes SET legislature = 16, position_politique = 'Droite', date_debut = '2023-01-01' WHERE uid = 'GRP2'`); err != nil {
+		t.Fatalf("update group 2: %v", err)
+	}
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN")
+	insertActeur(t, s.db, "PA2", "Bruno", "Bernard", "BERNARD")
+	insertActeur(t, s.db, "PA3", "Claire", "Durand", "DURAND")
+	insertMandat(t, s.db, "M1", "PA1", 17, "ASSEMBLEE", "2024-01-01", "", "Députée", true)
+	insertMandatOrgane(t, s.db, "M1", "GRP1")
+	insertMandat(t, s.db, "M2", "PA2", 17, "ASSEMBLEE", "2024-01-01", "", "Député", true)
+	insertMandatOrgane(t, s.db, "M2", "GRP1")
+	insertMandat(t, s.db, "M3", "PA3", 16, "ASSEMBLEE", "2023-01-01", "", "Députée", true)
+	insertMandatOrgane(t, s.db, "M3", "GRP2")
+	insertGroupVoteStats(t, s.db, "GRP1", 17, 12, 7, 3, 1, 1)
+	insertGroupVoteStats(t, s.db, "GRP2", 16, 3, 1, 1, 1, 0)
+
+	page, err := s.PoliticalGroupsPage(context.Background(), PoliticalGroupsQuery{Search: "gauche", Legislature: 17, Page: 1, PerPage: 25})
+	if err != nil {
+		t.Fatalf("PoliticalGroupsPage() error = %v", err)
+	}
+	if got := politicalGroupUIDs(page.Groups); len(got) != 1 || got[0] != "GRP1" {
+		t.Fatalf("groups = %v, want [GRP1]", got)
+	}
+	if page.Groups[0].DeputiesCount != 2 || page.Groups[0].TotalScrutins != 12 || page.Groups[0].Pour != 7 {
+		t.Fatalf("group summary = %+v, want members and vote stats", page.Groups[0])
+	}
+	if len(page.FilterOptions.Legislatures) == 0 || page.FilterOptions.Legislatures[0].Value != "17" {
+		t.Fatalf("legislature filter options = %+v, want 17 first", page.FilterOptions.Legislatures)
+	}
+
+	page, err = s.PoliticalGroupsPage(context.Background(), PoliticalGroupsQuery{Sort: "deputies_desc", Page: 1, PerPage: 1})
+	if err != nil {
+		t.Fatalf("PoliticalGroupsPage(sorted) error = %v", err)
+	}
+	if got := politicalGroupUIDs(page.Groups); len(got) != 1 || got[0] != "GRP1" {
+		t.Fatalf("sorted groups = %v, want GRP1 first", got)
+	}
+	if page.TotalResults != 2 || page.TotalPages != 2 || page.StartItem != 1 || page.EndItem != 1 {
+		t.Fatalf("pagination = total:%d pages:%d start:%d end:%d", page.TotalResults, page.TotalPages, page.StartItem, page.EndItem)
+	}
+
+	page, err = s.PoliticalGroupsPage(context.Background(), PoliticalGroupsQuery{Page: 99, PerPage: 1})
+	if err != nil {
+		t.Fatalf("PoliticalGroupsPage(clamped) error = %v", err)
+	}
+	if page.Query.Page != 2 || page.StartItem != 2 || page.EndItem != 2 {
+		t.Fatalf("clamped pagination = query:%+v start:%d end:%d", page.Query, page.StartItem, page.EndItem)
+	}
+}
+
 func TestPoliticalGroupDetailPageReturnsStatsDeputiesAndVotes(t *testing.T) {
 	s := newTestStore(t)
 	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
@@ -716,6 +773,14 @@ func deputyUIDs(items []DeputyListItem) []string {
 }
 
 func politicalGroupDeputyUIDs(items []PoliticalGroupDeputy) []string {
+	values := make([]string, 0, len(items))
+	for _, item := range items {
+		values = append(values, item.UID)
+	}
+	return values
+}
+
+func politicalGroupUIDs(items []PoliticalGroupListItem) []string {
 	values := make([]string, 0, len(items))
 	for _, item := range items {
 		values = append(values, item.UID)

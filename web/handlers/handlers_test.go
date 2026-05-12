@@ -133,6 +133,59 @@ func TestDeputiesHandlerRendersHTMXPartial(t *testing.T) {
 	}
 }
 
+func TestParsePoliticalGroupsQueryParsesSearchSortAndFilters(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/groupes?q=%20gauche%20&sort=deputies_desc&page=2&legislature=17", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	query := parsePoliticalGroupsQuery(ctx)
+	if query.Search != "gauche" || query.Sort != "deputies_desc" || query.Page != 2 || query.PerPage != store.PoliticalGroupsPerPage || query.Legislature != 17 {
+		t.Fatalf("query = %+v, want parsed political group filters", query)
+	}
+}
+
+func TestPoliticalGroupsHandlerRendersOK(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/groupes?q=fixture", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.PoliticalGroups(ctx); err != nil {
+		t.Fatalf("PoliticalGroups() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "Groupe fixture") || !strings.Contains(rec.Body.String(), "Forces politiques") {
+		t.Fatalf("response body does not contain political groups page content: %s", rec.Body.String())
+	}
+}
+
+func TestPoliticalGroupsHandlerRendersHTMXPartial(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/groupes?q=fixture", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.PoliticalGroups(ctx); err != nil {
+		t.Fatalf("PoliticalGroups() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `id="political-groups-explorer"`) || !strings.Contains(body, "Groupe fixture") {
+		t.Fatalf("response body does not contain political groups explorer partial: %s", body)
+	}
+	if strings.Contains(body, "<!DOCTYPE html>") {
+		t.Fatalf("response body contains full document, want partial")
+	}
+}
+
 func TestScrutinDetailHandlerRendersLinkedReference(t *testing.T) {
 	server := NewServer(store.New(newHandlerTestDB(t, true)))
 	e := echo.New()
@@ -357,7 +410,7 @@ func newHandlerTestDB(t *testing.T, withScrutin bool) *sql.DB {
 	if _, err := db.Exec(`INSERT INTO organes (uid, libelle, libelle_abrege, preseance) VALUES ('ORG1', 'Commission fixture', 'CF', 1)`); err != nil {
 		t.Fatalf("insert organe: %v", err)
 	}
-	if _, err := db.Exec(`INSERT INTO organes (uid, code_type, libelle, libelle_abrege, libelle_abrev, preseance) VALUES ('GRP1', 'GP', 'Groupe fixture', 'GF', 'GF', 2)`); err != nil {
+	if _, err := db.Exec(`INSERT INTO organes (uid, code_type, libelle, libelle_abrege, libelle_abrev, legislature, position_politique, date_debut, preseance) VALUES ('GRP1', 'GP', 'Groupe fixture', 'GF', 'GF', 17, 'Centre', '2024-01-01', 2)`); err != nil {
 		t.Fatalf("insert group organe: %v", err)
 	}
 	if withScrutin {

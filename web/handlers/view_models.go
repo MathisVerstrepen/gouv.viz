@@ -61,6 +61,26 @@ func deputiesView(page store.DeputiesPage) components.DeputiesPage {
 	}
 }
 
+func politicalGroupsView(page store.PoliticalGroupsPage) components.PoliticalGroupsPage {
+	return components.PoliticalGroupsPage{
+		Query: components.PoliticalGroupsQuery{
+			Search:      page.Query.Search,
+			Sort:        page.Query.Sort,
+			Page:        page.Query.Page,
+			PerPage:     page.Query.PerPage,
+			Legislature: page.Query.Legislature,
+		},
+		DefaultSort:   page.DefaultSort,
+		SortOptions:   politicalGroupSortOptionViews(page.SortOptions),
+		FilterOptions: politicalGroupFilterOptionsView(page.FilterOptions),
+		Groups:        politicalGroupListItemViews(page.Groups),
+		TotalResults:  page.TotalResults,
+		TotalPages:    page.TotalPages,
+		StartItem:     page.StartItem,
+		EndItem:       page.EndItem,
+	}
+}
+
 func scrutinDetailView(page store.ScrutinDetailPage) components.ScrutinDetailPage {
 	return components.ScrutinDetailPage{
 		Scrutin: components.ScrutinDetailData{
@@ -273,6 +293,52 @@ func deputyFilterOptionViews(options []store.DeputyFilterOption) []components.De
 	views := make([]components.DeputyFilterOption, 0, len(options))
 	for _, option := range options {
 		views = append(views, components.DeputyFilterOption{Value: option.Value, Label: option.Label})
+	}
+	return views
+}
+
+func politicalGroupListItemViews(items []store.PoliticalGroupListItem) []components.PoliticalGroupListItem {
+	views := make([]components.PoliticalGroupListItem, 0, len(items))
+	for _, item := range items {
+		views = append(views, components.PoliticalGroupListItem{
+			UID:           item.UID,
+			Libelle:       item.Libelle,
+			LibelleAbrege: item.LibelleAbrege,
+			LibelleAbrev:  item.LibelleAbrev,
+			Legislature:   item.Legislature,
+			Position:      item.Position,
+			Preseance:     item.Preseance,
+			DateDebut:     item.DateDebut,
+			DateFin:       item.DateFin,
+			DeputiesCount: item.DeputiesCount,
+			TotalScrutins: item.TotalScrutins,
+			Pour:          item.Pour,
+			Contre:        item.Contre,
+			Abstentions:   item.Abstentions,
+			NonVotants:    item.NonVotants,
+		})
+	}
+	return views
+}
+
+func politicalGroupSortOptionViews(options []store.PoliticalGroupSortOption) []components.PoliticalGroupSortOption {
+	views := make([]components.PoliticalGroupSortOption, 0, len(options))
+	for _, option := range options {
+		views = append(views, components.PoliticalGroupSortOption{Value: option.Value, Label: option.Label})
+	}
+	return views
+}
+
+func politicalGroupFilterOptionsView(options store.PoliticalGroupFilterOptions) components.PoliticalGroupFilterOptions {
+	return components.PoliticalGroupFilterOptions{
+		Legislatures: politicalGroupFilterOptionViews(options.Legislatures),
+	}
+}
+
+func politicalGroupFilterOptionViews(options []store.PoliticalGroupFilterOption) []components.PoliticalGroupFilterOption {
+	views := make([]components.PoliticalGroupFilterOption, 0, len(options))
+	for _, option := range options {
+		views = append(views, components.PoliticalGroupFilterOption{Value: option.Value, Label: option.Label})
 	}
 	return views
 }

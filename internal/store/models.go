@@ -118,6 +118,58 @@ type DeputiesPage struct {
 	EndItem       int
 }
 
+type PoliticalGroupsQuery struct {
+	Search      string
+	Sort        string
+	Page        int
+	PerPage     int
+	Legislature int
+}
+
+type PoliticalGroupListItem struct {
+	UID           string
+	Libelle       string
+	LibelleAbrege string
+	LibelleAbrev  string
+	Legislature   int
+	Position      string
+	Preseance     int
+	DateDebut     string
+	DateFin       string
+	DeputiesCount int
+	TotalScrutins int
+	Pour          int
+	Contre        int
+	Abstentions   int
+	NonVotants    int
+}
+
+type PoliticalGroupSortOption struct {
+	Value string
+	Label string
+}
+
+type PoliticalGroupFilterOption struct {
+	Value string
+	Label string
+}
+
+type PoliticalGroupFilterOptions struct {
+	Legislatures []PoliticalGroupFilterOption
+}
+
+type PoliticalGroupsPage struct {
+	Query         PoliticalGroupsQuery
+	DefaultSort   string
+	SortOptions   []PoliticalGroupSortOption
+	FilterOptions PoliticalGroupFilterOptions
+	Groups        []PoliticalGroupListItem
+	TotalResults  int
+	TotalPages    int
+	StartItem     int
+	EndItem       int
+}
+
 type ScrutinDetailPage struct {
 	Scrutin         ScrutinDetailData
 	GroupVotes      []ScrutinGroupVote

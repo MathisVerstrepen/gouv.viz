@@ -48,6 +48,7 @@ func main() {
 	e.GET("/scrutins/:uid", server.ScrutinDetail)
 	e.GET("/deputes", server.Deputies)
 	e.GET("/deputes/:uid", server.DeputyDetail)
+	e.GET("/groupes", server.PoliticalGroups)
 	e.GET("/groupes/:uid", server.PoliticalGroupDetail)
 	e.GET("/ping", handlers.Ping)
 

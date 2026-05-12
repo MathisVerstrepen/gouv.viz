@@ -25,6 +25,11 @@
 		align-items: center;
 	}
 
+	.political-group-card {
+		grid-template-columns: auto minmax(0, 1fr) minmax(16rem, 0.35fr);
+		align-items: center;
+	}
+
 	.political-group-member-grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
@@ -45,6 +50,10 @@
 	}
 
 	.deputy-card__stats {
+		align-self: start;
+	}
+
+	.political-group-card__stats {
 		align-self: start;
 	}
 
