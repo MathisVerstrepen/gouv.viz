@@ -95,6 +95,22 @@ WHERE s.uid = ?
 	}
 	page.Scrutin = scrutin
 
+	groupVotes, err := s.scrutinGroupVotes(ctx, uid)
+	if err != nil {
+		return ScrutinDetailPage{}, err
+	}
+	page.GroupVotes = groupVotes
+
+	individualVotes, err := s.scrutinIndividualVotes(ctx, uid)
+	if err != nil {
+		return ScrutinDetailPage{}, err
+	}
+	page.IndividualVotes = individualVotes
+
+	return page, nil
+}
+
+func (s *Store) scrutinGroupVotes(ctx context.Context, uid string) ([]ScrutinGroupVote, error) {
 	rows, err := s.db.QueryContext(ctx, `
 SELECT
   sgv.groupe_uid,
@@ -112,10 +128,11 @@ WHERE sgv.scrutin_uid = ?
 ORDER BY COALESCE(o.preseance, 9999), COALESCE(o.libelle, sgv.groupe_uid)
 `, uid)
 	if err != nil {
-		return ScrutinDetailPage{}, fmt.Errorf("query scrutin group votes: %w", err)
+		return nil, fmt.Errorf("query scrutin group votes: %w", err)
 	}
 	defer rows.Close()
 
+	var groupVotes []ScrutinGroupVote
 	for rows.Next() {
 		var groupVote ScrutinGroupVote
 		if err := rows.Scan(
@@ -129,13 +146,75 @@ ORDER BY COALESCE(o.preseance, 9999), COALESCE(o.libelle, sgv.groupe_uid)
 			&groupVote.Abstentions,
 			&groupVote.NonVotantsVolontaires,
 		); err != nil {
-			return ScrutinDetailPage{}, fmt.Errorf("scan scrutin group vote: %w", err)
+			return nil, fmt.Errorf("scan scrutin group vote: %w", err)
 		}
-		page.GroupVotes = append(page.GroupVotes, groupVote)
+		groupVotes = append(groupVotes, groupVote)
 	}
 	if err := rows.Err(); err != nil {
-		return ScrutinDetailPage{}, fmt.Errorf("iterate scrutin group votes: %w", err)
+		return nil, fmt.Errorf("iterate scrutin group votes: %w", err)
 	}
 
-	return page, nil
+	return groupVotes, nil
+}
+
+func (s *Store) scrutinIndividualVotes(ctx context.Context, uid string) ([]ScrutinIndividualVote, error) {
+	rows, err := s.db.QueryContext(ctx, `
+SELECT
+  COALESCE(v.groupe_uid, ''),
+  COALESCE(g.libelle_abrege, g.libelle, v.groupe_uid, ''),
+  v.acteur_uid,
+  COALESCE(NULLIF(TRIM(COALESCE(a.prenom, '') || ' ' || COALESCE(a.nom, '')), ''), a.alpha, v.acteur_uid, ''),
+  COALESCE(a.alpha, ''),
+  COALESCE(v.mandat_uid, ''),
+  v.position,
+  COALESCE(v.par_delegation, 0),
+  COALESCE(v.num_place, '')
+FROM votes v
+LEFT JOIN acteurs a ON a.uid = v.acteur_uid
+LEFT JOIN organes g ON g.uid = v.groupe_uid
+WHERE v.scrutin_uid = ?
+ORDER BY
+  COALESCE(g.preseance, 9999),
+  COALESCE(g.libelle, g.libelle_abrege, v.groupe_uid, ''),
+  CASE v.position
+    WHEN 'pour' THEN 1
+    WHEN 'contre' THEN 2
+    WHEN 'abstention' THEN 3
+    WHEN 'non_votant' THEN 4
+    WHEN 'non_votant_volontaire' THEN 5
+    ELSE 6
+  END,
+  COALESCE(a.alpha, a.nom, a.prenom, v.acteur_uid),
+  v.acteur_uid
+`, uid)
+	if err != nil {
+		return nil, fmt.Errorf("query scrutin individual votes: %w", err)
+	}
+	defer rows.Close()
+
+	var votes []ScrutinIndividualVote
+	for rows.Next() {
+		var vote ScrutinIndividualVote
+		var parDelegation int
+		if err := rows.Scan(
+			&vote.GroupeUID,
+			&vote.Groupe,
+			&vote.ActeurUID,
+			&vote.Depute,
+			&vote.Alpha,
+			&vote.MandatUID,
+			&vote.Position,
+			&parDelegation,
+			&vote.NumPlace,
+		); err != nil {
+			return nil, fmt.Errorf("scan scrutin individual vote: %w", err)
+		}
+		vote.ParDelegation = parDelegation == 1
+		votes = append(votes, vote)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate scrutin individual votes: %w", err)
+	}
+
+	return votes, nil
 }

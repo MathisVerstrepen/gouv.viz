@@ -118,6 +118,34 @@ func TestDetailHelpers(t *testing.T) {
 	}
 }
 
+func TestIndividualVoteGroups(t *testing.T) {
+	votes := []ScrutinIndividualVote{
+		{GroupeUID: "G1", Groupe: "Groupe un", ActeurUID: "PA1", Position: "pour"},
+		{GroupeUID: "G1", Groupe: "Groupe un", ActeurUID: "PA2", Position: "contre"},
+		{GroupeUID: "G2", Groupe: "Groupe deux", ActeurUID: "PA3", Position: "abstention"},
+	}
+
+	groups := individualVoteGroups(votes)
+	if len(groups) != 2 {
+		t.Fatalf("len(individualVoteGroups) = %d, want 2", len(groups))
+	}
+	if groups[0].Groupe != "Groupe un" || len(groups[0].Votes) != 2 || groups[1].Groupe != "Groupe deux" || len(groups[1].Votes) != 1 {
+		t.Fatalf("individualVoteGroups() = %+v", groups)
+	}
+}
+
+func TestIndividualVotePositionHelpers(t *testing.T) {
+	if got := individualVotePositionLabel("non_votant_volontaire"); got != "Non votant volontaire" {
+		t.Fatalf("individualVotePositionLabel() = %q", got)
+	}
+	if got := individualVotePositionClass("contre"); got != "vote-position vote-position--contre" {
+		t.Fatalf("individualVotePositionClass() = %q", got)
+	}
+	if got := delegationLabel(true); got != "Oui" {
+		t.Fatalf("delegationLabel(true) = %q", got)
+	}
+}
+
 func TestOfficialLinkedTextURL(t *testing.T) {
 	if got := officialLinkedTextURL(ScrutinDetailData{LinkedTextURL: "https://example.test/text"}); got != "https://example.test/text" {
 		t.Fatalf("officialLinkedTextURL(stored) = %q", got)

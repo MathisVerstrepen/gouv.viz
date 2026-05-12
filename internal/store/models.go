@@ -65,8 +65,9 @@ type ScrutinsPage struct {
 }
 
 type ScrutinDetailPage struct {
-	Scrutin    ScrutinDetailData
-	GroupVotes []ScrutinGroupVote
+	Scrutin         ScrutinDetailData
+	GroupVotes      []ScrutinGroupVote
+	IndividualVotes []ScrutinIndividualVote
 }
 
 type ScrutinDetailData struct {
@@ -120,4 +121,16 @@ type ScrutinGroupVote struct {
 	Contre                int
 	Abstentions           int
 	NonVotantsVolontaires int
+}
+
+type ScrutinIndividualVote struct {
+	GroupeUID     string
+	Groupe        string
+	ActeurUID     string
+	Depute        string
+	Alpha         string
+	MandatUID     string
+	Position      string
+	ParDelegation bool
+	NumPlace      string
 }

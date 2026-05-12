@@ -10,8 +10,9 @@ const totalDeputies = 577
 const groupDeviationCellCount = 41
 
 type ScrutinDetailPage struct {
-	Scrutin    ScrutinDetailData
-	GroupVotes []ScrutinGroupVote
+	Scrutin         ScrutinDetailData
+	GroupVotes      []ScrutinGroupVote
+	IndividualVotes []ScrutinIndividualVote
 }
 
 type ScrutinDetailData struct {
@@ -65,6 +66,24 @@ type ScrutinGroupVote struct {
 	Contre                   int
 	Abstentions              int
 	NonVotantsVolontaires    int
+}
+
+type ScrutinIndividualVote struct {
+	GroupeUID     string
+	Groupe        string
+	ActeurUID     string
+	Depute        string
+	Alpha         string
+	MandatUID     string
+	Position      string
+	ParDelegation bool
+	NumPlace      string
+}
+
+type IndividualVoteGroup struct {
+	GroupeUID string
+	Groupe    string
+	Votes     []ScrutinIndividualVote
 }
 
 templ ScrutinDetail(page ScrutinDetailPage) {
@@ -180,6 +199,29 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 								<details class="group-vote-details">
 									<summary>Voir les données détaillées par groupe</summary>
 									@GroupVoteTable(page.GroupVotes)
+								</details>
+							}
+						</section>
+
+						<section class="detail-card" aria-labelledby="scrutin-votes-individuels">
+							<h2 id="scrutin-votes-individuels">Votes individuels des députés</h2>
+							if len(page.IndividualVotes) == 0 {
+								<p class="empty-state">Aucun vote nominatif disponible pour ce scrutin.</p>
+							} else {
+								<p class="fr-text--mention">Les votes nominatifs sont regroupés par groupe politique.</p>
+								<details class="individual-votes-details">
+									<summary>Voir les votes individuels par groupe politique</summary>
+									<div class="individual-vote-groups">
+										for _, group := range individualVoteGroups(page.IndividualVotes) {
+											<section class="individual-vote-group">
+												<div class="individual-vote-group__header">
+													<h3>{ group.Groupe }</h3>
+													<p>{ strconv.Itoa(len(group.Votes)) } votes nominatifs</p>
+												</div>
+												@IndividualVoteTable(group.Votes)
+											</section>
+										}
+									</div>
 								</details>
 							}
 						</section>
@@ -351,6 +393,34 @@ templ GroupVoteTable(groupVotes []ScrutinGroupVote) {
 	</div>
 }
 
+templ IndividualVoteTable(votes []ScrutinIndividualVote) {
+	<div class="table-scroll">
+		<table class="data-table individual-vote-table">
+			<thead>
+				<tr>
+					<th scope="col">Député</th>
+					<th scope="col">Vote</th>
+					<th scope="col">Délégation</th>
+					<th scope="col">Place</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, vote := range votes {
+					<tr>
+						<th scope="row">
+							<span class="individual-vote-table__name">{ vote.Depute }</span>
+							<span class="individual-vote-table__uid">{ vote.ActeurUID }</span>
+						</th>
+						<td><span class={ individualVotePositionClass(vote.Position) }>{ individualVotePositionLabel(vote.Position) }</span></td>
+						<td>{ delegationLabel(vote.ParDelegation) }</td>
+						<td>{ fallbackText(vote.NumPlace) }</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
 type VoteCell struct {
 	Label string
 	Class string
@@ -418,6 +488,82 @@ func fallbackText(value string) string {
 		return "Non renseigné"
 	}
 	return value
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func individualVoteGroups(votes []ScrutinIndividualVote) []IndividualVoteGroup {
+	groups := make([]IndividualVoteGroup, 0)
+	indexes := make(map[string]int)
+	for _, vote := range votes {
+		key := individualVoteGroupKey(vote)
+		index, ok := indexes[key]
+		if !ok {
+			index = len(groups)
+			indexes[key] = index
+			groups = append(groups, IndividualVoteGroup{
+				GroupeUID: vote.GroupeUID,
+				Groupe:    individualVoteGroupLabel(vote),
+			})
+		}
+		groups[index].Votes = append(groups[index].Votes, vote)
+	}
+	return groups
+}
+
+func individualVoteGroupKey(vote ScrutinIndividualVote) string {
+	return firstNonEmpty(vote.GroupeUID, vote.Groupe, "sans-groupe")
+}
+
+func individualVoteGroupLabel(vote ScrutinIndividualVote) string {
+	return firstNonEmpty(vote.Groupe, vote.GroupeUID, "Sans groupe")
+}
+
+func individualVotePositionLabel(position string) string {
+	switch strings.ToLower(strings.TrimSpace(position)) {
+	case "pour":
+		return "Pour"
+	case "contre":
+		return "Contre"
+	case "abstention":
+		return "Abstention"
+	case "non_votant":
+		return "Non votant"
+	case "non_votant_volontaire":
+		return "Non votant volontaire"
+	default:
+		return fallbackText(position)
+	}
+}
+
+func individualVotePositionClass(position string) string {
+	base := "vote-position"
+	switch strings.ToLower(strings.TrimSpace(position)) {
+	case "pour":
+		return base + " vote-position--pour"
+	case "contre":
+		return base + " vote-position--contre"
+	case "abstention":
+		return base + " vote-position--abstention"
+	case "non_votant", "non_votant_volontaire":
+		return base + " vote-position--non-votant"
+	default:
+		return base
+	}
+}
+
+func delegationLabel(parDelegation bool) string {
+	if parDelegation {
+		return "Oui"
+	}
+	return "Non"
 }
 
 func numberOrEmpty(value int) string {

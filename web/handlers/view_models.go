@@ -82,7 +82,8 @@ func scrutinDetailView(page store.ScrutinDetailPage) components.ScrutinDetailPag
 			NonVotantsVolontaires:   page.Scrutin.NonVotantsVolontaires,
 			SourceFile:              page.Scrutin.SourceFile,
 		},
-		GroupVotes: scrutinGroupVoteViews(page.GroupVotes),
+		GroupVotes:      scrutinGroupVoteViews(page.GroupVotes),
+		IndividualVotes: scrutinIndividualVoteViews(page.IndividualVotes),
 	}
 }
 
@@ -150,6 +151,24 @@ func scrutinGroupVoteViews(groupVotes []store.ScrutinGroupVote) []components.Scr
 			Contre:                groupVote.Contre,
 			Abstentions:           groupVote.Abstentions,
 			NonVotantsVolontaires: groupVote.NonVotantsVolontaires,
+		})
+	}
+	return views
+}
+
+func scrutinIndividualVoteViews(votes []store.ScrutinIndividualVote) []components.ScrutinIndividualVote {
+	views := make([]components.ScrutinIndividualVote, 0, len(votes))
+	for _, vote := range votes {
+		views = append(views, components.ScrutinIndividualVote{
+			GroupeUID:     vote.GroupeUID,
+			Groupe:        vote.Groupe,
+			ActeurUID:     vote.ActeurUID,
+			Depute:        vote.Depute,
+			Alpha:         vote.Alpha,
+			MandatUID:     vote.MandatUID,
+			Position:      vote.Position,
+			ParDelegation: vote.ParDelegation,
+			NumPlace:      vote.NumPlace,
 		})
 	}
 	return views

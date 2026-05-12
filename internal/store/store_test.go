@@ -163,6 +163,35 @@ func TestScrutinDetailPageOrdersGroupVotesByPreseance(t *testing.T) {
 	}
 }
 
+func TestScrutinDetailPageReturnsIndividualVotesByGroup(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "GRP2", "Groupe deux", "G2", 2)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 1)
+	insertScrutin(t, s.db, testScrutin{UID: "detail", Numero: 7, Date: "2024-02-01", Titre: "Vote detaille", OrganeUID: "GRP1"})
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN")
+	insertActeur(t, s.db, "PA2", "Bruno", "Bernard", "BERNARD")
+	insertActeur(t, s.db, "PA3", "Claire", "Durand", "DURAND")
+	insertIndividualVote(t, s.db, "detail", "PA2", "GRP1", "contre", false, "")
+	insertIndividualVote(t, s.db, "detail", "PA1", "GRP1", "pour", true, "12")
+	insertIndividualVote(t, s.db, "detail", "PA3", "GRP2", "abstention", false, "")
+
+	page, err := s.ScrutinDetailPage(context.Background(), "detail")
+	if err != nil {
+		t.Fatalf("ScrutinDetailPage() error = %v", err)
+	}
+
+	if len(page.IndividualVotes) != 3 {
+		t.Fatalf("len(IndividualVotes) = %d, want 3", len(page.IndividualVotes))
+	}
+	first := page.IndividualVotes[0]
+	if first.GroupeUID != "GRP1" || first.Groupe != "G1" || first.ActeurUID != "PA1" || first.Depute != "Alice Martin" || first.Position != "pour" || !first.ParDelegation || first.NumPlace != "12" {
+		t.Fatalf("first individual vote = %+v, want GRP1/PA1/pour delegated", first)
+	}
+	if page.IndividualVotes[1].ActeurUID != "PA2" || page.IndividualVotes[2].GroupeUID != "GRP2" {
+		t.Fatalf("individual vote order = %+v, want grouped by preseance then position", page.IndividualVotes)
+	}
+}
+
 func TestScrutinDetailPageReturnsLinkedReference(t *testing.T) {
 	s := newTestStore(t)
 	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
@@ -367,6 +396,29 @@ VALUES (?, ?, 10, ?, 1, 6, 3, 0, 0)
 `, scrutinUID, groupeUID, position)
 	if err != nil {
 		t.Fatalf("insert group vote %s/%s: %v", scrutinUID, groupeUID, err)
+	}
+}
+
+func insertActeur(t *testing.T, db *sql.DB, uid, prenom, nom, alpha string) {
+	t.Helper()
+	_, err := db.Exec(`INSERT INTO acteurs (uid, prenom, nom, alpha) VALUES (?, ?, ?, ?)`, uid, prenom, nom, alpha)
+	if err != nil {
+		t.Fatalf("insert acteur %s: %v", uid, err)
+	}
+}
+
+func insertIndividualVote(t *testing.T, db *sql.DB, scrutinUID, acteurUID, groupeUID, position string, parDelegation bool, numPlace string) {
+	t.Helper()
+	delegation := 0
+	if parDelegation {
+		delegation = 1
+	}
+	_, err := db.Exec(`
+INSERT INTO votes (scrutin_uid, acteur_uid, groupe_uid, position, par_delegation, num_place)
+VALUES (?, ?, ?, ?, ?, ?)
+`, scrutinUID, acteurUID, groupeUID, position, delegation, numPlace)
+	if err != nil {
+		t.Fatalf("insert individual vote %s/%s: %v", scrutinUID, acteurUID, err)
 	}
 }
 
