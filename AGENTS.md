@@ -74,6 +74,4 @@
 ## Gotchas
 
 - Do not edit generated `*_templ.go` files directly; edit `.templ` files and regenerate.
-- Keep generated `web/components/*_templ.go` in sync with `.templ` sources because the app imports the generated Go package.
 - Do not edit generated `web/assets/css/main.css` directly; edit `web/assets/css/src/` files and run `make css`. Air intentionally excludes `main.css` from watching to avoid rebuild loops while still watching CSS source modules.
-- Do not commit large raw Assemblee nationale JSON or processed datasets; `.gitignore` is set up to keep those local.
