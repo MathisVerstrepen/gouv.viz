@@ -117,7 +117,9 @@ templ DeputyDetail(page DeputyDetailPage) {
 					<div class="detail-heading__title-row">
 						<div class="deputy-heading__identity">
 							if group := deputyCurrentGroup(page.Mandats); groupLogoURL(group) != "" {
-								<img class="deputy-heading__group-logo" src={ groupLogoURL(group) } alt={ "Logo du groupe " + deputyGroupLabel(group) } loading="lazy" width="96" height="96"/>
+								<a class="deputy-heading__group-link" href={ PoliticalGroupDetailURL(group.UID) } aria-label={ "Voir le groupe " + deputyGroupLabel(group) }>
+									<img class="deputy-heading__group-logo" src={ groupLogoURL(group) } alt={ "Logo du groupe " + deputyGroupLabel(group) } loading="lazy" width="96" height="96"/>
+								</a>
 							}
 							<div>
 							<p class="eyebrow">Député</p>

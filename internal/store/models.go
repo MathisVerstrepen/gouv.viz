@@ -275,3 +275,79 @@ type DeputyVote struct {
 	ParDelegation bool
 	NumPlace      string
 }
+
+type PoliticalGroupDetailPage struct {
+	Group             PoliticalGroupData
+	Query             PoliticalGroupDetailQuery
+	Stats             []PoliticalGroupVoteStat
+	Deputies          []PoliticalGroupDeputy
+	Votes             []PoliticalGroupVote
+	VotesTotalResults int
+	VotesTotalPages   int
+	VotesStartItem    int
+	VotesEndItem      int
+}
+
+type PoliticalGroupDetailQuery struct {
+	VotesPage     int
+	VotesPerPage  int
+	VotesSearch   string
+	VotesSort     string
+	VotesPosition string
+}
+
+type PoliticalGroupData struct {
+	UID               string
+	CodeType          string
+	Libelle           string
+	LibelleAbrege     string
+	LibelleAbrev      string
+	LibelleEdition    string
+	Legislature       int
+	Chambre           string
+	Regime            string
+	PositionPolitique string
+	CouleurAssociee   string
+	Preseance         int
+	DateDebut         string
+	DateFin           string
+	SourceFile        string
+}
+
+type PoliticalGroupVoteStat struct {
+	Legislature   int
+	TotalScrutins int
+	Pour          int
+	Contre        int
+	Abstentions   int
+	NonVotants    int
+}
+
+type PoliticalGroupDeputy struct {
+	UID         string
+	DisplayName string
+	Alpha       string
+	Legislature int
+	MandatUID   string
+	DateDebut   string
+	DateFin     string
+	Qualite     string
+}
+
+type PoliticalGroupVote struct {
+	ScrutinUID            string
+	Numero                int
+	Legislature           int
+	Date                  string
+	Titre                 string
+	SortCode              string
+	SortLibelle           string
+	TypeVote              string
+	PositionMajoritaire   string
+	NombreMembres         int
+	Pour                  int
+	Contre                int
+	Abstentions           int
+	NonVotants            int
+	NonVotantsVolontaires int
+}

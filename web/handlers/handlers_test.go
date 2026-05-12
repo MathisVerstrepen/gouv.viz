@@ -254,6 +254,85 @@ func TestParseDeputyDetailQuery(t *testing.T) {
 	}
 }
 
+func TestParsePoliticalGroupDetailQuery(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/groupes/GRP1?votes_page=3&votes_q=budget&votes_sort=date_asc&votes_position=pour", nil)
+	ctx := e.NewContext(req, httptest.NewRecorder())
+
+	query := parsePoliticalGroupDetailQuery(ctx)
+	if query.VotesPage != 3 || query.VotesPerPage != store.PoliticalGroupVotesPerPage || query.VotesSearch != "budget" || query.VotesSort != "date_asc" || query.VotesPosition != "pour" {
+		t.Fatalf("parsePoliticalGroupDetailQuery() = %+v", query)
+	}
+}
+
+func TestPoliticalGroupDetailHandlerRendersOK(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/groupes/GRP1", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetPath("/groupes/:uid")
+	ctx.SetParamNames("uid")
+	ctx.SetParamValues("GRP1")
+
+	if err := server.PoliticalGroupDetail(ctx); err != nil {
+		t.Fatalf("PoliticalGroupDetail() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Groupe fixture") || !strings.Contains(body, "Historique des votes") || !strings.Contains(body, "Budget fixture") {
+		t.Fatalf("response body does not contain political group detail content: %s", body)
+	}
+}
+
+func TestPoliticalGroupDetailHandlerRendersVotesPanelForHTMX(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/groupes/GRP1?votes_page=1", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetPath("/groupes/:uid")
+	ctx.SetParamNames("uid")
+	ctx.SetParamValues("GRP1")
+
+	if err := server.PoliticalGroupDetail(ctx); err != nil {
+		t.Fatalf("PoliticalGroupDetail() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `id="groupe-votes-panel"`) || !strings.Contains(body, "Budget fixture") {
+		t.Fatalf("response body does not contain group votes panel content: %s", body)
+	}
+	if strings.Contains(body, "<!DOCTYPE html>") || strings.Contains(body, "Groupe politique") {
+		t.Fatalf("response body contains full-page content: %s", body)
+	}
+}
+
+func TestPoliticalGroupDetailHandlerReturns404ForMissing(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, false)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/groupes/missing", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetPath("/groupes/:uid")
+	ctx.SetParamNames("uid")
+	ctx.SetParamValues("missing")
+
+	err := server.PoliticalGroupDetail(ctx)
+	if err == nil {
+		t.Fatal("PoliticalGroupDetail() error = nil, want HTTP 404")
+	}
+	he, ok := err.(*echo.HTTPError)
+	if !ok || he.Code != http.StatusNotFound {
+		t.Fatalf("PoliticalGroupDetail() error = %#v, want HTTP 404", err)
+	}
+}
+
 func TestHTTPErrorHandlerRendersCustomPage(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/missing", nil)
@@ -303,8 +382,14 @@ INSERT INTO scrutins (
 		if _, err := db.Exec(`INSERT INTO scrutin_search (uid, document) VALUES ('scrutin-1', 'Budget fixture')`); err != nil {
 			t.Fatalf("insert scrutin search: %v", err)
 		}
-		if _, err := db.Exec(`INSERT INTO votes (scrutin_uid, acteur_uid, groupe_uid, position, par_delegation, num_place) VALUES ('scrutin-1', 'PA1', 'ORG1', 'pour', 0, '12')`); err != nil {
+		if _, err := db.Exec(`INSERT INTO votes (scrutin_uid, acteur_uid, groupe_uid, position, par_delegation, num_place) VALUES ('scrutin-1', 'PA1', 'GRP1', 'pour', 0, '12')`); err != nil {
 			t.Fatalf("insert vote: %v", err)
+		}
+		if _, err := db.Exec(`INSERT INTO scrutin_groupe_votes (scrutin_uid, groupe_uid, nombre_membres_groupe, position_majoritaire, non_votants, pour, contre, abstentions, non_votants_volontaires) VALUES ('scrutin-1', 'GRP1', 10, 'pour', 1, 6, 3, 0, 0)`); err != nil {
+			t.Fatalf("insert scrutin group vote: %v", err)
+		}
+		if _, err := db.Exec(`INSERT INTO groupe_vote_stats (groupe_uid, legislature, total_scrutins, pour, contre, abstentions, non_votants) VALUES ('GRP1', 17, 1, 1, 0, 0, 0)`); err != nil {
+			t.Fatalf("insert group vote stats: %v", err)
 		}
 		if _, err := db.Exec(`INSERT INTO acteur_vote_stats (acteur_uid, legislature, total_votes, pour, contre, abstentions, non_votants) VALUES ('PA1', 17, 1, 1, 0, 0, 0)`); err != nil {
 			t.Fatalf("insert acteur vote stats: %v", err)

@@ -556,6 +556,25 @@ code {
 	object-fit: contain;
 }
 
+.deputy-heading__group-link {
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.deputy-heading__group-link:hover .deputy-heading__group-logo {
+	border-color: var(--border-action-high-blue-france);
+}
+
+.political-group-heading__logo {
+	flex: 0 0 auto;
+	inline-size: clamp(5rem, 16vw, 7rem);
+	block-size: clamp(5rem, 16vw, 7rem);
+	padding: var(--space-2v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+	object-fit: contain;
+}
+
 .breadcrumb {
 	display: flex;
 	flex-wrap: wrap;
@@ -961,16 +980,29 @@ code {
 	object-fit: cover;
 }
 
-.deputy-card__group-logo {
+.deputy-card__group-link {
 	position: absolute;
 	right: calc(var(--space-2v) * -1);
 	bottom: calc(var(--space-2v) * -1);
 	width: 2.5rem;
 	height: 2.5rem;
+	z-index: 2;
+	background: var(--background-default-grey);
+	text-decoration: none;
+}
+
+.deputy-card__group-logo {
+	display: block;
+	width: 100%;
+	height: 100%;
 	padding: var(--space-1v);
 	border: 1px solid var(--border-default-grey);
 	background: var(--background-default-grey);
 	object-fit: contain;
+}
+
+.deputy-card__group-link:hover .deputy-card__group-logo {
+	border-color: var(--border-action-high-blue-france);
 }
 
 .deputy-card__body {
@@ -1031,6 +1063,91 @@ code {
 	color: var(--text-title-grey);
 	font-size: var(--text-md);
 	font-weight: var(--font-weight-bold);
+}
+
+.political-group-member-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-3v);
+}
+
+.political-group-member-disclosure {
+	margin-block-start: var(--space-4v);
+}
+
+.political-group-member-disclosure summary {
+	width: fit-content;
+	cursor: pointer;
+	color: var(--text-action-high-blue-france);
+	font-weight: var(--font-weight-bold);
+}
+
+.political-group-member-disclosure summary:hover {
+	text-decoration: underline;
+}
+
+.political-group-member-disclosure .political-group-member-grid {
+	margin-block-start: var(--space-4v);
+}
+
+.political-group-member-card {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--space-3v);
+	align-items: center;
+	padding: var(--space-3v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-alt-grey);
+}
+
+.political-group-member-card__photo-link {
+	display: block;
+	border: 1px solid transparent;
+	line-height: 0;
+}
+
+.political-group-member-card__photo-link:hover {
+	border-color: var(--border-action-high-blue-france);
+}
+
+.political-group-member-card__photo {
+	display: grid;
+	width: 4.5rem;
+	height: 4.5rem;
+	place-items: center;
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+	color: var(--text-title-grey);
+	font-weight: var(--font-weight-bold);
+	object-fit: cover;
+}
+
+.political-group-member-card__photo--placeholder {
+	font-size: var(--text-lg);
+}
+
+.political-group-member-card__body {
+	display: grid;
+	gap: var(--space-1v);
+}
+
+.political-group-member-card__body h3,
+.political-group-member-card__body p {
+	margin-block-end: 0;
+}
+
+.political-group-member-card__body h3 {
+	font-size: var(--text-md);
+}
+
+.political-group-member-card__body p {
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.political-group-stats-table,
+.political-group-votes-table {
+	margin-block-start: var(--space-4v);
 }
 
 .result-chip {
@@ -1948,6 +2065,10 @@ code {
 		align-items: center;
 	}
 
+	.political-group-member-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
 	.scrutin-filters {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
@@ -2051,16 +2172,22 @@ code {
 	.card,
 	.data-table th,
 	.data-table td,
+	.deputy-heading__group-link,
 	.deputy-heading__group-logo,
+	.political-group-heading__logo,
 	.detail-card,
 	.detail-metrics div,
 	.detail-list div,
 	.deputy-mandat-card,
 	.empty-state,
 	.deputy-card,
+	.deputy-card__group-link,
 	.deputy-card__group-logo,
 	.deputy-card__photo,
 	.deputy-card__stats div,
+	.political-group-member-card,
+	.political-group-member-card__photo,
+	.political-group-member-card__photo-link,
 	.group-vote-chart__bar,
 	.group-deviation-chart__track,
 	.hero__panel,

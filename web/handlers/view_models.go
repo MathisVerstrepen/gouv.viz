@@ -143,6 +143,42 @@ func deputyDetailView(page store.DeputyDetailPage) components.DeputyDetailPage {
 	}
 }
 
+func politicalGroupDetailView(page store.PoliticalGroupDetailPage) components.PoliticalGroupDetailPage {
+	return components.PoliticalGroupDetailPage{
+		Group: components.PoliticalGroupData{
+			UID:               page.Group.UID,
+			CodeType:          page.Group.CodeType,
+			Libelle:           page.Group.Libelle,
+			LibelleAbrege:     page.Group.LibelleAbrege,
+			LibelleAbrev:      page.Group.LibelleAbrev,
+			LibelleEdition:    page.Group.LibelleEdition,
+			Legislature:       page.Group.Legislature,
+			Chambre:           page.Group.Chambre,
+			Regime:            page.Group.Regime,
+			PositionPolitique: page.Group.PositionPolitique,
+			CouleurAssociee:   page.Group.CouleurAssociee,
+			Preseance:         page.Group.Preseance,
+			DateDebut:         page.Group.DateDebut,
+			DateFin:           page.Group.DateFin,
+			SourceFile:        page.Group.SourceFile,
+		},
+		Query: components.PoliticalGroupDetailQuery{
+			VotesPage:     page.Query.VotesPage,
+			VotesPerPage:  page.Query.VotesPerPage,
+			VotesSearch:   page.Query.VotesSearch,
+			VotesSort:     page.Query.VotesSort,
+			VotesPosition: page.Query.VotesPosition,
+		},
+		Stats:             politicalGroupVoteStatViews(page.Stats),
+		Deputies:          politicalGroupDeputyViews(page.Deputies),
+		Votes:             politicalGroupVoteViews(page.Votes),
+		VotesTotalResults: page.VotesTotalResults,
+		VotesTotalPages:   page.VotesTotalPages,
+		VotesStartItem:    page.VotesStartItem,
+		VotesEndItem:      page.VotesEndItem,
+	}
+}
+
 func scrutinListItemViews(items []store.ScrutinListItem) []components.ScrutinListItem {
 	views := make([]components.ScrutinListItem, 0, len(items))
 	for _, item := range items {
@@ -346,6 +382,62 @@ func deputyVoteViews(votes []store.DeputyVote) []components.DeputyVote {
 			Position:      vote.Position,
 			ParDelegation: vote.ParDelegation,
 			NumPlace:      vote.NumPlace,
+		})
+	}
+	return views
+}
+
+func politicalGroupVoteStatViews(stats []store.PoliticalGroupVoteStat) []components.PoliticalGroupVoteStat {
+	views := make([]components.PoliticalGroupVoteStat, 0, len(stats))
+	for _, stat := range stats {
+		views = append(views, components.PoliticalGroupVoteStat{
+			Legislature:   stat.Legislature,
+			TotalScrutins: stat.TotalScrutins,
+			Pour:          stat.Pour,
+			Contre:        stat.Contre,
+			Abstentions:   stat.Abstentions,
+			NonVotants:    stat.NonVotants,
+		})
+	}
+	return views
+}
+
+func politicalGroupDeputyViews(deputies []store.PoliticalGroupDeputy) []components.PoliticalGroupDeputy {
+	views := make([]components.PoliticalGroupDeputy, 0, len(deputies))
+	for _, deputy := range deputies {
+		views = append(views, components.PoliticalGroupDeputy{
+			UID:         deputy.UID,
+			DisplayName: deputy.DisplayName,
+			Alpha:       deputy.Alpha,
+			Legislature: deputy.Legislature,
+			MandatUID:   deputy.MandatUID,
+			DateDebut:   deputy.DateDebut,
+			DateFin:     deputy.DateFin,
+			Qualite:     deputy.Qualite,
+		})
+	}
+	return views
+}
+
+func politicalGroupVoteViews(votes []store.PoliticalGroupVote) []components.PoliticalGroupVote {
+	views := make([]components.PoliticalGroupVote, 0, len(votes))
+	for _, vote := range votes {
+		views = append(views, components.PoliticalGroupVote{
+			ScrutinUID:            vote.ScrutinUID,
+			Numero:                vote.Numero,
+			Legislature:           vote.Legislature,
+			Date:                  vote.Date,
+			Titre:                 vote.Titre,
+			SortCode:              vote.SortCode,
+			SortLibelle:           vote.SortLibelle,
+			TypeVote:              vote.TypeVote,
+			PositionMajoritaire:   vote.PositionMajoritaire,
+			NombreMembres:         vote.NombreMembres,
+			Pour:                  vote.Pour,
+			Contre:                vote.Contre,
+			Abstentions:           vote.Abstentions,
+			NonVotants:            vote.NonVotants,
+			NonVotantsVolontaires: vote.NonVotantsVolontaires,
 		})
 	}
 	return views

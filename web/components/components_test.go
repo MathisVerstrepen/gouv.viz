@@ -125,6 +125,9 @@ func TestDetailHelpers(t *testing.T) {
 	if got := DeputyDetailURL("PA/1 2"); got != "/deputes/PA%2F1%202" {
 		t.Fatalf("DeputyDetailURL() = %q", got)
 	}
+	if got := PoliticalGroupDetailURL("GRP/1 2"); got != "/groupes/GRP%2F1%202" {
+		t.Fatalf("PoliticalGroupDetailURL() = %q", got)
+	}
 	if got := fallbackText(""); got != "Non renseigné" {
 		t.Fatalf("fallbackText(empty) = %q", got)
 	}
@@ -209,6 +212,73 @@ func TestDeputyDetailHelpers(t *testing.T) {
 	}
 	if got := deputyCurrentGroup([]DeputyMandat{{Organes: []DeputyMandatOrgane{{CodeType: "ORG", Libelle: "Commission"}, group}}}); got.UID != group.UID {
 		t.Fatalf("deputyCurrentGroup() = %+v, want %+v", got, group)
+	}
+}
+
+func TestPoliticalGroupDetailHelpers(t *testing.T) {
+	page := PoliticalGroupDetailPage{
+		Group:             PoliticalGroupData{UID: "GRP/1", CodeType: "GP", Libelle: "Groupe complet", LibelleAbrege: "GC", LibelleAbrev: "EPR"},
+		Stats:             []PoliticalGroupVoteStat{{Legislature: 17, TotalScrutins: 3, Pour: 2, Contre: 1}},
+		Query:             PoliticalGroupDetailQuery{VotesPage: 2, VotesSort: "date_desc"},
+		VotesTotalResults: 75,
+		VotesStartItem:    51,
+		VotesEndItem:      75,
+	}
+	if got := PoliticalGroupLabel(page.Group); got != "Groupe complet" {
+		t.Fatalf("PoliticalGroupLabel() = %q", got)
+	}
+	if got := politicalGroupLogoURL(page.Group); got != "/assets/img/groups/EPR.png" {
+		t.Fatalf("politicalGroupLogoURL() = %q", got)
+	}
+	if got := politicalGroupTotalScrutins(page); got != 3 {
+		t.Fatalf("politicalGroupTotalScrutins() = %d", got)
+	}
+	if got := politicalGroupTotalPour(page.Stats); got != 2 {
+		t.Fatalf("politicalGroupTotalPour() = %d", got)
+	}
+	if got := politicalGroupTotalContre(page.Stats); got != 1 {
+		t.Fatalf("politicalGroupTotalContre() = %d", got)
+	}
+	if got := politicalGroupVotesPageURL(page, 2); got != "/groupes/GRP%2F1?votes_page=2#groupe-votes" {
+		t.Fatalf("politicalGroupVotesPageURL() = %q", got)
+	}
+	if got := politicalGroupVotesPageURL(page, 1); got != "/groupes/GRP%2F1#groupe-votes" {
+		t.Fatalf("politicalGroupVotesPageURL(first) = %q", got)
+	}
+	filteredPage := PoliticalGroupDetailPage{Group: PoliticalGroupData{UID: "GRP/1"}, Query: PoliticalGroupDetailQuery{VotesSearch: "budget", VotesPosition: "pour", VotesSort: "date_asc"}}
+	if got := politicalGroupVotesPageURL(filteredPage, 3); got != "/groupes/GRP%2F1?votes_page=3&votes_position=pour&votes_q=budget&votes_sort=date_asc#groupe-votes" {
+		t.Fatalf("politicalGroupVotesPageURL(filtered) = %q", got)
+	}
+	if got := politicalGroupVotesSummary(page); got != "51-75 sur 75 votes de groupe." {
+		t.Fatalf("politicalGroupVotesSummary() = %q", got)
+	}
+	if !hasPoliticalGroupVoteControls(filteredPage.Query) {
+		t.Fatal("hasPoliticalGroupVoteControls(filtered) = false, want true")
+	}
+	if got := politicalGroupVotesSortSummary(PoliticalGroupDetailQuery{VotesSort: "date_asc"}); got != "Tri actuel : date ancienne." {
+		t.Fatalf("politicalGroupVotesSortSummary() = %q", got)
+	}
+	if got := politicalGroupDeputyMeta(PoliticalGroupDeputy{Alpha: "MARTIN", Legislature: 17, Qualite: "Députée"}); got != "MARTIN · 17e législature · Députée" {
+		t.Fatalf("politicalGroupDeputyMeta() = %q", got)
+	}
+	if got := politicalGroupVoteResultLabel(PoliticalGroupVote{SortLibelle: "l'Assemblée nationale a adopté"}); got != "Adopté" {
+		t.Fatalf("politicalGroupVoteResultLabel() = %q", got)
+	}
+	deputies := make([]PoliticalGroupDeputy, visiblePoliticalGroupDeputiesCount+2)
+	for i := range deputies {
+		deputies[i] = PoliticalGroupDeputy{UID: "PA" + string(rune('1'+i)), DisplayName: "Député"}
+	}
+	if got := len(visiblePoliticalGroupDeputies(deputies)); got != visiblePoliticalGroupDeputiesCount {
+		t.Fatalf("len(visiblePoliticalGroupDeputies) = %d", got)
+	}
+	if got := len(hiddenPoliticalGroupDeputies(deputies)); got != 2 {
+		t.Fatalf("len(hiddenPoliticalGroupDeputies) = %d", got)
+	}
+	if got := politicalGroupRemainingDeputiesLabel(2); got != "Voir 2 autres députés" {
+		t.Fatalf("politicalGroupRemainingDeputiesLabel() = %q", got)
+	}
+	if got := politicalGroupDeputyPhotoURL(PoliticalGroupDeputy{UID: "PA794598", Legislature: 17}); got != "https://www.assemblee-nationale.fr/dyn/static/tribun/17/photos/carre/794598.jpg" {
+		t.Fatalf("politicalGroupDeputyPhotoURL() = %q", got)
 	}
 }
 

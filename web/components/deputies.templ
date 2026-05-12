@@ -157,7 +157,9 @@ templ DeputyCard(deputy DeputyListItem) {
 				<img class="deputy-card__photo" src={ deputyListPhotoURL(deputy) } alt={ "Portrait officiel de " + deputy.DisplayName } loading="lazy" width="96" height="96"/>
 			}
 			if deputyListGroupLogoURL(deputy) != "" {
-				<img class="deputy-card__group-logo" src={ deputyListGroupLogoURL(deputy) } alt={ "Logo du groupe " + deputyGroupLabel(deputyListGroup(deputy)) } loading="lazy" width="48" height="48"/>
+				<a class="deputy-card__group-link" href={ PoliticalGroupDetailURL(deputy.GroupUID) } aria-label={ "Voir le groupe " + deputyGroupLabel(deputyListGroup(deputy)) }>
+					<img class="deputy-card__group-logo" src={ deputyListGroupLogoURL(deputy) } alt={ "Logo du groupe " + deputyGroupLabel(deputyListGroup(deputy)) } loading="lazy" width="48" height="48"/>
+				</a>
 			}
 		</div>
 		<div class="deputy-card__body">

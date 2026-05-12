@@ -375,6 +375,65 @@ func TestDeputiesPageAppliesSearchFiltersSortAndPagination(t *testing.T) {
 	}
 }
 
+func TestPoliticalGroupDetailPageReturnsStatsDeputiesAndVotes(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 2)
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN")
+	insertActeur(t, s.db, "PA2", "Bruno", "Bernard", "BERNARD")
+	insertMandat(t, s.db, "M1", "PA1", 17, "ASSEMBLEE", "2024-01-01", "", "Députée", true)
+	insertMandatOrgane(t, s.db, "M1", "GRP1")
+	insertMandat(t, s.db, "M2", "PA2", 17, "ASSEMBLEE", "2024-01-02", "", "Député", true)
+	insertMandatOrgane(t, s.db, "M2", "GRP1")
+	insertScrutin(t, s.db, testScrutin{UID: "old", Numero: 1, Date: "2024-01-10", Titre: "Ancien vote", OrganeUID: "ORG1", Result: "rejete", ResultLabel: "Rejeté"})
+	insertScrutin(t, s.db, testScrutin{UID: "new", Numero: 2, Date: "2024-02-10", Titre: "Nouveau vote", OrganeUID: "ORG1", Result: "adopte", ResultLabel: "Adopté"})
+	insertGroupVote(t, s.db, "old", "GRP1", "contre")
+	insertGroupVote(t, s.db, "new", "GRP1", "pour")
+	insertGroupVoteStats(t, s.db, "GRP1", 17, 2, 1, 1, 0, 0)
+
+	page, err := s.PoliticalGroupDetailPage(context.Background(), "GRP1", PoliticalGroupDetailQuery{VotesPage: 1, VotesPerPage: 1})
+	if err != nil {
+		t.Fatalf("PoliticalGroupDetailPage() error = %v", err)
+	}
+
+	if page.Group.UID != "GRP1" || page.Group.LibelleAbrege != "G1" || page.Group.CodeType != "GP" {
+		t.Fatalf("group = %+v, want GRP1", page.Group)
+	}
+	if len(page.Stats) != 1 || page.Stats[0].TotalScrutins != 2 || page.Stats[0].Pour != 1 || page.Stats[0].Contre != 1 {
+		t.Fatalf("stats = %+v, want aggregate group stats", page.Stats)
+	}
+	if got := politicalGroupDeputyUIDs(page.Deputies); len(got) != 2 || got[0] != "PA2" || got[1] != "PA1" {
+		t.Fatalf("deputies = %v, want alphabetical [PA2 PA1]", got)
+	}
+	if len(page.Votes) != 1 || page.Votes[0].ScrutinUID != "new" || page.Votes[0].PositionMajoritaire != "pour" {
+		t.Fatalf("votes = %+v, want newest group vote", page.Votes)
+	}
+	if page.VotesTotalResults != 2 || page.VotesTotalPages != 2 || page.VotesStartItem != 1 || page.VotesEndItem != 1 {
+		t.Fatalf("vote pagination = total:%d pages:%d start:%d end:%d", page.VotesTotalResults, page.VotesTotalPages, page.VotesStartItem, page.VotesEndItem)
+	}
+
+	page, err = s.PoliticalGroupDetailPage(context.Background(), "GRP1", PoliticalGroupDetailQuery{VotesSearch: "ancien", VotesPosition: "contre", VotesSort: "date_asc", VotesPerPage: 10})
+	if err != nil {
+		t.Fatalf("PoliticalGroupDetailPage(filtered) error = %v", err)
+	}
+	if len(page.Votes) != 1 || page.Votes[0].ScrutinUID != "old" || page.VotesTotalResults != 1 {
+		t.Fatalf("filtered votes = %+v total=%d, want old only", page.Votes, page.VotesTotalResults)
+	}
+	if page.Query.VotesSearch != "ancien" || page.Query.VotesPosition != "contre" || page.Query.VotesSort != "date_asc" {
+		t.Fatalf("normalized vote query = %+v", page.Query)
+	}
+}
+
+func TestPoliticalGroupDetailPageReturnsErrNotFound(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+
+	_, err := s.PoliticalGroupDetailPage(context.Background(), "ORG1", PoliticalGroupDetailQuery{})
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("PoliticalGroupDetailPage() error = %v, want ErrNotFound", err)
+	}
+}
+
 func TestValidateAcceptsExpectedDatabase(t *testing.T) {
 	s := newValidationTestStore(t, expectedSchemaVersion, nil)
 
@@ -582,6 +641,14 @@ func insertActorVoteStats(t *testing.T, db *sql.DB, acteurUID string, legislatur
 	}
 }
 
+func insertGroupVoteStats(t *testing.T, db *sql.DB, groupeUID string, legislature int, total, pour, contre, abstentions, nonVotants int) {
+	t.Helper()
+	_, err := db.Exec(`INSERT INTO groupe_vote_stats (groupe_uid, legislature, total_scrutins, pour, contre, abstentions, non_votants) VALUES (?, ?, ?, ?, ?, ?, ?)`, groupeUID, legislature, total, pour, contre, abstentions, nonVotants)
+	if err != nil {
+		t.Fatalf("insert group vote stats %s: %v", groupeUID, err)
+	}
+}
+
 func insertIndividualVote(t *testing.T, db *sql.DB, scrutinUID, acteurUID, groupeUID, position string, parDelegation bool, numPlace string) {
 	t.Helper()
 	insertIndividualVoteWithMandat(t, db, scrutinUID, acteurUID, "", groupeUID, position, parDelegation, numPlace)
@@ -641,6 +708,14 @@ func uids(items []ScrutinListItem) []string {
 }
 
 func deputyUIDs(items []DeputyListItem) []string {
+	values := make([]string, 0, len(items))
+	for _, item := range items {
+		values = append(values, item.UID)
+	}
+	return values
+}
+
+func politicalGroupDeputyUIDs(items []PoliticalGroupDeputy) []string {
 	values := make([]string, 0, len(items))
 	for _, item := range items {
 		values = append(values, item.UID)
