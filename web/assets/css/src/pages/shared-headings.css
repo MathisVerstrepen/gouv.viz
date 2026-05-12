@@ -41,7 +41,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--space-4v);
-	align-items: flex-start;
+	align-items: center;
 	justify-content: space-between;
 }
 
