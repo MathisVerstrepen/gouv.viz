@@ -22,10 +22,17 @@ type ScrutinListItem struct {
 }
 
 type ScrutinsQuery struct {
-	Search  string
-	Sort    string
-	Page    int
-	PerPage int
+	Search      string
+	Sort        string
+	Page        int
+	PerPage     int
+	Legislature int
+	Result      string
+	VoteType    string
+	Organe      string
+	DateFrom    string
+	DateTo      string
+	CloseVotes  bool
 }
 
 type ScrutinSortOption struct {
@@ -33,15 +40,28 @@ type ScrutinSortOption struct {
 	Label string
 }
 
+type ScrutinFilterOption struct {
+	Value string
+	Label string
+}
+
+type ScrutinFilterOptions struct {
+	Legislatures []ScrutinFilterOption
+	Results      []ScrutinFilterOption
+	VoteTypes    []ScrutinFilterOption
+	Organes      []ScrutinFilterOption
+}
+
 type ScrutinsPage struct {
-	Query        ScrutinsQuery
-	DefaultSort  string
-	SortOptions  []ScrutinSortOption
-	Scrutins     []ScrutinListItem
-	TotalResults int
-	TotalPages   int
-	StartItem    int
-	EndItem      int
+	Query         ScrutinsQuery
+	DefaultSort   string
+	SortOptions   []ScrutinSortOption
+	FilterOptions ScrutinFilterOptions
+	Scrutins      []ScrutinListItem
+	TotalResults  int
+	TotalPages    int
+	StartItem     int
+	EndItem       int
 }
 
 type ScrutinDetailPage struct {

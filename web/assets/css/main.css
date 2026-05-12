@@ -746,7 +746,8 @@ code {
 	font-weight: var(--font-weight-bold);
 }
 
-.field input {
+.field input,
+.field select {
 	min-height: 2.75rem;
 	width: 100%;
 	border: 1px solid var(--border-plain-grey);
@@ -758,6 +759,23 @@ code {
 
 .field input::placeholder {
 	color: var(--text-mention-grey);
+}
+
+.scrutin-filters {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-4v);
+}
+
+.field--checkbox {
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	gap: var(--space-3v);
+}
+
+.field--checkbox input {
+	min-height: auto;
+	width: auto;
 }
 
 .scrutin-toolbar__actions {
@@ -1617,6 +1635,10 @@ code {
 
 	.scrutin-card {
 		grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.35fr);
+	}
+
+	.scrutin-filters {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 
 	.scrutin-card__meta,

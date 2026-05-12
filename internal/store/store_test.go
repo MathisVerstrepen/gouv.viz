@@ -96,6 +96,43 @@ func TestScrutinsPageSortsClosestPourContreFirst(t *testing.T) {
 	}
 }
 
+func TestScrutinsPageAppliesStructuredFilters(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 2)
+	insertOrgane(t, s.db, "ORG2", "Autre organe", "AO", 3)
+	insertScrutin(t, s.db, testScrutin{UID: "match", Numero: 1, Legislature: 17, Date: "2024-05-10", Titre: "Texte retenu", OrganeUID: "ORG1", Result: "adopte", ResultLabel: "Adopté", VoteType: "SPO", VoteTypeLabel: "Scrutin public ordinaire", Pour: 54, Contre: 49})
+	insertScrutin(t, s.db, testScrutin{UID: "old", Numero: 2, Legislature: 17, Date: "2024-04-01", Titre: "Date exclue", OrganeUID: "ORG1", Result: "adopte", VoteType: "SPO", Pour: 54, Contre: 49})
+	insertScrutin(t, s.db, testScrutin{UID: "wide", Numero: 3, Legislature: 17, Date: "2024-05-11", Titre: "Large exclu", OrganeUID: "ORG1", Result: "adopte", VoteType: "SPO", Pour: 90, Contre: 10})
+	insertScrutin(t, s.db, testScrutin{UID: "other", Numero: 4, Legislature: 16, Date: "2024-05-10", Titre: "Autre exclu", OrganeUID: "ORG2", Result: "rejete", VoteType: "MOC", Pour: 49, Contre: 54})
+	insertGroupVote(t, s.db, "match", "GRP1", "pour")
+
+	page, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{
+		Legislature: 17,
+		Result:      "adopte",
+		VoteType:    "SPO",
+		Organe:      "GRP1",
+		DateFrom:    "2024-05-01",
+		DateTo:      "2024-05-31",
+		CloseVotes:  true,
+		Page:        1,
+		PerPage:     25,
+	})
+	if err != nil {
+		t.Fatalf("ScrutinsPage() error = %v", err)
+	}
+
+	if got := uids(page.Scrutins); len(got) != 1 || got[0] != "match" {
+		t.Fatalf("scrutins = %v, want [match]", got)
+	}
+	if len(page.FilterOptions.Legislatures) == 0 || page.FilterOptions.Legislatures[0].Value != "17" {
+		t.Fatalf("legislature filter options = %+v, want 17 first", page.FilterOptions.Legislatures)
+	}
+	if !hasFilterOption(page.FilterOptions.Organes, "GRP1") {
+		t.Fatalf("organe filter options = %+v, want GRP1 from group votes", page.FilterOptions.Organes)
+	}
+}
+
 func TestScrutinDetailPageReturnsErrNotFound(t *testing.T) {
 	s := newTestStore(t)
 
@@ -225,9 +262,16 @@ func newValidationTestStore(t *testing.T, schemaVersion string, skipTables map[s
 type testScrutin struct {
 	UID                     string
 	Numero                  int
+	Legislature             int
 	Date                    string
 	Titre                   string
 	OrganeUID               string
+	Result                  string
+	ResultLabel             string
+	VoteType                string
+	VoteTypeLabel           string
+	Pour                    int
+	Contre                  int
 	LinkedTextNum           string
 	LinkedTextKind          string
 	LinkedTextURL           string
@@ -251,6 +295,22 @@ func insertOrgane(t *testing.T, db *sql.DB, uid, libelle, libelleAbrege string, 
 
 func insertScrutin(t *testing.T, db *sql.DB, scrutin testScrutin) {
 	t.Helper()
+	legislature := scrutin.Legislature
+	if legislature == 0 {
+		legislature = 17
+	}
+	result := firstNonEmptyTest(scrutin.Result, "adopte")
+	resultLabel := firstNonEmptyTest(scrutin.ResultLabel, "Adopte")
+	voteType := firstNonEmptyTest(scrutin.VoteType, "SPO")
+	voteTypeLabel := firstNonEmptyTest(scrutin.VoteTypeLabel, "Scrutin public ordinaire")
+	pour := scrutin.Pour
+	if pour == 0 {
+		pour = 6
+	}
+	contre := scrutin.Contre
+	if contre == 0 {
+		contre = 3
+	}
 	_, err := db.Exec(`
 INSERT INTO scrutins (
   uid, numero, legislature, organe_uid, date_scrutin, code_type_vote,
@@ -261,8 +321,8 @@ INSERT INTO scrutins (
   demandeur_texte, objet_libelle, mode_publication_votes, nombre_votants,
   suffrages_exprimes, suffrages_requis, non_votants, pour, contre,
   abstentions, non_votants_volontaires, source_file
-) VALUES (?, ?, 17, ?, ?, 'SPO', 'Scrutin public ordinaire', 'simple', 'adopte', 'Adopte', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Gouvernement', 'Objet', 'Decompte', 10, 9, 5, 1, 6, 3, 0, 0, 'fixture.json')
-`, scrutin.UID, scrutin.Numero, scrutin.OrganeUID, scrutin.Date, scrutin.Titre, scrutin.LinkedTextNum, scrutin.LinkedTextKind, scrutin.LinkedTextURL, scrutin.LinkedTextPDFURL, scrutin.LinkedDossierRef, scrutin.LinkedDossierLibelle, scrutin.LinkedAmendementNum, scrutin.LinkedAmendementTextNum, scrutin.LinkedAmendementOrgane, scrutin.LinkedAmendementURL, scrutin.LinkedReferenceSource)
+) VALUES (?, ?, ?, ?, ?, ?, ?, 'simple', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Gouvernement', 'Objet', 'Decompte', 10, 9, 5, 1, ?, ?, 0, 0, 'fixture.json')
+`, scrutin.UID, scrutin.Numero, legislature, scrutin.OrganeUID, scrutin.Date, voteType, voteTypeLabel, result, resultLabel, scrutin.Titre, scrutin.LinkedTextNum, scrutin.LinkedTextKind, scrutin.LinkedTextURL, scrutin.LinkedTextPDFURL, scrutin.LinkedDossierRef, scrutin.LinkedDossierLibelle, scrutin.LinkedAmendementNum, scrutin.LinkedAmendementTextNum, scrutin.LinkedAmendementOrgane, scrutin.LinkedAmendementURL, scrutin.LinkedReferenceSource, pour, contre)
 	if err != nil {
 		t.Fatalf("insert scrutin %s: %v", scrutin.UID, err)
 	}
@@ -271,6 +331,24 @@ INSERT INTO scrutins (
 	if err != nil {
 		t.Fatalf("insert scrutin search %s: %v", scrutin.UID, err)
 	}
+}
+
+func hasFilterOption(options []ScrutinFilterOption, value string) bool {
+	for _, option := range options {
+		if option.Value == value {
+			return true
+		}
+	}
+	return false
+}
+
+func firstNonEmptyTest(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func updateScrutinVoteCounts(t *testing.T, db *sql.DB, uid string, pour int, contre int) {

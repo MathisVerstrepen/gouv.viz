@@ -17,18 +17,26 @@ func homeView(page store.HomePage) components.HomePage {
 func scrutinsView(page store.ScrutinsPage) components.ScrutinsPage {
 	return components.ScrutinsPage{
 		Query: components.ScrutinsQuery{
-			Search:  page.Query.Search,
-			Sort:    page.Query.Sort,
-			Page:    page.Query.Page,
-			PerPage: page.Query.PerPage,
+			Search:      page.Query.Search,
+			Sort:        page.Query.Sort,
+			Page:        page.Query.Page,
+			PerPage:     page.Query.PerPage,
+			Legislature: page.Query.Legislature,
+			Result:      page.Query.Result,
+			VoteType:    page.Query.VoteType,
+			Organe:      page.Query.Organe,
+			DateFrom:    page.Query.DateFrom,
+			DateTo:      page.Query.DateTo,
+			CloseVotes:  page.Query.CloseVotes,
 		},
-		DefaultSort:  page.DefaultSort,
-		SortOptions:  scrutinSortOptionViews(page.SortOptions),
-		Scrutins:     scrutinListItemViews(page.Scrutins),
-		TotalResults: page.TotalResults,
-		TotalPages:   page.TotalPages,
-		StartItem:    page.StartItem,
-		EndItem:      page.EndItem,
+		DefaultSort:   page.DefaultSort,
+		SortOptions:   scrutinSortOptionViews(page.SortOptions),
+		FilterOptions: scrutinFilterOptionsView(page.FilterOptions),
+		Scrutins:      scrutinListItemViews(page.Scrutins),
+		TotalResults:  page.TotalResults,
+		TotalPages:    page.TotalPages,
+		StartItem:     page.StartItem,
+		EndItem:       page.EndItem,
 	}
 }
 
@@ -102,6 +110,26 @@ func scrutinSortOptionViews(options []store.ScrutinSortOption) []components.Scru
 	views := make([]components.ScrutinSortOption, 0, len(options))
 	for _, option := range options {
 		views = append(views, components.ScrutinSortOption{
+			Value: option.Value,
+			Label: option.Label,
+		})
+	}
+	return views
+}
+
+func scrutinFilterOptionsView(options store.ScrutinFilterOptions) components.ScrutinFilterOptions {
+	return components.ScrutinFilterOptions{
+		Legislatures: scrutinFilterOptionViews(options.Legislatures),
+		Results:      scrutinFilterOptionViews(options.Results),
+		VoteTypes:    scrutinFilterOptionViews(options.VoteTypes),
+		Organes:      scrutinFilterOptionViews(options.Organes),
+	}
+}
+
+func scrutinFilterOptionViews(options []store.ScrutinFilterOption) []components.ScrutinFilterOption {
+	views := make([]components.ScrutinFilterOption, 0, len(options))
+	for _, option := range options {
+		views = append(views, components.ScrutinFilterOption{
 			Value: option.Value,
 			Label: option.Label,
 		})

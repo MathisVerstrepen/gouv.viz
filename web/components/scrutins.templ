@@ -9,10 +9,17 @@ import (
 )
 
 type ScrutinsQuery struct {
-	Search  string
-	Sort    string
-	Page    int
-	PerPage int
+	Search      string
+	Sort        string
+	Page        int
+	PerPage     int
+	Legislature int
+	Result      string
+	VoteType    string
+	Organe      string
+	DateFrom    string
+	DateTo      string
+	CloseVotes  bool
 }
 
 type ScrutinSortOption struct {
@@ -20,15 +27,28 @@ type ScrutinSortOption struct {
 	Label string
 }
 
+type ScrutinFilterOption struct {
+	Value string
+	Label string
+}
+
+type ScrutinFilterOptions struct {
+	Legislatures []ScrutinFilterOption
+	Results      []ScrutinFilterOption
+	VoteTypes    []ScrutinFilterOption
+	Organes      []ScrutinFilterOption
+}
+
 type ScrutinsPage struct {
-	Query        ScrutinsQuery
-	DefaultSort  string
-	SortOptions  []ScrutinSortOption
-	Scrutins     []ScrutinListItem
-	TotalResults int
-	TotalPages   int
-	StartItem    int
-	EndItem      int
+	Query         ScrutinsQuery
+	DefaultSort   string
+	SortOptions   []ScrutinSortOption
+	FilterOptions ScrutinFilterOptions
+	Scrutins      []ScrutinListItem
+	TotalResults  int
+	TotalPages    int
+	StartItem     int
+	EndItem       int
 }
 
 templ Scrutins(page ScrutinsPage) {
@@ -64,10 +84,60 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 				<span>Recherche</span>
 				<input id="q" name="q" type="search" value={ page.Query.Search } placeholder="Ex. budget, motion, rejet, Assemblée"/>
 			</label>
+			<div class="scrutin-filters" aria-label="Filtres des scrutins">
+				<label class="field" for="legislature">
+					<span>Législature</span>
+					<select id="legislature" name="legislature">
+						<option value="">Toutes</option>
+						for _, option := range page.FilterOptions.Legislatures {
+							<option value={ option.Value } selected?={ option.Value == strconv.Itoa(page.Query.Legislature) }>{ option.Label }</option>
+						}
+					</select>
+				</label>
+				<label class="field" for="result">
+					<span>Résultat</span>
+					<select id="result" name="result">
+						<option value="">Tous</option>
+						for _, option := range page.FilterOptions.Results {
+							<option value={ option.Value } selected?={ option.Value == page.Query.Result }>{ option.Label }</option>
+						}
+					</select>
+				</label>
+				<label class="field" for="vote_type">
+					<span>Type de vote</span>
+					<select id="vote_type" name="vote_type">
+						<option value="">Tous</option>
+						for _, option := range page.FilterOptions.VoteTypes {
+							<option value={ option.Value } selected?={ option.Value == page.Query.VoteType }>{ option.Label }</option>
+						}
+					</select>
+				</label>
+				<label class="field" for="organe">
+					<span>Organe ou groupe</span>
+					<select id="organe" name="organe">
+						<option value="">Tous</option>
+						for _, option := range page.FilterOptions.Organes {
+							<option value={ option.Value } selected?={ option.Value == page.Query.Organe }>{ option.Label }</option>
+						}
+					</select>
+				</label>
+				<label class="field" for="date_from">
+					<span>Depuis le</span>
+					<input id="date_from" name="date_from" type="date" value={ page.Query.DateFrom }/>
+				</label>
+				<label class="field" for="date_to">
+					<span>Jusqu’au</span>
+					<input id="date_to" name="date_to" type="date" value={ page.Query.DateTo }/>
+				</label>
+				<label class="field field--checkbox" for="close_votes">
+					<input id="close_votes" name="close_votes" type="checkbox" value="1" checked?={ page.Query.CloseVotes }/>
+					<span>Votes serrés (écart ≤ 10 voix)</span>
+				</label>
+			</div>
 			<input type="hidden" name="sort" value={ page.Query.Sort }/>
 			<div class="scrutin-toolbar__actions">
-				<button class="button" type="submit">Rechercher</button>
-				if page.Query.Search != "" {
+				<button class="button" type="submit">Appliquer</button>
+				if hasScrutinFilters(page.Query) {
 					<a class="button button--secondary" href={ clearScrutinSearchURL(page.Query, page.DefaultSort) } hx-get={ clearScrutinSearchURL(page.Query, page.DefaultSort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Effacer</a>
 				}
 			</div>
@@ -182,6 +252,27 @@ func scrutinListURL(query ScrutinsQuery, defaultSort string, page int, sort stri
 	if strings.TrimSpace(query.Search) != "" {
 		values.Set("q", query.Search)
 	}
+	if query.Legislature > 0 {
+		values.Set("legislature", strconv.Itoa(query.Legislature))
+	}
+	if query.Result != "" {
+		values.Set("result", query.Result)
+	}
+	if query.VoteType != "" {
+		values.Set("vote_type", query.VoteType)
+	}
+	if query.Organe != "" {
+		values.Set("organe", query.Organe)
+	}
+	if query.DateFrom != "" {
+		values.Set("date_from", query.DateFrom)
+	}
+	if query.DateTo != "" {
+		values.Set("date_to", query.DateTo)
+	}
+	if query.CloseVotes {
+		values.Set("close_votes", "1")
+	}
 	if sort != "" && sort != defaultSort {
 		values.Set("sort", sort)
 	}
@@ -197,7 +288,25 @@ func scrutinListURL(query ScrutinsQuery, defaultSort string, page int, sort stri
 
 func clearScrutinSearchURL(query ScrutinsQuery, defaultSort string) string {
 	query.Search = ""
+	query.Legislature = 0
+	query.Result = ""
+	query.VoteType = ""
+	query.Organe = ""
+	query.DateFrom = ""
+	query.DateTo = ""
+	query.CloseVotes = false
 	return scrutinListURL(query, defaultSort, 1, query.Sort)
+}
+
+func hasScrutinFilters(query ScrutinsQuery) bool {
+	return strings.TrimSpace(query.Search) != "" ||
+		query.Legislature > 0 ||
+		query.Result != "" ||
+		query.VoteType != "" ||
+		query.Organe != "" ||
+		query.DateFrom != "" ||
+		query.DateTo != "" ||
+		query.CloseVotes
 }
 
 func sortLinkClass(active bool) string {

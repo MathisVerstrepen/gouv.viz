@@ -15,14 +15,14 @@ import (
 
 func TestParseScrutinsQueryParsesSearchSortAndPage(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=%20budget%20&sort=closest&page=3", nil)
+	req := httptest.NewRequest(http.MethodGet, "/scrutins?q=%20budget%20&sort=closest&page=3&legislature=17&result=adopte&vote_type=SPO&organe=PO800538&date_from=2024-01-01&date_to=2024-12-31&close_votes=1", nil)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
 	query := parseScrutinsQuery(ctx)
 
-	if query.Search != "budget" || query.Sort != "closest" || query.Page != 3 || query.PerPage != store.ScrutinsPerPage {
-		t.Fatalf("query = %+v, want search budget, sort closest, page 3, per-page %d", query, store.ScrutinsPerPage)
+	if query.Search != "budget" || query.Sort != "closest" || query.Page != 3 || query.PerPage != store.ScrutinsPerPage || query.Legislature != 17 || query.Result != "adopte" || query.VoteType != "SPO" || query.Organe != "PO800538" || query.DateFrom != "2024-01-01" || query.DateTo != "2024-12-31" || !query.CloseVotes {
+		t.Fatalf("query = %+v, want parsed search, sort, page and filters", query)
 	}
 }
 
@@ -34,8 +34,8 @@ func TestParseScrutinsQueryIgnoresInvalidPageAndSort(t *testing.T) {
 
 	query := parseScrutinsQuery(ctx)
 
-	if query.Page != 1 || query.Sort != "date_desc" {
-		t.Fatalf("query = %+v, want page 1 and default sort date_desc", query)
+	if query.Page != 1 || query.Sort != "date_desc" || query.Legislature != 0 {
+		t.Fatalf("query = %+v, want page 1, no legislature, and default sort date_desc", query)
 	}
 }
 

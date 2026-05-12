@@ -23,6 +23,11 @@ func TestScrutinListURL(t *testing.T) {
 	if got := scrutinListURL(query, "closest", 1, "date_desc"); got != "/scrutins?q=+budget+public+&sort=date_desc" {
 		t.Fatalf("scrutinListURL(non-hardcoded default) = %q", got)
 	}
+
+	query = ScrutinsQuery{Legislature: 17, Result: "adopte", VoteType: "SPO", Organe: "PO800538", DateFrom: "2024-01-01", DateTo: "2024-12-31", CloseVotes: true}
+	if got := scrutinListURL(query, "date_desc", 1, "date_desc"); got != "/scrutins?close_votes=1&date_from=2024-01-01&date_to=2024-12-31&legislature=17&organe=PO800538&result=adopte&vote_type=SPO" {
+		t.Fatalf("scrutinListURL(filters) = %q", got)
+	}
 }
 
 func TestPaginationPages(t *testing.T) {
