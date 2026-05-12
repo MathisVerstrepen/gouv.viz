@@ -8,9 +8,13 @@ import (
 func (s *Store) HomePage(ctx context.Context) (HomePage, error) {
 	var page HomePage
 	if err := s.db.QueryRowContext(ctx, `
-SELECT COUNT(*), COALESCE(MIN(date_scrutin), ''), COALESCE(MAX(date_scrutin), '')
-FROM scrutins
-`).Scan(&page.TotalScrutins, &page.FirstScrutinDate, &page.LastScrutinDate); err != nil {
+SELECT
+  (SELECT COUNT(*) FROM scrutins),
+  (SELECT COUNT(*) FROM acteurs),
+  (SELECT COUNT(*) FROM organes WHERE UPPER(COALESCE(code_type, '')) = 'GP'),
+  COALESCE((SELECT MIN(date_scrutin) FROM scrutins), ''),
+  COALESCE((SELECT MAX(date_scrutin) FROM scrutins), '')
+`).Scan(&page.TotalScrutins, &page.TotalDeputies, &page.TotalGroups, &page.FirstScrutinDate, &page.LastScrutinDate); err != nil {
 		return HomePage{}, fmt.Errorf("query scrutin totals: %w", err)
 	}
 

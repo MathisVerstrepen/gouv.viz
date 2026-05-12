@@ -24,11 +24,37 @@ func TestHomePageHandlesEmptyDatabase(t *testing.T) {
 	if page.TotalScrutins != 0 {
 		t.Fatalf("TotalScrutins = %d, want 0", page.TotalScrutins)
 	}
+	if page.TotalDeputies != 0 || page.TotalGroups != 0 {
+		t.Fatalf("summary counts = deputies:%d groups:%d, want 0 each", page.TotalDeputies, page.TotalGroups)
+	}
 	if page.FirstScrutinDate != "" || page.LastScrutinDate != "" {
 		t.Fatalf("date range = %q/%q, want empty strings", page.FirstScrutinDate, page.LastScrutinDate)
 	}
 	if len(page.Scrutins) != 0 {
 		t.Fatalf("len(Scrutins) = %d, want 0", len(page.Scrutins))
+	}
+}
+
+func TestHomePageReturnsDatasetSummaryCounts(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 1)
+	insertOrgane(t, s.db, "GRP2", "Groupe deux", "G2", 2)
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN Alice")
+	insertActeur(t, s.db, "PA2", "Bruno", "Durand", "DURAND Bruno")
+	insertScrutin(t, s.db, testScrutin{UID: "one", Numero: 1, Date: "2024-01-01", Titre: "Premier", OrganeUID: "ORG1"})
+	insertScrutin(t, s.db, testScrutin{UID: "two", Numero: 2, Date: "2024-01-03", Titre: "Deuxième", OrganeUID: "ORG1"})
+
+	page, err := s.HomePage(context.Background())
+	if err != nil {
+		t.Fatalf("HomePage() error = %v", err)
+	}
+
+	if page.TotalScrutins != 2 || page.TotalDeputies != 2 || page.TotalGroups != 2 {
+		t.Fatalf("summary counts = scrutins:%d deputies:%d groups:%d, want 2 each", page.TotalScrutins, page.TotalDeputies, page.TotalGroups)
+	}
+	if page.FirstScrutinDate != "2024-01-01" || page.LastScrutinDate != "2024-01-03" {
+		t.Fatalf("date range = %q/%q, want 2024-01-01/2024-01-03", page.FirstScrutinDate, page.LastScrutinDate)
 	}
 }
 

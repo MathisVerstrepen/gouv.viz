@@ -8,6 +8,8 @@ import (
 func homeView(page store.HomePage) components.HomePage {
 	return components.HomePage{
 		TotalScrutins:    page.TotalScrutins,
+		TotalDeputies:    page.TotalDeputies,
+		TotalGroups:      page.TotalGroups,
 		FirstScrutinDate: page.FirstScrutinDate,
 		LastScrutinDate:  page.LastScrutinDate,
 		Scrutins:         scrutinListItemViews(page.Scrutins),

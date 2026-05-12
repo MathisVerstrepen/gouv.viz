@@ -2,6 +2,8 @@ package store
 
 type HomePage struct {
 	TotalScrutins    int
+	TotalDeputies    int
+	TotalGroups      int
 	FirstScrutinDate string
 	LastScrutinDate  string
 	Scrutins         []ScrutinListItem

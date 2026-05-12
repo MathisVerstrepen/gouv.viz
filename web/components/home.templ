@@ -7,6 +7,8 @@ import (
 
 type HomePage struct {
 	TotalScrutins    int
+	TotalDeputies    int
+	TotalGroups      int
 	FirstScrutinDate string
 	LastScrutinDate  string
 	Scrutins         []ScrutinListItem
@@ -43,20 +45,36 @@ templ Home(page HomePage) {
 				<div class="fr-container hero__grid">
 					<div class="hero__content">
 						<p class="eyebrow">Données publiques</p>
-						<h1>Les derniers scrutins publics</h1>
+						<h1>Explorez les votes, les députés et les groupes politiques</h1>
 						<p class="lead">
-							Explorez les votes publics de l'Assemblée nationale importés depuis l'open data de l'Assemblée nationale.
+							Parcourez les scrutins publics de l'Assemblée nationale, retrouvez les fiches des députés et suivez l'activité des groupes politiques à partir des données ouvertes.
 						</p>
 						<div class="hero__actions" aria-label="Actions principales">
 							<a class="button" href="/scrutins">Explorer tous les scrutins</a>
+							<a class="button button--secondary" href="/deputes">Voir les députés</a>
+							<a class="button button--secondary" href="/groupes">Voir les groupes</a>
 						</div>
 					</div>
 
 					<aside class="hero__panel" aria-label="État des données">
-						<h2>{ strconv.Itoa(page.TotalScrutins) } scrutins indexés</h2>
+						<h2>Données indexées</h2>
 						<p>
 							Période couverte : { formatDate(page.FirstScrutinDate) } - { formatDate(page.LastScrutinDate) }.
 						</p>
+						<div class="metric-list" aria-label="Volumes disponibles">
+							<div class="metric-card">
+								<strong>{ strconv.Itoa(page.TotalScrutins) }</strong>
+								<span>Scrutins</span>
+							</div>
+							<div class="metric-card">
+								<strong>{ strconv.Itoa(page.TotalDeputies) }</strong>
+								<span>Députés</span>
+							</div>
+							<div class="metric-card">
+								<strong>{ strconv.Itoa(page.TotalGroups) }</strong>
+								<span>Groupes</span>
+							</div>
+						</div>
 					</aside>
 				</div>
 			</section>

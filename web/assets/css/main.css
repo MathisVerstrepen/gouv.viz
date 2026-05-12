@@ -256,7 +256,6 @@ h3 {
 }
 
 h1 {
-	max-width: 11ch;
 	margin-block-end: var(--space-6v);
 	font-size: var(--title-lg);
 	letter-spacing: -0.03em;

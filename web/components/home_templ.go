@@ -15,6 +15,8 @@ import (
 
 type HomePage struct {
 	TotalScrutins    int
+	TotalDeputies    int
+	TotalGroups      int
 	FirstScrutinDate string
 	LastScrutinDate  string
 	Scrutins         []ScrutinListItem
@@ -71,56 +73,82 @@ func Home(page HomePage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"hero section\"><div class=\"fr-container hero__grid\"><div class=\"hero__content\"><p class=\"eyebrow\">Données publiques</p><h1>Les derniers scrutins publics</h1><p class=\"lead\">Explorez les votes publics de l'Assemblée nationale importés depuis l'open data de l'Assemblée nationale.</p><div class=\"hero__actions\" aria-label=\"Actions principales\"><a class=\"button\" href=\"/scrutins\">Explorer tous les scrutins</a></div></div><aside class=\"hero__panel\" aria-label=\"État des données\"><h2>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"hero section\"><div class=\"fr-container hero__grid\"><div class=\"hero__content\"><p class=\"eyebrow\">Données publiques</p><h1>Explorez les votes, les députés et les groupes politiques</h1><p class=\"lead\">Parcourez les scrutins publics de l'Assemblée nationale, retrouvez les fiches des députés et suivez l'activité des groupes politiques à partir des données ouvertes.</p><div class=\"hero__actions\" aria-label=\"Actions principales\"><a class=\"button\" href=\"/scrutins\">Explorer tous les scrutins</a> <a class=\"button button--secondary\" href=\"/deputes\">Voir les députés</a> <a class=\"button button--secondary\" href=\"/groupes\">Voir les groupes</a></div></div><aside class=\"hero__panel\" aria-label=\"État des données\"><h2>Données indexées</h2><p>Période couverte : ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.TotalScrutins))
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.FirstScrutinDate))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 56, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 62, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " scrutins indexés</h2><p>Période couverte : ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " - ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.FirstScrutinDate))
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.LastScrutinDate))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 58, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 62, Col: 101}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " - ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, ".</p><div class=\"metric-list\" aria-label=\"Volumes disponibles\"><div class=\"metric-card\"><strong>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.LastScrutinDate))
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.TotalScrutins))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 58, Col: 101}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 66, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, ".</p></aside></div></section><section id=\"scrutins\" class=\"section section--muted\"><div class=\"fr-container\"><div class=\"section-heading\"><p class=\"eyebrow\">Scrutins récents</p><h2>Les 50 derniers votes publics</h2><p>Liste triée par date de scrutin décroissante, avec résultat et décompte principal. <a href=\"/scrutins\">Ouvrir l'exploration complète</a>.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</strong> <span>Scrutins</span></div><div class=\"metric-card\"><strong>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.TotalDeputies))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 70, Col: 50}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</strong> <span>Députés</span></div><div class=\"metric-card\"><strong>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.TotalGroups))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 74, Col: 48}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</strong> <span>Groupes</span></div></div></aside></div></section><section id=\"scrutins\" class=\"section section--muted\"><div class=\"fr-container\"><div class=\"section-heading\"><p class=\"eyebrow\">Scrutins récents</p><h2>Les 50 derniers votes publics</h2><p>Liste triée par date de scrutin décroissante, avec résultat et décompte principal. <a href=\"/scrutins\">Ouvrir l'exploration complète</a>.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(page.Scrutins) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<p class=\"empty-state\">Aucun scrutin trouvé. Lancez <code>make preprocess</code> pour générer la base SQLite.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<p class=\"empty-state\">Aucun scrutin trouvé. Lancez <code>make preprocess</code> pour générer la base SQLite.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"scrutin-list\" aria-label=\"Liste des scrutins publics\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"scrutin-list\" aria-label=\"Liste des scrutins publics\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -130,12 +158,12 @@ func Home(page HomePage) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></section></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></section></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -143,7 +171,7 @@ func Home(page HomePage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
