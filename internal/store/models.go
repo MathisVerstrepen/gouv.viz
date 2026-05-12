@@ -188,8 +188,11 @@ type DeputyMandat struct {
 }
 
 type DeputyMandatOrgane struct {
-	UID     string
-	Libelle string
+	UID           string
+	CodeType      string
+	Libelle       string
+	LibelleAbrege string
+	LibelleAbrev  string
 }
 
 type DeputyVoteStat struct {

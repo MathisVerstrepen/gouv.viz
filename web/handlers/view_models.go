@@ -234,8 +234,11 @@ func deputyMandatOrganeViews(organes []store.DeputyMandatOrgane) []components.De
 	views := make([]components.DeputyMandatOrgane, 0, len(organes))
 	for _, organe := range organes {
 		views = append(views, components.DeputyMandatOrgane{
-			UID:     organe.UID,
-			Libelle: organe.Libelle,
+			UID:           organe.UID,
+			CodeType:      organe.CodeType,
+			Libelle:       organe.Libelle,
+			LibelleAbrege: organe.LibelleAbrege,
+			LibelleAbrev:  organe.LibelleAbrev,
 		})
 	}
 	return views

@@ -187,7 +187,10 @@ func (s *Store) deputyMandatOrganes(ctx context.Context, uid string) (map[string
 SELECT
   mo.mandat_uid,
   mo.organe_uid,
-  COALESCE(o.libelle_abrege, o.libelle, mo.organe_uid, '')
+  COALESCE(o.code_type, ''),
+  COALESCE(o.libelle_abrege, o.libelle, mo.organe_uid, ''),
+  COALESCE(o.libelle_abrege, ''),
+  COALESCE(o.libelle_abrev, '')
 FROM mandats m
 JOIN mandat_organes mo ON mo.mandat_uid = m.uid
 LEFT JOIN organes o ON o.uid = mo.organe_uid
@@ -203,8 +206,11 @@ ORDER BY mo.mandat_uid, COALESCE(o.preseance, 9999), COALESCE(o.libelle, o.libel
 	for rows.Next() {
 		var mandatUID string
 		var organe DeputyMandatOrgane
-		if err := rows.Scan(&mandatUID, &organe.UID, &organe.Libelle); err != nil {
+		if err := rows.Scan(&mandatUID, &organe.UID, &organe.CodeType, &organe.Libelle, &organe.LibelleAbrege, &organe.LibelleAbrev); err != nil {
 			return nil, fmt.Errorf("scan deputy mandat organe: %w", err)
+		}
+		if organe.Libelle == "" {
+			organe.Libelle = firstNonEmpty(organe.LibelleAbrege, organe.LibelleAbrev, organe.UID)
 		}
 		organes[mandatUID] = append(organes[mandatUID], organe)
 	}
@@ -363,4 +369,13 @@ func escapeLike(value string) string {
 	value = strings.ReplaceAll(value, `%`, `\%`)
 	value = strings.ReplaceAll(value, `_`, `\_`)
 	return value
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }

@@ -539,6 +539,23 @@ code {
 	justify-content: space-between;
 }
 
+.deputy-heading__identity {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4v);
+	min-width: 0;
+}
+
+.deputy-heading__group-logo {
+	flex: 0 0 auto;
+	inline-size: clamp(4rem, 14vw, 6rem);
+	block-size: clamp(4rem, 14vw, 6rem);
+	padding: var(--space-2v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+	object-fit: contain;
+}
+
 .breadcrumb {
 	display: flex;
 	flex-wrap: wrap;
@@ -1919,6 +1936,7 @@ code {
 	.card,
 	.data-table th,
 	.data-table td,
+	.deputy-heading__group-logo,
 		.detail-card,
 		.detail-metrics div,
 		.detail-list div,

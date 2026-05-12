@@ -413,10 +413,17 @@ type testScrutin struct {
 
 func insertOrgane(t *testing.T, db *sql.DB, uid, libelle, libelleAbrege string, preseance int) {
 	t.Helper()
-	_, err := db.Exec(`INSERT INTO organes (uid, libelle, libelle_abrege, preseance) VALUES (?, ?, ?, ?)`, uid, libelle, libelleAbrege, preseance)
+	_, err := db.Exec(`INSERT INTO organes (uid, code_type, libelle, libelle_abrege, libelle_abrev, preseance) VALUES (?, ?, ?, ?, ?, ?)`, uid, organeCodeType(uid), libelle, libelleAbrege, libelleAbrege, preseance)
 	if err != nil {
 		t.Fatalf("insert organe %s: %v", uid, err)
 	}
+}
+
+func organeCodeType(uid string) string {
+	if strings.HasPrefix(uid, "GRP") {
+		return "GP"
+	}
+	return "ORG"
 }
 
 func insertScrutin(t *testing.T, db *sql.DB, scrutin testScrutin) {

@@ -182,6 +182,16 @@ func TestDeputyDetailHelpers(t *testing.T) {
 	if got := deputyVoteResultLabel(DeputyVote{SortLibelle: "L’Assemblée nationale n’a pas adopté"}); got != "Non adopté" {
 		t.Fatalf("deputyVoteResultLabel(not adopted) = %q", got)
 	}
+	group := DeputyMandatOrgane{UID: "PO800538", CodeType: "GP", Libelle: "Ensemble pour la République", LibelleAbrev: "EPR"}
+	if got := groupLogoURL(group); got != "/assets/img/groups/EPR.png" {
+		t.Fatalf("groupLogoURL() = %q", got)
+	}
+	if got := groupLogoURL(DeputyMandatOrgane{CodeType: "GP", LibelleAbrev: "inconnu"}); got != "" {
+		t.Fatalf("groupLogoURL(unknown) = %q, want empty", got)
+	}
+	if got := deputyCurrentGroup([]DeputyMandat{{Organes: []DeputyMandatOrgane{{CodeType: "ORG", Libelle: "Commission"}, group}}}); got.UID != group.UID {
+		t.Fatalf("deputyCurrentGroup() = %+v, want %+v", got, group)
+	}
 }
 
 func TestIndividualVoteGroups(t *testing.T) {

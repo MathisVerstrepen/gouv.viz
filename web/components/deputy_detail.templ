@@ -66,8 +66,11 @@ type DeputyMandat struct {
 }
 
 type DeputyMandatOrgane struct {
-	UID     string
-	Libelle string
+	UID           string
+	CodeType      string
+	Libelle       string
+	LibelleAbrege string
+	LibelleAbrev  string
 }
 
 type DeputyVoteStat struct {
@@ -112,9 +115,14 @@ templ DeputyDetail(page DeputyDetailPage) {
 						<span>{ page.Deputy.DisplayName }</span>
 					</nav>
 					<div class="detail-heading__title-row">
-						<div>
+						<div class="deputy-heading__identity">
+							if group := deputyCurrentGroup(page.Mandats); groupLogoURL(group) != "" {
+								<img class="deputy-heading__group-logo" src={ groupLogoURL(group) } alt={ "Logo du groupe " + deputyGroupLabel(group) } loading="lazy" width="96" height="96"/>
+							}
+							<div>
 							<p class="eyebrow">Député</p>
 							<h1>{ page.Deputy.DisplayName }</h1>
+							</div>
 						</div>
 						<div class="detail-heading__actions">
 							<a class="button button--secondary" href={ officialDeputyURL(page.Deputy) } target="_blank" rel="noopener noreferrer">
@@ -437,6 +445,53 @@ func officialDeputyURL(deputy DeputyDetailData) string {
 		return "https://www.assemblee-nationale.fr/dyn/deputes"
 	}
 	return "https://www.assemblee-nationale.fr/dyn/deputes/" + deputy.UID
+}
+
+func deputyCurrentGroup(mandats []DeputyMandat) DeputyMandatOrgane {
+	for _, mandat := range mandats {
+		for _, organe := range mandat.Organes {
+			if strings.EqualFold(organe.CodeType, "GP") {
+				return organe
+			}
+		}
+	}
+	return DeputyMandatOrgane{}
+}
+
+func groupLogoURL(group DeputyMandatOrgane) string {
+	slug := groupLogoSlug(group)
+	if slug == "" {
+		return ""
+	}
+	return "/assets/img/groups/" + slug + ".png"
+}
+
+func groupLogoSlug(group DeputyMandatOrgane) string {
+	candidates := []string{group.LibelleAbrev, group.LibelleAbrege, group.UID, group.Libelle}
+	logos := map[string]string{
+		"DEM":     "Dem",
+		"DR":      "DR",
+		"ECOS":    "EcoS",
+		"EPR":     "EPR",
+		"GDR":     "GDR",
+		"HOR":     "HOR",
+		"LFI-NFP": "LFI-NFP",
+		"LIOT":    "LIOT",
+		"RN":      "RN",
+		"SOC":     "SOC",
+		"UDR":     "UDR",
+	}
+	for _, candidate := range candidates {
+		key := strings.ToUpper(strings.TrimSpace(candidate))
+		if slug, ok := logos[key]; ok {
+			return slug
+		}
+	}
+	return ""
+}
+
+func deputyGroupLabel(group DeputyMandatOrgane) string {
+	return fallbackText(firstNonEmpty(group.Libelle, group.LibelleAbrege, group.LibelleAbrev, group.UID))
 }
 
 func deputyPhotoURL(page DeputyDetailPage) string {
