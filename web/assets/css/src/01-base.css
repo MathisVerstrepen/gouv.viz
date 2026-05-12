@@ -1,0 +1,97 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	min-height: 100vh;
+	margin: 0;
+	font-size: var(--text-md);
+	line-height: var(--line-height-body);
+	background: var(--color-page);
+	color: var(--color-text);
+}
+
+body,
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}
+
+img,
+svg {
+	display: block;
+	max-width: 100%;
+}
+
+a {
+	color: var(--color-link);
+	text-underline-offset: 0.18em;
+	text-decoration-thickness: 0.08em;
+}
+
+a:hover {
+	color: var(--text-action-high-blue-france-hover);
+}
+
+:focus-visible {
+	outline: 3px solid var(--color-focus);
+	outline-offset: 3px;
+}
+
+::selection {
+	background: var(--background-active-blue-france);
+	color: var(--text-inverted-blue-france);
+}
+
+h1,
+h2,
+h3,
+p {
+	margin-block-start: 0;
+}
+
+h1,
+h2,
+h3 {
+	color: var(--color-heading);
+	font-weight: var(--font-weight-bold);
+	line-height: var(--line-height-title);
+}
+
+h1 {
+	max-width: 11ch;
+	margin-block-end: var(--space-6v);
+	font-size: var(--title-lg);
+	letter-spacing: -0.03em;
+}
+
+h2 {
+	margin-block-end: var(--space-4v);
+	font-size: var(--title-md);
+}
+
+h3 {
+	margin-block-end: var(--space-3v);
+	font-size: var(--title-xs);
+}
+
+p {
+	margin-block-end: var(--space-4v);
+}
+
+code {
+	padding: 0.1em 0.25em;
+	border-radius: var(--radius-sm);
+	background: var(--background-contrast-grey);
+	color: var(--text-title-grey);
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.95em;
+}

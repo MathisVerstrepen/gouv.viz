@@ -1,0 +1,184 @@
+:root {
+	color-scheme: light;
+	font-family: var(--font-family-sans);
+	background: var(--background-default-grey);
+	color: var(--text-default-grey);
+
+	/* DSFR fundamentals: fonts */
+	--font-family-sans: "Marianne", Arial, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-family-serif: "Spectral", Georgia, serif;
+	--font-weight-regular: 400;
+	--font-weight-bold: 700;
+	--font-weight-heavy: 900;
+
+	/* DSFR fundamentals: base colors and decision tokens */
+	--blue-france-sun-113-625: #000091;
+	--blue-france-main-525: #6a6af4;
+	--blue-france-975-75: #f5f5fe;
+	--blue-france-950-100: #ececfe;
+	--red-marianne-main-472: #e1000f;
+	--red-marianne-425-625: #c9191e;
+	--red-marianne-975-75: #fff4f4;
+	--grey-1000-50: #ffffff;
+	--grey-975-75: #f6f6f6;
+	--grey-950-100: #eeeeee;
+	--grey-925-125: #e5e5e5;
+	--grey-625-425: #666666;
+	--grey-425-625: #929292;
+	--grey-50-1000: #161616;
+
+	--background-default-grey: var(--grey-1000-50);
+	--background-alt-grey: var(--grey-975-75);
+	--background-contrast-grey: var(--grey-950-100);
+	--background-alt-blue-france: var(--blue-france-975-75);
+	--background-alt-red-marianne: var(--red-marianne-975-75);
+	--background-action-high-blue-france: var(--blue-france-sun-113-625);
+	--background-action-high-blue-france-hover: #1212ff;
+	--background-action-high-blue-france-active: #2323ff;
+	--background-active-blue-france: var(--blue-france-sun-113-625);
+	--background-flat-info: #0063cb;
+	--background-flat-success: #18753c;
+	--background-flat-warning: #b34000;
+	--background-flat-error: #ce0500;
+	--background-vote-pour: #18753c;
+	--background-vote-contre: #ce0500;
+	--background-vote-abstention: #e9a512;
+	--background-vote-non-votant: #929292;
+	--background-result-adopte: var(--background-flat-success);
+	--background-result-rejete: var(--background-flat-error);
+	--text-inverted-result: #ffffff;
+
+	--text-title-grey: var(--grey-50-1000);
+	--text-default-grey: #3a3a3a;
+	--text-mention-grey: var(--grey-625-425);
+	--text-label-grey: var(--grey-50-1000);
+	--text-action-high-blue-france: var(--blue-france-sun-113-625);
+	--text-action-high-blue-france-hover: #1212ff;
+	--text-inverted-grey: var(--grey-1000-50);
+	--text-inverted-blue-france: var(--blue-france-975-75);
+	--text-default-info: #0063cb;
+	--text-default-success: #18753c;
+	--text-default-warning: #b34000;
+	--text-default-error: #ce0500;
+
+	--border-default-grey: #dddddd;
+	--border-plain-grey: var(--grey-425-625);
+	--border-action-high-blue-france: var(--blue-france-sun-113-625);
+	--border-default-blue-france: #cacafb;
+	--border-default-red-marianne: #fcbfbf;
+
+	/* Project aliases for future components */
+	--color-page: var(--background-default-grey);
+	--color-surface: var(--background-default-grey);
+	--color-surface-alt: var(--background-alt-grey);
+	--color-surface-accent: var(--background-alt-blue-france);
+	--color-text: var(--text-default-grey);
+	--color-heading: var(--text-title-grey);
+	--color-muted: var(--text-mention-grey);
+	--color-link: var(--text-action-high-blue-france);
+	--color-border: var(--border-default-grey);
+	--color-focus: var(--blue-france-main-525);
+
+	/* DSFR spacing rhythm: v = 0.25rem step */
+	--space-0: 0;
+	--space-1v: 0.25rem;
+	--space-2v: 0.5rem;
+	--space-3v: 0.75rem;
+	--space-4v: 1rem;
+	--space-5v: 1.25rem;
+	--space-6v: 1.5rem;
+	--space-8v: 2rem;
+	--space-10v: 2.5rem;
+	--space-12v: 3rem;
+	--space-16v: 4rem;
+	--space-20v: 5rem;
+	--space-24v: 6rem;
+	--space-1w: var(--space-1v);
+	--space-2w: var(--space-2v);
+	--space-3w: var(--space-3v);
+	--space-4w: var(--space-4v);
+	--space-6w: var(--space-6v);
+	--space-8w: var(--space-8v);
+
+	/* Typography scale */
+	--text-xs: 0.75rem;
+	--text-sm: 0.875rem;
+	--text-md: 1rem;
+	--text-lg: 1.125rem;
+	--text-xl: 1.25rem;
+	--title-xs: clamp(1.125rem, 1rem + 0.4vw, 1.375rem);
+	--title-sm: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem);
+	--title-md: clamp(1.75rem, 1.45rem + 1.3vw, 2.5rem);
+	--title-lg: clamp(2.25rem, 1.7rem + 2.8vw, 4.5rem);
+	--line-height-tight: 1.15;
+	--line-height-title: 1.25;
+	--line-height-body: 1.6;
+	--measure-content: 45rem;
+	--measure-wide: 62rem;
+
+	/* Layout */
+	--container-width: 78rem;
+	--container-gutter: var(--space-4v);
+	--breakpoint-sm: 36em;
+	--breakpoint-md: 48em;
+	--breakpoint-lg: 62em;
+	--breakpoint-xl: 78em;
+	--radius-sm: 0.25rem;
+	--radius-md: 0.5rem;
+	--shadow-raised: 0 1rem 2.5rem rgb(0 0 145 / 0.1);
+	--transition-fast: 160ms ease;
+}
+
+:root[data-fr-scheme="dark"],
+:root[data-fr-theme="dark"] {
+	color-scheme: dark;
+	--grey-1000-50: #161616;
+	--grey-975-75: #1e1e1e;
+	--grey-950-100: #242424;
+	--grey-925-125: #2a2a2a;
+	--grey-625-425: #929292;
+	--grey-425-625: #cecece;
+	--grey-50-1000: #ffffff;
+	--blue-france-sun-113-625: #8585f6;
+	--blue-france-main-525: #6a6af4;
+	--blue-france-975-75: #1b1b35;
+	--blue-france-950-100: #21213f;
+	--red-marianne-975-75: #2b1919;
+	--background-action-high-blue-france-hover: #b1b1f9;
+	--background-action-high-blue-france-active: #c6c6fb;
+	--text-action-high-blue-france-hover: #b1b1f9;
+	--text-default-grey: #cecece;
+	--text-inverted-grey: #161616;
+	--text-inverted-blue-france: #000091;
+	--border-default-grey: #3a3a3a;
+	--border-default-blue-france: #272747;
+	--border-default-red-marianne: #3b2424;
+	--shadow-raised: 0 1rem 2.5rem rgb(0 0 0 / 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root[data-fr-scheme="system"] {
+		color-scheme: dark;
+		--grey-1000-50: #161616;
+		--grey-975-75: #1e1e1e;
+		--grey-950-100: #242424;
+		--grey-925-125: #2a2a2a;
+		--grey-625-425: #929292;
+		--grey-425-625: #cecece;
+		--grey-50-1000: #ffffff;
+		--blue-france-sun-113-625: #8585f6;
+		--blue-france-975-75: #1b1b35;
+		--blue-france-950-100: #21213f;
+		--red-marianne-975-75: #2b1919;
+		--background-action-high-blue-france-hover: #b1b1f9;
+		--background-action-high-blue-france-active: #c6c6fb;
+		--text-action-high-blue-france-hover: #b1b1f9;
+		--text-default-grey: #cecece;
+		--text-inverted-grey: #161616;
+		--text-inverted-blue-france: #000091;
+		--border-default-grey: #3a3a3a;
+		--border-default-blue-france: #272747;
+		--border-default-red-marianne: #3b2424;
+		--shadow-raised: 0 1rem 2.5rem rgb(0 0 0 / 0.28);
+	}
+}

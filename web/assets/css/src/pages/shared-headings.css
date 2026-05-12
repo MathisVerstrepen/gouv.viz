@@ -1,0 +1,118 @@
+.section {
+	padding-block: var(--space-12v);
+}
+
+.section--muted {
+	border-block: 1px solid var(--color-border);
+	background: var(--background-alt-grey);
+}
+
+.section-heading {
+	max-width: var(--measure-content);
+	margin-block-end: var(--space-8v);
+}
+
+.page-heading {
+	background: var(--background-default-grey);
+}
+
+.detail-heading {
+	padding-block: var(--space-8v);
+}
+
+.page-heading h1 {
+	max-width: var(--measure-wide);
+}
+
+.detail-heading h1 {
+	max-width: var(--measure-wide);
+	margin-block-end: 0;
+}
+
+.detail-heading .eyebrow {
+	margin-block-end: var(--space-2v);
+}
+
+.detail-heading .lead {
+	margin-block-start: var(--space-3v);
+}
+
+.detail-heading__title-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-4v);
+	align-items: flex-start;
+	justify-content: space-between;
+}
+
+.deputy-heading__identity {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4v);
+	min-width: 0;
+}
+
+.deputy-heading__group-logo {
+	flex: 0 0 auto;
+	inline-size: clamp(4rem, 14vw, 6rem);
+	block-size: clamp(4rem, 14vw, 6rem);
+	padding: var(--space-2v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+	object-fit: contain;
+}
+
+.deputy-heading__group-link {
+	display: inline-flex;
+	flex: 0 0 auto;
+}
+
+.deputy-heading__group-link:hover .deputy-heading__group-logo {
+	border-color: var(--border-action-high-blue-france);
+}
+
+.political-group-heading__logo {
+	flex: 0 0 auto;
+	inline-size: clamp(5rem, 16vw, 7rem);
+	block-size: clamp(5rem, 16vw, 7rem);
+	padding: var(--space-2v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+	object-fit: contain;
+}
+
+.breadcrumb {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2v);
+	margin-block-end: var(--space-4v);
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.breadcrumb a {
+	font-weight: var(--font-weight-bold);
+}
+
+.detail-heading__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2v);
+	margin-block-start: var(--space-4v);
+}
+
+.detail-heading__meta span:not(.result-chip) {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.75rem;
+	padding-inline: var(--space-2v);
+	background: var(--background-alt-grey);
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.detail-heading__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3v);
+}

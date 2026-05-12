@@ -8,6 +8,7 @@
 - templ is less common than standard Go templates; if unsure about syntax or codegen, check https://templ.guide/ before guessing.
 - The website entrypoint is `cmd/web/main.go`; the preprocessing entrypoint is `cmd/preprocess/main.go`.
 - Static files live under `web/assets/`; Echo serves them at `/assets` using `ASSETS_PATH`.
+- CSS source modules live under `web/assets/css/src/`; the served stylesheet is the generated bundle `web/assets/css/main.css`.
 - Local raw JSON belongs in `data/raw/scrutins-publics/`; generated preprocessing output belongs in `data/processed/`; both are ignored except `.gitkeep`.
 - Only small committed samples should go in `data/fixtures/`.
 
@@ -26,13 +27,14 @@
 ## Commands
 
 - Generate templ code after editing `.templ` files: `templ generate -path ./web/components`.
+- Rebuild the generated CSS bundle after editing `web/assets/css/src/`: `make css` or `./scripts/build-css.sh`.
 - Build the web binary: `make build` or `go build ./cmd/web`.
 - Run the web app locally: `make run` or `go run ./cmd/web`.
 - Run the preprocessing stub: `make preprocess` or `go run ./cmd/preprocess`.
 - Run all Go tests: `make test` or `go test ./...`.
 - Tidy dependencies: `go mod tidy`.
-- Focused verification for most changes: `make verify`, which runs templ generation, `gofmt`, `go mod tidy`, `go test ./...`, `go vet ./...`, and `go build ./...`.
-- `make dev` requires Air and uses `.air.toml`; it regenerates templ and builds `./cmd/web` on changes.
+- Focused verification for most changes: `make verify`, which rebuilds CSS, runs templ generation, `gofmt`, `go mod tidy`, `go test ./...`, `go vet ./...`, and `go build ./...`.
+- `make dev` requires Air and uses `.air.toml`; it rebuilds CSS, regenerates templ, and builds `./cmd/web` on changes.
 
 ## Testing Guidelines
 
@@ -56,10 +58,13 @@
 ## Design Guidelines
 
 - Follow the French government design system fundamentals (DSFR) for visual decisions: neutral surfaces, Bleu France for primary actions, Rouge Marianne only for identity/accent use, and functional colors only for status meanings.
-- Keep design tokens centralized in `web/assets/css/main.css`; add new colors, spacing, type sizes, borders, shadows, and breakpoints as CSS variables before using them in components.
+- Keep design tokens centralized in `web/assets/css/src/00-tokens.css`; add new colors, spacing, type sizes, borders, shadows, and breakpoints as CSS variables before using them in components.
+- Edit CSS in `web/assets/css/src/`, not in `web/assets/css/main.css`; `main.css` is a generated concatenated bundle served to browsers to avoid one network request per CSS module.
+- Keep `web/assets/css/main.css` as the only stylesheet linked from templ layouts unless there is a deliberate runtime-loading reason to add another stylesheet.
+- When adding CSS modules, update `scripts/build-css.sh` so the generated bundle preserves the intended cascade order; avoid browser-level `@import` in `main.css` because it creates separate network requests.
 - Prefer DSFR-style decision token names when practical, such as `--background-*`, `--text-*`, and `--border-*`, with project aliases like `--color-*` for local readability.
 - Preserve the static-first approach: use semantic HTML in `.templ` files and avoid JavaScript for layout or visual behavior unless it is required for interaction.
-- Respect the app Content Security Policy: do not add inline `style` attributes, inline event handlers, `javascript:` URLs, or inline scripts for rendered UI. Put styling in `web/assets/css/main.css` and use server-rendered classes/data structure instead of dynamic inline CSS, including for charts and visualization bars.
+- Respect the app Content Security Policy: do not add inline `style` attributes, inline event handlers, `javascript:` URLs, or inline scripts for rendered UI. Put styling in `web/assets/css/src/` and use server-rendered classes/data structure instead of dynamic inline CSS, including for charts and visualization bars.
 - Design mobile-first and keep layouts responsive with the existing container, grid, spacing, and utility classes before adding new one-off classes.
 - Maintain accessible defaults: visible focus states, sufficient contrast, text alternatives for visual status, skip-link support, and `forced-colors: active` handling for custom interactive or bordered components.
 - Do not import the full DSFR package unless explicitly requested; this project currently mirrors DSFR fundamentals with local CSS rather than depending on DSFR assets.
@@ -70,4 +75,5 @@
 
 - Do not edit generated `*_templ.go` files directly; edit `.templ` files and regenerate.
 - Keep generated `web/components/*_templ.go` in sync with `.templ` sources because the app imports the generated Go package.
+- Do not edit generated `web/assets/css/main.css` directly; edit `web/assets/css/src/` files and run `make css`. Air intentionally excludes `main.css` from watching to avoid rebuild loops while still watching CSS source modules.
 - Do not commit large raw Assemblee nationale JSON or processed datasets; `.gitignore` is set up to keep those local.

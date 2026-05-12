@@ -1,0 +1,45 @@
+@media (forced-colors: active) {
+	:focus-visible {
+		outline: 3px solid Highlight;
+	}
+
+	.button,
+	.brand-block,
+	.card,
+	.data-table th,
+	.data-table td,
+	.deputy-heading__group-link,
+	.deputy-heading__group-logo,
+	.political-group-heading__logo,
+	.detail-card,
+	.detail-metrics div,
+	.detail-list div,
+	.deputy-mandat-card,
+	.empty-state,
+	.deputy-card,
+	.deputy-card__group-link,
+	.deputy-card__group-logo,
+	.deputy-card__photo,
+	.deputy-card__stats div,
+	.political-group-member-card,
+	.political-group-member-card__photo,
+	.political-group-member-card__photo-link,
+	.group-vote-chart__bar,
+	.group-deviation-chart__track,
+	.hero__panel,
+	.metric-card,
+	.pagination,
+	.pagination__link,
+	.scrutin-toolbar,
+	.scrutin-card,
+	.sort-link,
+	.sort-panel,
+	.theme-toggle,
+	.vote-position,
+	.vote-breakdown__bar,
+	.vote-breakdown__legend li,
+	.vote-counts div {
+		border: 1px solid CanvasText;
+		box-shadow: none;
+	}
+}

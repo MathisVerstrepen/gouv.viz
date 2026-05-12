@@ -1,0 +1,54 @@
+.pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3v);
+	margin-block-start: var(--space-6v);
+	padding: var(--space-4v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+}
+
+.pagination__pages {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--space-2v);
+}
+
+.pagination__link,
+.pagination__ellipsis {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.5rem;
+	min-height: 2.5rem;
+	padding: var(--space-2v) var(--space-3v);
+	font-size: var(--text-sm);
+	font-weight: var(--font-weight-bold);
+	line-height: 1.2;
+}
+
+.pagination__link {
+	border: 1px solid var(--border-default-blue-france);
+	background: var(--background-default-grey);
+	color: var(--text-action-high-blue-france);
+	text-decoration: none;
+}
+
+.pagination__link:hover,
+.pagination__link--current {
+	border-color: var(--border-action-high-blue-france);
+	background: var(--background-alt-blue-france);
+	color: var(--text-action-high-blue-france-hover);
+}
+
+.pagination__link--disabled {
+	border-color: var(--border-default-grey);
+	color: var(--text-mention-grey);
+}
+
+.pagination__ellipsis {
+	color: var(--text-mention-grey);
+}

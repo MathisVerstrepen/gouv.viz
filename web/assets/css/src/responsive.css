@@ -1,0 +1,123 @@
+@media (min-width: 48em) {
+	:root {
+		--container-gutter: var(--space-8v);
+	}
+
+	.fr-grid--2 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.fr-grid--3,
+	.card-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.hero__grid {
+		grid-template-columns: minmax(0, 1.3fr) minmax(20rem, 0.7fr);
+	}
+
+	.scrutin-card {
+		grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.35fr);
+	}
+
+	.deputy-card {
+		grid-template-columns: auto minmax(0, 1fr) minmax(14rem, 0.3fr);
+		align-items: center;
+	}
+
+	.political-group-member-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.scrutin-filters {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.scrutin-card__meta,
+	.scrutin-card__body {
+		grid-column: 1;
+	}
+
+	.scrutin-card__result {
+		grid-column: 2;
+		grid-row: 1 / span 2;
+		align-self: start;
+	}
+
+	.deputy-card__stats {
+		align-self: start;
+	}
+
+	.detail-layout {
+		grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.35fr);
+		align-items: start;
+	}
+
+	.detail-metrics {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 35.99em) {
+	.site-header__inner,
+	.site-footer__inner,
+	.hero__actions {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.site-nav {
+		margin-inline-start: 0;
+	}
+
+	.theme-toggle {
+		width: 100%;
+	}
+
+	.button {
+		width: 100%;
+	}
+
+	.scrutin-toolbar__actions,
+	.sort-panel__links,
+	.pagination,
+	.pagination__pages {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.sort-link,
+	.pagination__link,
+	.pagination__ellipsis {
+		width: 100%;
+	}
+
+	.vote-counts {
+		grid-template-columns: 1fr;
+	}
+
+	.metric-list {
+		grid-template-columns: 1fr;
+	}
+
+	.detail-metrics {
+		grid-template-columns: 1fr;
+	}
+
+	.group-deviation-chart__row {
+		grid-template-columns: 1fr;
+		gap: var(--space-2v);
+	}
+
+	.group-deviation-chart__value {
+		text-align: left;
+	}
+
+	.group-deviation-chart__axis {
+		padding-inline-start: 0;
+	}
+
+	.vote-breakdown__legend {
+		grid-template-columns: 1fr;
+	}
+}

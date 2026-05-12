@@ -1,9 +1,12 @@
-.PHONY: dev generate build run preprocess tidy test verify
+.PHONY: dev css generate build run preprocess tidy test verify
 
 dev:
 	air
 
-generate:
+css:
+	./scripts/build-css.sh
+
+generate: css
 	templ generate -path ./web/components
 
 build: generate

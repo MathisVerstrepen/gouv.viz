@@ -1,0 +1,272 @@
+.scrutin-list {
+	display: grid;
+	gap: var(--space-4v);
+}
+
+.deputy-list {
+	display: grid;
+	gap: var(--space-4v);
+}
+
+.scrutin-card {
+	position: relative;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-4v);
+	padding: var(--space-5v);
+	border: 1px solid var(--border-default-grey);
+	border-left: 4px solid var(--border-action-high-blue-france);
+	background: var(--background-default-grey);
+}
+
+.scrutin-card:hover {
+	border-left-color: var(--background-action-high-blue-france-hover);
+}
+
+.scrutin-card__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2v);
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.scrutin-card__meta span {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.75rem;
+	padding-inline: var(--space-2v);
+	background: var(--background-alt-grey);
+}
+
+.scrutin-card__body h2,
+.scrutin-card__body h3 {
+	max-width: var(--measure-wide);
+	font-size: var(--title-xs);
+}
+
+.scrutin-card__body p {
+	margin-block-end: 0;
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.scrutin-card__title-link {
+	color: var(--text-title-grey);
+	text-decoration-color: transparent;
+}
+
+.scrutin-card__title-link::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+
+.scrutin-card__title-link:hover {
+	color: var(--text-action-high-blue-france-hover);
+	text-decoration-color: currentColor;
+}
+
+.scrutin-card__result {
+	display: grid;
+	gap: var(--space-3v);
+}
+
+.deputy-card {
+	position: relative;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-4v);
+	padding: var(--space-5v);
+	border: 1px solid var(--border-default-grey);
+	border-left: 4px solid var(--border-action-high-blue-france);
+	background: var(--background-default-grey);
+}
+
+.deputy-card:hover {
+	border-left-color: var(--background-action-high-blue-france-hover);
+}
+
+.deputy-card__media {
+	position: relative;
+	width: fit-content;
+}
+
+.deputy-card__photo {
+	display: block;
+	width: 5.5rem;
+	height: 5.5rem;
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-alt-grey);
+	object-fit: cover;
+}
+
+.deputy-card__group-link {
+	position: absolute;
+	right: calc(var(--space-2v) * -1);
+	bottom: calc(var(--space-2v) * -1);
+	width: 2.5rem;
+	height: 2.5rem;
+	z-index: 2;
+	background: var(--background-default-grey);
+	text-decoration: none;
+}
+
+.deputy-card__group-logo {
+	display: block;
+	width: 100%;
+	height: 100%;
+	padding: var(--space-1v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+	object-fit: contain;
+}
+
+.deputy-card__group-link:hover .deputy-card__group-logo {
+	border-color: var(--border-action-high-blue-france);
+}
+
+.deputy-card__body {
+	display: grid;
+	gap: var(--space-2v);
+}
+
+.deputy-card__body h2,
+.deputy-card__body p {
+	margin-block-end: 0;
+}
+
+.deputy-card__body h2 {
+	font-size: var(--title-xs);
+}
+
+.deputy-card__body p:not(.eyebrow) {
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.deputy-card__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2v);
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.deputy-card__meta span {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.75rem;
+	padding-inline: var(--space-2v);
+	background: var(--background-alt-grey);
+}
+
+.deputy-card__stats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--space-2v);
+	margin-block-end: 0;
+}
+
+.deputy-card__stats div {
+	padding: var(--space-3v);
+	background: var(--background-alt-grey);
+}
+
+.deputy-card__stats dt {
+	color: var(--text-mention-grey);
+	font-size: var(--text-xs);
+	text-transform: uppercase;
+}
+
+.deputy-card__stats dd {
+	margin-inline-start: 0;
+	color: var(--text-title-grey);
+	font-size: var(--text-md);
+	font-weight: var(--font-weight-bold);
+}
+
+.political-group-member-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--space-3v);
+}
+
+.political-group-member-disclosure {
+	margin-block-start: var(--space-4v);
+}
+
+.political-group-member-disclosure summary {
+	width: fit-content;
+	cursor: pointer;
+	color: var(--text-action-high-blue-france);
+	font-weight: var(--font-weight-bold);
+}
+
+.political-group-member-disclosure summary:hover {
+	text-decoration: underline;
+}
+
+.political-group-member-disclosure .political-group-member-grid {
+	margin-block-start: var(--space-4v);
+}
+
+.political-group-member-card {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--space-3v);
+	align-items: center;
+	padding: var(--space-3v);
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-alt-grey);
+}
+
+.political-group-member-card__photo-link {
+	display: block;
+	border: 1px solid transparent;
+	line-height: 0;
+}
+
+.political-group-member-card__photo-link:hover {
+	border-color: var(--border-action-high-blue-france);
+}
+
+.political-group-member-card__photo {
+	display: grid;
+	width: 4.5rem;
+	height: 4.5rem;
+	place-items: center;
+	border: 1px solid var(--border-default-grey);
+	background: var(--background-default-grey);
+	color: var(--text-title-grey);
+	font-weight: var(--font-weight-bold);
+	object-fit: cover;
+}
+
+.political-group-member-card__photo--placeholder {
+	font-size: var(--text-lg);
+}
+
+.political-group-member-card__body {
+	display: grid;
+	gap: var(--space-1v);
+}
+
+.political-group-member-card__body h3,
+.political-group-member-card__body p {
+	margin-block-end: 0;
+}
+
+.political-group-member-card__body h3 {
+	font-size: var(--text-md);
+}
+
+.political-group-member-card__body p {
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.political-group-stats-table,
+.political-group-votes-table {
+	margin-block-start: var(--space-4v);
+}

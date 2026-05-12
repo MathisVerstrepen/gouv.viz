@@ -1,3 +1,6 @@
+/* Generated from web/assets/css/src by scripts/build-css.sh. Do not edit directly. */
+
+/* 00-tokens.css */
 :root {
 	color-scheme: light;
 	font-family: var(--font-family-sans);
@@ -183,6 +186,7 @@
 	}
 }
 
+/* 01-base.css */
 *,
 *::before,
 *::after {
@@ -281,6 +285,7 @@ code {
 	font-size: 0.95em;
 }
 
+/* 02-layout.css */
 .skip-link {
 	position: fixed;
 	inset-block-start: var(--space-4v);
@@ -325,6 +330,7 @@ code {
 	border: 0;
 }
 
+/* 03-utilities.css */
 .fr-text--xs { font-size: var(--text-xs); }
 .fr-text--sm { font-size: var(--text-sm); }
 .fr-text--md { font-size: var(--text-md); }
@@ -354,6 +360,7 @@ code {
 .fr-py-6v { padding-block: var(--space-6v); }
 .fr-py-8v { padding-block: var(--space-8v); }
 
+/* components/shell-header.css */
 .page-shell {
 	min-height: 100vh;
 	display: flex;
@@ -492,6 +499,7 @@ code {
 	background: transparent;
 }
 
+/* pages/shared-headings.css */
 .section {
 	padding-block: var(--space-12v);
 }
@@ -611,6 +619,7 @@ code {
 	gap: var(--space-3v);
 }
 
+/* pages/home.css */
 .hero {
 	position: relative;
 	overflow: clip;
@@ -760,6 +769,7 @@ code {
 	background: var(--background-default-grey);
 }
 
+/* components/forms-filters.css */
 .scrutin-toolbar {
 	display: grid;
 	grid-template-columns: 1fr;
@@ -877,6 +887,7 @@ code {
 	background: var(--background-default-grey);
 }
 
+/* components/list-cards.css */
 .scrutin-list {
 	display: grid;
 	gap: var(--space-4v);
@@ -1150,6 +1161,7 @@ code {
 	margin-block-start: var(--space-4v);
 }
 
+/* components/chips-votes.css */
 .result-chip {
 	display: flex;
     align-items: center;
@@ -1228,6 +1240,8 @@ code {
 	min-height: 0.5rem;
 }
 
+
+/* components/pagination.css */
 .pagination {
 	display: flex;
 	flex-wrap: wrap;
@@ -1283,6 +1297,7 @@ code {
 	color: var(--text-mention-grey);
 }
 
+/* pages/detail.css */
 .detail-layout {
 	display: grid;
 	grid-template-columns: 1fr;
@@ -1429,6 +1444,7 @@ code {
 	font-size: var(--text-sm);
 }
 
+/* visualizations/vote-breakdowns.css */
 .vote-breakdown__bar {
 	position: relative;
 	display: grid;
@@ -1515,6 +1531,7 @@ code {
 	height: 0.75rem;
 }
 
+/* visualizations/group-vote-chart.css */
 .group-vote-chart {
 	display: grid;
 	gap: var(--space-4v);
@@ -1631,6 +1648,7 @@ code {
 	white-space: nowrap;
 }
 
+/* visualizations/group-deviation-chart.css */
 .group-deviation-chart {
 	display: grid;
 	gap: var(--space-3v);
@@ -1764,6 +1782,7 @@ code {
 	margin-block-start: var(--space-4v);
 }
 
+/* components/individual-votes.css */
 .individual-votes-details {
 	margin-block-start: var(--space-4v);
 }
@@ -1817,6 +1836,7 @@ code {
 	width: fit-content;
 }
 
+/* pages/deputy-detail.css */
 .deputy-stats-table {
 	margin-block-start: var(--space-5v);
 }
@@ -1963,6 +1983,8 @@ code {
 	color: var(--text-title-grey);
 }
 
+
+/* components/tables.css */
 .table-scroll {
 	overflow-x: auto;
 	border: 1px solid var(--border-default-grey);
@@ -2008,6 +2030,7 @@ code {
 	border-bottom: 0;
 }
 
+/* components/footer.css */
 .card p:last-child,
 .hero__panel p:last-child,
 .section-heading p:last-child,
@@ -2038,6 +2061,7 @@ code {
 	font-weight: var(--font-weight-bold);
 }
 
+/* responsive.css */
 @media (min-width: 48em) {
 	:root {
 		--container-gutter: var(--space-8v);
@@ -2162,6 +2186,7 @@ code {
 	}
 }
 
+/* forced-colors.css */
 @media (forced-colors: active) {
 	:focus-visible {
 		outline: 3px solid Highlight;
@@ -2207,3 +2232,4 @@ code {
 		box-shadow: none;
 	}
 }
+
