@@ -4,14 +4,13 @@ import (
 	"database/sql"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	_ "modernc.org/sqlite"
 
 	"gouv.viz/internal/store"
+	"gouv.viz/internal/testdb"
 )
 
 func TestParseScrutinsQueryParsesSearchSortAndPage(t *testing.T) {
@@ -143,15 +142,7 @@ func TestHTTPErrorHandlerRendersCustomPage(t *testing.T) {
 func newHandlerTestDB(t *testing.T, withScrutin bool) *sql.DB {
 	t.Helper()
 
-	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "handlers.sqlite"))
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	t.Cleanup(func() { _ = db.Close() })
-
-	if _, err := db.Exec(handlerTestSchema); err != nil {
-		t.Fatalf("create test schema: %v", err)
-	}
+	db := testdb.Open(t, "handlers.sqlite")
 	if _, err := db.Exec(`INSERT INTO organes (uid, libelle, libelle_abrege, preseance) VALUES ('ORG1', 'Commission fixture', 'CF', 1)`); err != nil {
 		t.Fatalf("insert organe: %v", err)
 	}
@@ -178,71 +169,3 @@ INSERT INTO scrutins (
 
 	return db
 }
-
-const handlerTestSchema = `
-CREATE TABLE organes (
-  uid TEXT PRIMARY KEY,
-  libelle TEXT,
-  libelle_abrege TEXT,
-  preseance INTEGER
-);
-
-CREATE TABLE scrutins (
-  uid TEXT PRIMARY KEY,
-  numero INTEGER NOT NULL,
-  legislature INTEGER NOT NULL,
-  organe_uid TEXT,
-  session_ref TEXT,
-  seance_ref TEXT,
-  date_scrutin TEXT NOT NULL,
-  quantieme_jour_seance INTEGER,
-  code_type_vote TEXT,
-  libelle_type_vote TEXT,
-  type_majorite TEXT,
-  sort_code TEXT,
-  sort_libelle TEXT,
-  titre TEXT,
-  linked_text_num TEXT,
-  linked_text_kind TEXT,
-  linked_text_url TEXT,
-  linked_text_pdf_url TEXT,
-  linked_dossier_ref TEXT,
-  linked_dossier_libelle TEXT,
-  linked_amendement_num TEXT,
-  linked_amendement_text_num TEXT,
-  linked_amendement_organe TEXT,
-  linked_amendement_url TEXT,
-  linked_reference_source TEXT,
-  demandeur_texte TEXT,
-  objet_libelle TEXT,
-  mode_publication_votes TEXT,
-  nombre_votants INTEGER,
-  suffrages_exprimes INTEGER,
-  suffrages_requis INTEGER,
-  non_votants INTEGER,
-  pour INTEGER,
-  contre INTEGER,
-  abstentions INTEGER,
-  non_votants_volontaires INTEGER,
-  source_file TEXT
-);
-
-CREATE TABLE scrutin_groupe_votes (
-  scrutin_uid TEXT NOT NULL,
-  groupe_uid TEXT NOT NULL,
-  nombre_membres_groupe INTEGER,
-  position_majoritaire TEXT,
-  non_votants INTEGER,
-  pour INTEGER,
-  contre INTEGER,
-  abstentions INTEGER,
-  non_votants_volontaires INTEGER,
-  PRIMARY KEY (scrutin_uid, groupe_uid)
-);
-
-CREATE VIRTUAL TABLE scrutin_search USING fts5(
-  uid UNINDEXED,
-  document,
-  tokenize = 'unicode61 remove_diacritics 2'
-);
-`
