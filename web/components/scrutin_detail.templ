@@ -101,7 +101,7 @@ templ ScrutinDetail(page ScrutinDetailPage) {
 						<span>n° { strconv.Itoa(page.Scrutin.Numero) }</span>
 					</nav>
 					<div class="detail-heading__title-row">
-						<h1>Scrutin n° { strconv.Itoa(page.Scrutin.Numero) }</h1>
+						<h1>Scrutin n°{ strconv.Itoa(page.Scrutin.Numero) }</h1>
 						if officialScrutinURL(page.Scrutin) != "" {
 							<div class="detail-heading__actions">
 								<a class="button button--secondary" href={ officialScrutinURL(page.Scrutin) } target="_blank" rel="noopener noreferrer">

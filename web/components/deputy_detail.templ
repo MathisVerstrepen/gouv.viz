@@ -354,7 +354,7 @@ templ DeputyVotesTable(votes []DeputyVote) {
 					<tr>
 						<td>{ formatDate(vote.Date) }</td>
 						<th scope="row">
-							<a href={ ScrutinDetailURL(vote.ScrutinUID) }>Scrutin n° { strconv.Itoa(vote.Numero) }</a>
+							<a href={ ScrutinDetailURL(vote.ScrutinUID) }>Scrutin n°{ strconv.Itoa(vote.Numero) }</a>
 							<span class="deputy-votes-table__title">{ capitalizeFirstLetter(vote.Titre) }</span>
 						</th>
 						<td><span class={ individualVotePositionClass(vote.Position) }>{ individualVotePositionLabel(vote.Position) }</span></td>
