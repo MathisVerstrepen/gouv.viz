@@ -41,7 +41,7 @@ templ Scrutins(page ScrutinsPage) {
 					<p class="eyebrow">Exploration</p>
 					<h1>Tous les scrutins publics</h1>
 					<p class="lead">
-						Recherchez dans les titres, objets, demandeurs, resultats et organes, puis parcourez les scrutins avec tri et pagination.
+						Recherchez dans les titres, objets, demandeurs, résultats et organes, puis parcourez les scrutins avec tri et pagination.
 					</p>
 				</div>
 			</section>
@@ -62,7 +62,7 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 		<form class="scrutin-toolbar" method="get" action="/scrutins" role="search" hx-get="/scrutins" hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">
 			<label class="field field--search" for="q">
 				<span>Recherche</span>
-				<input id="q" name="q" type="search" value={ page.Query.Search } placeholder="Ex. budget, motion, rejet, Assemblee"/>
+				<input id="q" name="q" type="search" value={ page.Query.Search } placeholder="Ex. budget, motion, rejet, Assemblée"/>
 			</label>
 			<input type="hidden" name="sort" value={ page.Query.Sort }/>
 			<div class="scrutin-toolbar__actions">
@@ -88,9 +88,9 @@ templ ScrutinsExplorer(page ScrutinsPage) {
 		</div>
 
 		if len(page.Scrutins) == 0 {
-			<p class="empty-state">Aucun scrutin ne correspond aux criteres. Modifiez la recherche ou relancez <code>make preprocess</code> si la base est vide.</p>
+			<p class="empty-state">Aucun scrutin ne correspond aux critères. Modifiez la recherche ou relancez <code>make preprocess</code> si la base est vide.</p>
 		} else {
-			<div class="scrutin-list" aria-label="Liste paginee des scrutins publics">
+			<div class="scrutin-list" aria-label="Liste paginée des scrutins publics">
 				for _, scrutin := range page.Scrutins {
 					@ScrutinCard(scrutin)
 				}
@@ -114,7 +114,7 @@ templ ScrutinCard(scrutin ScrutinListItem) {
 			<h2><a class="scrutin-card__title-link" href={ ScrutinDetailURL(scrutin.UID) }>{ capitalizeFirstLetter(scrutin.Titre) }</a></h2>
 			<p>{ scrutin.TypeVote }</p>
 		</div>
-		<div class="scrutin-card__result" aria-label="Resultat du scrutin">
+		<div class="scrutin-card__result" aria-label="Résultat du scrutin">
 			<span class={ resultChipClass(scrutin.SortCode) }>{ scrutin.SortCode }</span>
 			<dl class="vote-counts">
 				<div class="vote-count--pour">
@@ -142,9 +142,9 @@ templ ScrutinCard(scrutin ScrutinListItem) {
 templ Pagination(page ScrutinsPage) {
 	<nav class="pagination" aria-label="Pagination des scrutins">
 		if page.Query.Page > 1 {
-			<a class="pagination__link" href={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page - 1, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page - 1, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Precedent</a>
+			<a class="pagination__link" href={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page - 1, page.Query.Sort) } hx-get={ scrutinListURL(page.Query, page.DefaultSort, page.Query.Page - 1, page.Query.Sort) } hx-target="#scrutins-explorer" hx-swap="outerHTML" hx-push-url="true">Précédent</a>
 		} else {
-			<span class="pagination__link pagination__link--disabled">Precedent</span>
+			<span class="pagination__link pagination__link--disabled">Précédent</span>
 		}
 
 		<div class="pagination__pages">
@@ -168,7 +168,7 @@ templ Pagination(page ScrutinsPage) {
 }
 
 templ ScrutinVoteDistributionBar(scrutin ScrutinListItem) {
-	<div class="vote-distribution-bar" role="img" aria-label={ voteBreakdownLabel("Repartition des votes", scrutinVoteSegments(scrutin), scrutinListVotersTotal(scrutin)) }>
+	<div class="vote-distribution-bar" role="img" aria-label={ voteBreakdownLabel("Répartition des votes", scrutinVoteSegments(scrutin), scrutinListVotersTotal(scrutin)) }>
 		for _, cell := range voteBreakdownCells(scrutinVoteSegments(scrutin), scrutinListVotersTotal(scrutin)) {
 			<span class={ "vote-cell " + cell.Class } title={ cell.Label }>
 				<span class="fr-sr-only">{ cell.Label }</span>
@@ -224,7 +224,7 @@ func resultChipClass(sortCode string) string {
 
 func resultSummary(page ScrutinsPage) string {
 	if page.TotalResults == 0 {
-		return "0 scrutin trouve."
+		return "0 scrutin trouvé."
 	}
 	return strconv.Itoa(page.StartItem) + "-" + strconv.Itoa(page.EndItem) + " sur " + strconv.Itoa(page.TotalResults) + " scrutins."
 }

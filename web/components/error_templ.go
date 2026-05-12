@@ -84,7 +84,7 @@ func ErrorPage(page ErrorPageData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p><div class=\"hero__actions\" aria-label=\"Actions disponibles\"><a class=\"button\" href=\"/\">Retour a l'accueil</a> <a class=\"button button--secondary\" href=\"/scrutins\">Explorer les scrutins</a></div></div></div></section></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p><div class=\"hero__actions\" aria-label=\"Actions disponibles\"><a class=\"button\" href=\"/\">Retour à l'accueil</a> <a class=\"button button--secondary\" href=\"/scrutins\">Explorer les scrutins</a></div></div></div></section></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

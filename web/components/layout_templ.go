@@ -35,7 +35,7 @@ func layout(content templ.Component, title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"fr\" data-fr-scheme=\"system\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Visualisation des scrutins publics de l'Assemblee nationale\"><meta name=\"htmx-config\" content='{\"includeIndicatorStyles\": false}'><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"fr\" data-fr-scheme=\"system\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Visualisation des scrutins publics de l'Assemblée nationale\"><meta name=\"htmx-config\" content='{\"includeIndicatorStyles\": false}'><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -124,7 +124,7 @@ func SiteHeader(active string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-block\" href=\"/\" aria-label=\"Accueil - gouv.viz\">gouv.viz</a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">Non officiel</p><p class=\"service-title__tagline\">Scrutins publics de l'Assemblee nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-block\" href=\"/\" aria-label=\"Accueil - gouv.viz\">gouv.viz</a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">Non officiel</p><p class=\"service-title__tagline\">Scrutins publics de l'Assemblée nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -197,7 +197,7 @@ func SiteFooter() templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<footer class=\"site-footer\"><div class=\"fr-container site-footer__inner\"><p>gouv.viz</p><p>Made with ❤️ by  <a href=\"https://github.com/MathisVerstrepen\" target=\"_blank\" rel=\"noopener noreferrer\">Mathis Verstrepen</a></p></div></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<footer class=\"site-footer\"><div class=\"fr-container site-footer__inner\"><p>gouv.viz</p><p>Réalisé par  <a href=\"https://github.com/MathisVerstrepen\" target=\"_blank\" rel=\"noopener noreferrer\">Mathis Verstrepen</a></p></div></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

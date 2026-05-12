@@ -99,7 +99,7 @@ func TestDetailHelpers(t *testing.T) {
 	if got := ScrutinDetailURL("VT/1 2"); got != "/scrutins/VT%2F1%202" {
 		t.Fatalf("ScrutinDetailURL() = %q", got)
 	}
-	if got := fallbackText(""); got != "Non renseigne" {
+	if got := fallbackText(""); got != "Non renseigné" {
 		t.Fatalf("fallbackText(empty) = %q", got)
 	}
 	if got := fallbackText("Valeur"); got != "Valeur" {

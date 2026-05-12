@@ -71,7 +71,7 @@ func Home(page HomePage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"hero section\"><div class=\"fr-container hero__grid\"><div class=\"hero__content\"><p class=\"eyebrow\">Donnees publiques</p><h1>Les derniers scrutins publics</h1><p class=\"lead\">Explorez les votes publics de l'Assemblee nationale importes depuis l'open data de l'Assemblée nationale.</p><div class=\"hero__actions\" aria-label=\"Actions principales\"><a class=\"button\" href=\"/scrutins\">Explorer tous les scrutins</a></div></div><aside class=\"hero__panel\" aria-label=\"Etat des donnees\"><h2>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"hero section\"><div class=\"fr-container hero__grid\"><div class=\"hero__content\"><p class=\"eyebrow\">Données publiques</p><h1>Les derniers scrutins publics</h1><p class=\"lead\">Explorez les votes publics de l'Assemblée nationale importés depuis l'open data de l'Assemblée nationale.</p><div class=\"hero__actions\" aria-label=\"Actions principales\"><a class=\"button\" href=\"/scrutins\">Explorer tous les scrutins</a></div></div><aside class=\"hero__panel\" aria-label=\"État des données\"><h2>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -84,14 +84,14 @@ func Home(page HomePage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " scrutins indexés</h2><p>Periode couverte : ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " scrutins indexés</h2><p>Période couverte : ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.FirstScrutinDate))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 58, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 58, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -104,18 +104,18 @@ func Home(page HomePage) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(formatDate(page.LastScrutinDate))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 58, Col: 100}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 58, Col: 101}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, ".</p></aside></div></section><section id=\"scrutins\" class=\"section section--muted\"><div class=\"fr-container\"><div class=\"section-heading\"><p class=\"eyebrow\">Scrutins recents</p><h2>Les 50 derniers votes publics</h2><p>Liste triee par date de scrutin decroissante, avec resultat et decompte principal. <a href=\"/scrutins\">Ouvrir l'exploration complete</a>.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, ".</p></aside></div></section><section id=\"scrutins\" class=\"section section--muted\"><div class=\"fr-container\"><div class=\"section-heading\"><p class=\"eyebrow\">Scrutins récents</p><h2>Les 50 derniers votes publics</h2><p>Liste triée par date de scrutin décroissante, avec résultat et décompte principal. <a href=\"/scrutins\">Ouvrir l'exploration complète</a>.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(page.Scrutins) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<p class=\"empty-state\">Aucun scrutin trouve. Lancez <code>make preprocess</code> pour generer la base SQLite.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<p class=\"empty-state\">Aucun scrutin trouvé. Lancez <code>make preprocess</code> pour générer la base SQLite.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

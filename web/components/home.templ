@@ -42,20 +42,20 @@ templ Home(page HomePage) {
 			<section class="hero section">
 				<div class="fr-container hero__grid">
 					<div class="hero__content">
-						<p class="eyebrow">Donnees publiques</p>
+						<p class="eyebrow">Données publiques</p>
 						<h1>Les derniers scrutins publics</h1>
 						<p class="lead">
-							Explorez les votes publics de l'Assemblee nationale importes depuis l'open data de l'Assemblée nationale.
+							Explorez les votes publics de l'Assemblée nationale importés depuis l'open data de l'Assemblée nationale.
 						</p>
 						<div class="hero__actions" aria-label="Actions principales">
 							<a class="button" href="/scrutins">Explorer tous les scrutins</a>
 						</div>
 					</div>
 
-					<aside class="hero__panel" aria-label="Etat des donnees">
+					<aside class="hero__panel" aria-label="État des données">
 						<h2>{ strconv.Itoa(page.TotalScrutins) } scrutins indexés</h2>
 						<p>
-							Periode couverte : { formatDate(page.FirstScrutinDate) } - { formatDate(page.LastScrutinDate) }.
+							Période couverte : { formatDate(page.FirstScrutinDate) } - { formatDate(page.LastScrutinDate) }.
 						</p>
 					</aside>
 				</div>
@@ -64,15 +64,15 @@ templ Home(page HomePage) {
 			<section id="scrutins" class="section section--muted">
 				<div class="fr-container">
 					<div class="section-heading">
-						<p class="eyebrow">Scrutins recents</p>
+						<p class="eyebrow">Scrutins récents</p>
 						<h2>Les 50 derniers votes publics</h2>
 						<p>
-							Liste triee par date de scrutin decroissante, avec resultat et decompte principal. <a href="/scrutins">Ouvrir l'exploration complete</a>.
+							Liste triée par date de scrutin décroissante, avec résultat et décompte principal. <a href="/scrutins">Ouvrir l'exploration complète</a>.
 						</p>
 					</div>
 
 					if len(page.Scrutins) == 0 {
-						<p class="empty-state">Aucun scrutin trouve. Lancez <code>make preprocess</code> pour generer la base SQLite.</p>
+						<p class="empty-state">Aucun scrutin trouvé. Lancez <code>make preprocess</code> pour générer la base SQLite.</p>
 					} else {
 						<div class="scrutin-list" aria-label="Liste des scrutins publics">
 							for _, scrutin := range page.Scrutins {

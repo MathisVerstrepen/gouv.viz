@@ -104,27 +104,27 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"section page-heading detail-heading\"><div class=\"fr-container\"><nav class=\"breadcrumb\" aria-label=\"Fil d'Ariane\"><a href=\"/\">Accueil</a> <span aria-hidden=\"true\">/</span> <a href=\"/scrutins\">Scrutins</a> <span aria-hidden=\"true\">/</span> <span>n")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"section page-heading detail-heading\"><div class=\"fr-container\"><nav class=\"breadcrumb\" aria-label=\"Fil d'Ariane\"><a href=\"/\">Accueil</a> <span aria-hidden=\"true\">/</span> <a href=\"/scrutins\">Scrutins</a> <span aria-hidden=\"true\">/</span> <span>n° ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.Scrutin.Numero))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutin_detail.templ`, Line: 82, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutin_detail.templ`, Line: 82, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></nav><div class=\"detail-heading__title-row\"><h1>Scrutin n")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></nav><div class=\"detail-heading__title-row\"><h1>Scrutin n° ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(page.Scrutin.Numero))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutin_detail.templ`, Line: 85, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutin_detail.templ`, Line: 85, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -148,7 +148,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire le scrutin complet <span class=\"fr-sr-only\">sur le site de l'Assemblee nationale (nouvelle fenetre)</span></a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire le scrutin complet <span class=\"fr-sr-only\">sur le site de l'Assemblée nationale (nouvelle fenêtre)</span></a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -258,7 +258,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div></section><section class=\"section section--muted\"><div class=\"fr-container detail-layout\"><div class=\"detail-main\"><section class=\"detail-card\" aria-labelledby=\"scrutin-resultat\"><h2 id=\"scrutin-resultat\">Resultat du vote</h2><dl class=\"detail-metrics\"><div class=\"detail-metric--pour\"><dt>Pour</dt><dd>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div></section><section class=\"section section--muted\"><div class=\"fr-container detail-layout\"><div class=\"detail-main\"><section class=\"detail-card\" aria-labelledby=\"scrutin-resultat\"><h2 id=\"scrutin-resultat\">Résultat du vote</h2><dl class=\"detail-metrics\"><div class=\"detail-metric--pour\"><dt>Pour</dt><dd>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -310,7 +310,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</dd></div><div><dt>Suffrages exprimes</dt><dd>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</dd></div><div><dt>Suffrages exprimés</dt><dd>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -323,7 +323,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</dd></div><div><dt>Majorite requise</dt><dd>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</dd></div><div><dt>Majorité requise</dt><dd>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -336,11 +336,11 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</dd></div></dl><div class=\"vote-breakdowns\" aria-label=\"Representation graphique des votes\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</dd></div></dl><div class=\"vote-breakdowns\" aria-label=\"Représentation graphique des votes\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = VoteBreakdownBar("Votes exprimes par les votants", "Base : "+strconv.Itoa(votersTotal(page.Scrutin))+" votants", []VoteSegment{
+		templ_7745c5c3_Err = VoteBreakdownBar("Votes exprimés par les votants", "Base : "+strconv.Itoa(votersTotal(page.Scrutin))+" votants", []VoteSegment{
 			{Label: "Pour", Count: page.Scrutin.Pour, Class: "vote-segment--pour"},
 			{Label: "Abstentions", Count: page.Scrutin.Abstentions, Class: "vote-segment--abstention"},
 			{Label: "Contre", Count: page.Scrutin.Contre, Class: "vote-segment--contre"},
@@ -348,7 +348,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = VoteBreakdownBar("Participation dans l'hemicycle", "Base : 577 deputes", []VoteSegment{
+		templ_7745c5c3_Err = VoteBreakdownBar("Participation dans l'hémicycle", "Base : 577 députés", []VoteSegment{
 			{Label: "Pour", Count: page.Scrutin.Pour, Class: "vote-segment--pour"},
 			{Label: "Abstentions", Count: page.Scrutin.Abstentions, Class: "vote-segment--abstention"},
 			{Label: "Contre", Count: page.Scrutin.Contre, Class: "vote-segment--contre"},
@@ -380,7 +380,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<p class=\"fr-text--mention\">Objet non renseigne.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<p class=\"fr-text--mention\">Objet non renseigné.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -397,11 +397,11 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DetailRow("Type de majorite", page.Scrutin.TypeMajorite).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DetailRow("Type de majorité", page.Scrutin.TypeMajorite).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DetailRow("Libelle du sort", page.Scrutin.SortLibelle).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DetailRow("Libellé du sort", page.Scrutin.SortLibelle).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -410,7 +410,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(page.GroupVotes) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<p class=\"empty-state\">Aucun detail par groupe disponible pour ce scrutin.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<p class=\"empty-state\">Aucun détail par groupe disponible pour ce scrutin.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -427,7 +427,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, " <details class=\"group-vote-details\"><summary>Voir les donnees detaillees par groupe</summary>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, " <details class=\"group-vote-details\"><summary>Voir les données détaillées par groupe</summary>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -448,7 +448,7 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DetailRow("Legislature", strconv.Itoa(page.Scrutin.Legislature)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DetailRow("Législature", strconv.Itoa(page.Scrutin.Legislature)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -464,11 +464,11 @@ func ScrutinDetail(page ScrutinDetailPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DetailRow("Seance", page.Scrutin.SeanceRef).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DetailRow("Séance", page.Scrutin.SeanceRef).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DetailRow("Jour de seance", numberOrEmpty(page.Scrutin.QuantiemeJourSeance)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DetailRow("Jour de séance", numberOrEmpty(page.Scrutin.QuantiemeJourSeance)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -718,7 +718,7 @@ func GroupVoteStackedChart(groupVotes []ScrutinGroupVote) templ.Component {
 			templ_7745c5c3_Var32 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<figure class=\"group-vote-chart\"><figcaption>Chaque colonne est normalisee a 100% des votes exprimes du groupe.</figcaption><ul class=\"group-vote-chart__legend\" aria-label=\"Legende du graphique\"><li><span class=\"vote-breakdown__swatch vote-segment--pour\" aria-hidden=\"true\"></span>Pour</li><li><span class=\"vote-breakdown__swatch vote-segment--abstention\" aria-hidden=\"true\"></span>Abstentions</li><li><span class=\"vote-breakdown__swatch vote-segment--contre\" aria-hidden=\"true\"></span>Contre</li></ul><div class=\"group-vote-chart__plot\"><div class=\"group-vote-chart__y-axis\" aria-hidden=\"true\"><span>100%</span> <span>75%</span> <span>50%</span> <span>25%</span> <span>0%</span></div><div class=\"group-vote-chart__scroller\" aria-label=\"Graphique des votes par groupe\"><div class=\"group-vote-chart__bars\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<figure class=\"group-vote-chart\"><figcaption>Chaque colonne est normalisée à 100% des votes exprimés du groupe.</figcaption><ul class=\"group-vote-chart__legend\" aria-label=\"Légende du graphique\"><li><span class=\"vote-breakdown__swatch vote-segment--pour\" aria-hidden=\"true\"></span>Pour</li><li><span class=\"vote-breakdown__swatch vote-segment--abstention\" aria-hidden=\"true\"></span>Abstentions</li><li><span class=\"vote-breakdown__swatch vote-segment--contre\" aria-hidden=\"true\"></span>Contre</li></ul><div class=\"group-vote-chart__plot\"><div class=\"group-vote-chart__y-axis\" aria-hidden=\"true\"><span>100%</span> <span>75%</span> <span>50%</span> <span>25%</span> <span>0%</span></div><div class=\"group-vote-chart__scroller\" aria-label=\"Graphique des votes par groupe\"><div class=\"group-vote-chart__bars\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -905,14 +905,14 @@ func GroupPourDeviationChart(scrutin ScrutinDetailData, groupVotes []ScrutinGrou
 			templ_7745c5c3_Var44 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "<figure class=\"group-deviation-chart\"><figcaption><h3>Ecarts au vote Pour de l'hemicycle</h3><p>Reference : ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "<figure class=\"group-deviation-chart\"><figcaption><h3>Écarts au vote Pour de l'hémicycle</h3><p>Référence : ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var45 string
 		templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(votePercent(scrutin.Pour, votersTotal(scrutin)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutin_detail.templ`, Line: 291, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutin_detail.templ`, Line: 291, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 		if templ_7745c5c3_Err != nil {
@@ -1147,7 +1147,7 @@ func GroupPourDeviationChart(scrutin ScrutinDetailData, groupVotes []ScrutinGrou
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "</div><div class=\"group-deviation-chart__axis\" aria-hidden=\"true\"><span>Moins de Pour</span> <span>Reference hemicycle</span> <span>Plus de Pour</span></div></figure>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "</div><div class=\"group-deviation-chart__axis\" aria-hidden=\"true\"><span>Moins de Pour</span> <span>Référence hémicycle</span> <span>Plus de Pour</span></div></figure>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1176,7 +1176,7 @@ func GroupVoteTable(groupVotes []ScrutinGroupVote) templ.Component {
 			templ_7745c5c3_Var62 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<div class=\"table-scroll\"><table class=\"data-table\"><thead><tr><th scope=\"col\">Groupe</th><th scope=\"col\">Position declaree</th><th scope=\"col\">Membres</th><th scope=\"col\">Pour</th><th scope=\"col\">Contre</th><th scope=\"col\">Abst.</th><th scope=\"col\">Non votants</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<div class=\"table-scroll\"><table class=\"data-table\"><thead><tr><th scope=\"col\">Groupe</th><th scope=\"col\">Position déclarée</th><th scope=\"col\">Membres</th><th scope=\"col\">Pour</th><th scope=\"col\">Contre</th><th scope=\"col\">Abst.</th><th scope=\"col\">Non votants</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1405,7 +1405,7 @@ func LinkedDocumentCard(scrutin ScrutinDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire l'amendement <span class=\"fr-sr-only\">sur le site de l'Assemblee nationale (nouvelle fenetre)</span></a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire l'amendement <span class=\"fr-sr-only\">sur le site de l'Assemblée nationale (nouvelle fenêtre)</span></a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1424,7 +1424,7 @@ func LinkedDocumentCard(scrutin ScrutinDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire le texte <span class=\"fr-sr-only\">sur le site de l'Assemblee nationale (nouvelle fenetre)</span></a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire le texte <span class=\"fr-sr-only\">sur le site de l'Assemblée nationale (nouvelle fenêtre)</span></a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1443,7 +1443,7 @@ func LinkedDocumentCard(scrutin ScrutinDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire le PDF du texte <span class=\"fr-sr-only\">sur le site de l'Assemblee nationale (nouvelle fenetre)</span></a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "\" target=\"_blank\" rel=\"noopener noreferrer\">Lire le PDF du texte <span class=\"fr-sr-only\">sur le site de l'Assemblée nationale (nouvelle fenêtre)</span></a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1462,7 +1462,7 @@ func LinkedDocumentCard(scrutin ScrutinDetailData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "\" target=\"_blank\" rel=\"noopener noreferrer\">Voir le dossier legislatif <span class=\"fr-sr-only\">sur le site de l'Assemblee nationale (nouvelle fenetre)</span></a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "\" target=\"_blank\" rel=\"noopener noreferrer\">Voir le dossier législatif <span class=\"fr-sr-only\">sur le site de l'Assemblée nationale (nouvelle fenêtre)</span></a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1534,7 +1534,7 @@ func CompactDetailRow(label string, value string) templ.Component {
 
 func fallbackText(value string) string {
 	if value == "" {
-		return "Non renseigne"
+		return "Non renseigné"
 	}
 	return value
 }
@@ -1629,9 +1629,9 @@ func linkedTextKindLabel(kind string) string {
 	case "proposition-loi":
 		return "Proposition de loi"
 	case "texte-adopte-commission":
-		return "Texte adopte en commission"
+		return "Texte adopté en commission"
 	case "texte-adopte-seance":
-		return "Texte adopte en seance"
+		return "Texte adopté en séance"
 	default:
 		return kind
 	}
@@ -1686,7 +1686,7 @@ func groupVoteChartBarClass(groupVote ScrutinGroupVote) string {
 
 func groupVoteStackedLabel(groupVote ScrutinGroupVote) string {
 	if groupVoteTotal(groupVote) == 0 {
-		return groupVote.Groupe + " : aucun vote exprime"
+		return groupVote.Groupe + " : aucun vote exprimé"
 	}
 	return voteBreakdownLabel(groupVote.Groupe, groupVoteSegments(groupVote), groupVoteTotal(groupVote))
 }
@@ -1721,20 +1721,20 @@ func groupPourDeviationAvailable(scrutin ScrutinDetailData, groupVote ScrutinGro
 }
 
 func groupPourDeviationLabel(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) string {
-	return groupVote.Groupe + " : " + votePercent(groupVote.Pour, groupVoteTotal(groupVote)) + " de Pour, " + signedPercentPoints(groupPourDeviation(scrutin, groupVote)) + " par rapport a l'hemicycle"
+	return groupVote.Groupe + " : " + votePercent(groupVote.Pour, groupVoteTotal(groupVote)) + " de Pour, " + signedPercentPoints(groupPourDeviation(scrutin, groupVote)) + " par rapport à l'hémicycle"
 }
 
 func groupPourDeviationUnavailableLabel(scrutin ScrutinDetailData, groupVote ScrutinGroupVote) string {
 	if groupVoteTotal(groupVote) == 0 {
-		return groupVote.Groupe + " : aucun vote exprime, ecart non calcule"
+		return groupVote.Groupe + " : aucun vote exprimé, écart non calculé"
 	}
 	if groupVoteOnlyAbstentions(groupVote) {
-		return groupVote.Groupe + " : abstentions uniquement, ecart au vote Pour non represente"
+		return groupVote.Groupe + " : abstentions uniquement, écart au vote Pour non représenté"
 	}
 	if votersTotal(scrutin) == 0 {
-		return groupVote.Groupe + " : reference hemicycle indisponible, ecart non calcule"
+		return groupVote.Groupe + " : référence hémicycle indisponible, écart non calculé"
 	}
-	return groupVote.Groupe + " : ecart non calcule"
+	return groupVote.Groupe + " : écart non calculé"
 }
 
 func groupPourDeviationUnavailableValue(groupVote ScrutinGroupVote) string {
@@ -1866,7 +1866,7 @@ func voteBreakdownCells(segments []VoteSegment, total int) []VoteCell {
 	for index := range cellCount {
 		position := (float64(index) + 0.5) * float64(total) / cellCount
 		cumulative := 0
-		cell := VoteCell{Label: "Non renseigne", Class: "vote-segment--non-votant"}
+		cell := VoteCell{Label: "Non renseigné", Class: "vote-segment--non-votant"}
 
 		for _, segment := range segments {
 			if segment.Count <= 0 {

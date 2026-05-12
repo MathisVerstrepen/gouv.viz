@@ -68,7 +68,7 @@ func Scrutins(page ScrutinsPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"section page-heading\"><div class=\"fr-container\"><p class=\"eyebrow\">Exploration</p><h1>Tous les scrutins publics</h1><p class=\"lead\">Recherchez dans les titres, objets, demandeurs, resultats et organes, puis parcourez les scrutins avec tri et pagination.</p></div></section><section class=\"section section--muted\"><div class=\"fr-container\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main id=\"contenu\" class=\"page-main\"><section class=\"section page-heading\"><div class=\"fr-container\"><p class=\"eyebrow\">Exploration</p><h1>Tous les scrutins publics</h1><p class=\"lead\">Recherchez dans les titres, objets, demandeurs, résultats et organes, puis parcourez les scrutins avec tri et pagination.</p></div></section><section class=\"section section--muted\"><div class=\"fr-container\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -126,7 +126,7 @@ func ScrutinsExplorer(page ScrutinsPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" placeholder=\"Ex. budget, motion, rejet, Assemblee\"></label> <input type=\"hidden\" name=\"sort\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" placeholder=\"Ex. budget, motion, rejet, Assemblée\"></label> <input type=\"hidden\" name=\"sort\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -273,12 +273,12 @@ func ScrutinsExplorer(page ScrutinsPage) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(page.Scrutins) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<p class=\"empty-state\">Aucun scrutin ne correspond aux criteres. Modifiez la recherche ou relancez <code>make preprocess</code> si la base est vide.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<p class=\"empty-state\">Aucun scrutin ne correspond aux critères. Modifiez la recherche ou relancez <code>make preprocess</code> si la base est vide.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"scrutin-list\" aria-label=\"Liste paginee des scrutins publics\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"scrutin-list\" aria-label=\"Liste paginée des scrutins publics\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -414,7 +414,7 @@ func ScrutinCard(scrutin ScrutinListItem) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</p></div><div class=\"scrutin-card__result\" aria-label=\"Resultat du scrutin\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</p></div><div class=\"scrutin-card__result\" aria-label=\"Résultat du scrutin\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -569,12 +569,12 @@ func Pagination(page ScrutinsPage) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" hx-target=\"#scrutins-explorer\" hx-swap=\"outerHTML\" hx-push-url=\"true\">Precedent</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" hx-target=\"#scrutins-explorer\" hx-swap=\"outerHTML\" hx-push-url=\"true\">Précédent</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<span class=\"pagination__link pagination__link--disabled\">Precedent</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<span class=\"pagination__link pagination__link--disabled\">Précédent</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -728,9 +728,9 @@ func ScrutinVoteDistributionBar(scrutin ScrutinListItem) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var38 string
-		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(voteBreakdownLabel("Repartition des votes", scrutinVoteSegments(scrutin), scrutinListVotersTotal(scrutin)))
+		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(voteBreakdownLabel("Répartition des votes", scrutinVoteSegments(scrutin), scrutinListVotersTotal(scrutin)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutins.templ`, Line: 171, Col: 166}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `scrutins.templ`, Line: 171, Col: 167}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 		if templ_7745c5c3_Err != nil {
@@ -845,7 +845,7 @@ func resultChipClass(sortCode string) string {
 
 func resultSummary(page ScrutinsPage) string {
 	if page.TotalResults == 0 {
-		return "0 scrutin trouve."
+		return "0 scrutin trouvé."
 	}
 	return strconv.Itoa(page.StartItem) + "-" + strconv.Itoa(page.EndItem) + " sur " + strconv.Itoa(page.TotalResults) + " scrutins."
 }

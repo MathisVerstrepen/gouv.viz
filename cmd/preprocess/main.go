@@ -34,7 +34,7 @@ type rawFile struct {
 }
 
 func main() {
-	rawDir := flag.String("raw", filepath.Join("data", "raw"), "raw Assemblee nationale data directory")
+	rawDir := flag.String("raw", filepath.Join("data", "raw"), "raw Assemblée nationale data directory")
 	outPath := flag.String("out", filepath.Join("data", "processed", "gouv-viz.sqlite"), "output SQLite database path")
 	flag.Parse()
 

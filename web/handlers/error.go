@@ -49,11 +49,11 @@ func NewHTTPErrorHandler(e *echo.Echo) echo.HTTPErrorHandler {
 func publicErrorMessage(code int) string {
 	switch code {
 	case http.StatusNotFound:
-		return "La page demandee est introuvable."
+		return "La page demandée est introuvable."
 	case http.StatusMethodNotAllowed:
-		return "Cette methode HTTP n'est pas autorisee pour cette page."
+		return "Cette méthode HTTP n'est pas autorisée pour cette page."
 	case http.StatusBadRequest:
-		return "La requete ne peut pas etre traitee en l'etat."
+		return "La requête ne peut pas être traitée en l'état."
 	default:
 		if code >= http.StatusInternalServerError {
 			return "Une erreur inattendue est survenue."

@@ -17,9 +17,9 @@ type scrutinSortDefinition struct {
 }
 
 var scrutinSortDefinitions = []scrutinSortDefinition{
-	{value: "date_desc", label: "Date recente", orderBy: "s.date_scrutin DESC, s.numero DESC"},
+	{value: "date_desc", label: "Date récente", orderBy: "s.date_scrutin DESC, s.numero DESC"},
 	{value: "date_asc", label: "Date ancienne", orderBy: "s.date_scrutin ASC, s.numero ASC"},
-	{value: "closest", label: "Votes les plus serres", orderBy: "CASE WHEN s.pour IS NULL OR s.contre IS NULL THEN 1 ELSE 0 END ASC, ABS(COALESCE(s.pour, 0) - COALESCE(s.contre, 0)) ASC, s.date_scrutin DESC, s.numero DESC"},
+	{value: "closest", label: "Votes les plus serrés", orderBy: "CASE WHEN s.pour IS NULL OR s.contre IS NULL THEN 1 ELSE 0 END ASC, ABS(COALESCE(s.pour, 0) - COALESCE(s.contre, 0)) ASC, s.date_scrutin DESC, s.numero DESC"},
 	{value: "votants_desc", label: "Plus de votants", orderBy: "COALESCE(s.nombre_votants, 0) DESC, s.date_scrutin DESC, s.numero DESC"},
 	{value: "pour_desc", label: "Plus de pour", orderBy: "COALESCE(s.pour, 0) DESC, s.date_scrutin DESC, s.numero DESC"},
 	{value: "contre_desc", label: "Plus de contre", orderBy: "COALESCE(s.contre, 0) DESC, s.date_scrutin DESC, s.numero DESC"},

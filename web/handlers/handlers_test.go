@@ -134,7 +134,7 @@ func TestHTTPErrorHandlerRendersCustomPage(t *testing.T) {
 		t.Fatalf("status = %d, want 404", rec.Code)
 	}
 	body := rec.Body.String()
-	if !strings.Contains(body, "Erreur 404") || !strings.Contains(body, "La page demandee est introuvable.") {
+	if !strings.Contains(body, "Erreur 404") || !strings.Contains(body, "La page demandée est introuvable.") {
 		t.Fatalf("response body does not contain custom error content: %s", body)
 	}
 }
