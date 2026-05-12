@@ -321,6 +321,60 @@ func TestDeputyDetailPageReturnsErrNotFound(t *testing.T) {
 	}
 }
 
+func TestDeputiesPageAppliesSearchFiltersSortAndPagination(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 1)
+	insertOrgane(t, s.db, "GRP2", "Groupe deux", "G2", 2)
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN")
+	insertActeur(t, s.db, "PA2", "Bruno", "Bernard", "BERNARD")
+	insertActeur(t, s.db, "PA3", "Claire", "Durand", "DURAND")
+	if _, err := s.db.Exec(`UPDATE acteurs SET profession = 'Juriste' WHERE uid = 'PA1'`); err != nil {
+		t.Fatalf("update actor profession: %v", err)
+	}
+	insertMandat(t, s.db, "M1", "PA1", 17, "ASSEMBLEE", "2024-01-01", "", "Députée", true)
+	insertMandatOrgane(t, s.db, "M1", "GRP1")
+	insertMandat(t, s.db, "M2", "PA2", 17, "ASSEMBLEE", "2024-01-01", "", "Député", true)
+	insertMandatOrgane(t, s.db, "M2", "GRP2")
+	insertMandat(t, s.db, "M3", "PA3", 16, "ASSEMBLEE", "2023-01-01", "", "Députée", true)
+	insertMandatOrgane(t, s.db, "M3", "GRP1")
+	insertActorVoteStats(t, s.db, "PA1", 17, 12, 7, 3, 1, 1)
+	insertActorVoteStats(t, s.db, "PA2", 17, 3, 1, 1, 1, 0)
+	insertActorVoteStats(t, s.db, "PA3", 16, 8, 2, 4, 1, 1)
+
+	page, err := s.DeputiesPage(context.Background(), DeputiesQuery{Search: "juriste", Legislature: 17, Group: "GRP1", Page: 1, PerPage: 25})
+	if err != nil {
+		t.Fatalf("DeputiesPage() error = %v", err)
+	}
+	if got := deputyUIDs(page.Deputies); len(got) != 1 || got[0] != "PA1" {
+		t.Fatalf("deputies = %v, want [PA1]", got)
+	}
+	if page.Deputies[0].Group != "G1" || page.Deputies[0].TotalVotes != 12 || page.Deputies[0].Pour != 7 {
+		t.Fatalf("deputy summary = %+v, want group and vote stats", page.Deputies[0])
+	}
+	if !hasDeputyFilterOption(page.FilterOptions.Groups, "GRP1") || len(page.FilterOptions.Legislatures) == 0 || page.FilterOptions.Legislatures[0].Value != "17" {
+		t.Fatalf("filter options = %+v, want groups and legislatures", page.FilterOptions)
+	}
+
+	page, err = s.DeputiesPage(context.Background(), DeputiesQuery{Sort: "votes_desc", Page: 1, PerPage: 2})
+	if err != nil {
+		t.Fatalf("DeputiesPage(sorted) error = %v", err)
+	}
+	if got := deputyUIDs(page.Deputies); len(got) != 2 || got[0] != "PA1" || got[1] != "PA3" {
+		t.Fatalf("sorted deputies = %v, want [PA1 PA3]", got)
+	}
+	if page.TotalResults != 3 || page.TotalPages != 2 || page.StartItem != 1 || page.EndItem != 2 {
+		t.Fatalf("pagination = total:%d pages:%d start:%d end:%d", page.TotalResults, page.TotalPages, page.StartItem, page.EndItem)
+	}
+
+	page, err = s.DeputiesPage(context.Background(), DeputiesQuery{Page: 99, PerPage: 2})
+	if err != nil {
+		t.Fatalf("DeputiesPage(clamped) error = %v", err)
+	}
+	if page.Query.Page != 2 || page.StartItem != 3 || page.EndItem != 3 {
+		t.Fatalf("clamped pagination = query:%+v start:%d end:%d", page.Query, page.StartItem, page.EndItem)
+	}
+}
+
 func TestValidateAcceptsExpectedDatabase(t *testing.T) {
 	s := newValidationTestStore(t, expectedSchemaVersion, nil)
 
@@ -475,6 +529,15 @@ func hasFilterOption(options []ScrutinFilterOption, value string) bool {
 	return false
 }
 
+func hasDeputyFilterOption(options []DeputyFilterOption, value string) bool {
+	for _, option := range options {
+		if option.Value == value {
+			return true
+		}
+	}
+	return false
+}
+
 func firstNonEmptyTest(values ...string) string {
 	for _, value := range values {
 		if value != "" {
@@ -508,6 +571,14 @@ func insertActeur(t *testing.T, db *sql.DB, uid, prenom, nom, alpha string) {
 	_, err := db.Exec(`INSERT INTO acteurs (uid, prenom, nom, alpha) VALUES (?, ?, ?, ?)`, uid, prenom, nom, alpha)
 	if err != nil {
 		t.Fatalf("insert acteur %s: %v", uid, err)
+	}
+}
+
+func insertActorVoteStats(t *testing.T, db *sql.DB, acteurUID string, legislature int, total, pour, contre, abstentions, nonVotants int) {
+	t.Helper()
+	_, err := db.Exec(`INSERT INTO acteur_vote_stats (acteur_uid, legislature, total_votes, pour, contre, abstentions, non_votants) VALUES (?, ?, ?, ?, ?, ?, ?)`, acteurUID, legislature, total, pour, contre, abstentions, nonVotants)
+	if err != nil {
+		t.Fatalf("insert actor vote stats %s: %v", acteurUID, err)
 	}
 }
 
@@ -562,6 +633,14 @@ func nullStringTest(value string) any {
 }
 
 func uids(items []ScrutinListItem) []string {
+	values := make([]string, 0, len(items))
+	for _, item := range items {
+		values = append(values, item.UID)
+	}
+	return values
+}
+
+func deputyUIDs(items []DeputyListItem) []string {
 	values := make([]string, 0, len(items))
 	for _, item := range items {
 		values = append(values, item.UID)

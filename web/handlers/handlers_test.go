@@ -80,6 +80,59 @@ func TestScrutinsHandlerRendersHTMXPartial(t *testing.T) {
 	}
 }
 
+func TestParseDeputiesQueryParsesSearchSortAndFilters(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/deputes?q=%20alice%20&sort=votes_desc&page=2&legislature=17&group=GRP1", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	query := parseDeputiesQuery(ctx)
+	if query.Search != "alice" || query.Sort != "votes_desc" || query.Page != 2 || query.PerPage != store.DeputiesPerPage || query.Legislature != 17 || query.Group != "GRP1" {
+		t.Fatalf("query = %+v, want parsed deputies filters", query)
+	}
+}
+
+func TestDeputiesHandlerRendersOK(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/deputes?q=alice", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.Deputies(ctx); err != nil {
+		t.Fatalf("Deputies() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "Alice Martin") || !strings.Contains(rec.Body.String(), "Tous les députés") {
+		t.Fatalf("response body does not contain deputies page content: %s", rec.Body.String())
+	}
+}
+
+func TestDeputiesHandlerRendersHTMXPartial(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/deputes?q=alice", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.Deputies(ctx); err != nil {
+		t.Fatalf("Deputies() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `id="deputies-explorer"`) || !strings.Contains(body, "Alice Martin") {
+		t.Fatalf("response body does not contain deputies explorer partial: %s", body)
+	}
+	if strings.Contains(body, "<!DOCTYPE html>") {
+		t.Fatalf("response body contains full document, want partial")
+	}
+}
+
 func TestScrutinDetailHandlerRendersLinkedReference(t *testing.T) {
 	server := NewServer(store.New(newHandlerTestDB(t, true)))
 	e := echo.New()
@@ -225,6 +278,9 @@ func newHandlerTestDB(t *testing.T, withScrutin bool) *sql.DB {
 	if _, err := db.Exec(`INSERT INTO organes (uid, libelle, libelle_abrege, preseance) VALUES ('ORG1', 'Commission fixture', 'CF', 1)`); err != nil {
 		t.Fatalf("insert organe: %v", err)
 	}
+	if _, err := db.Exec(`INSERT INTO organes (uid, code_type, libelle, libelle_abrege, libelle_abrev, preseance) VALUES ('GRP1', 'GP', 'Groupe fixture', 'GF', 'GF', 2)`); err != nil {
+		t.Fatalf("insert group organe: %v", err)
+	}
 	if withScrutin {
 		if _, err := db.Exec(`INSERT INTO acteurs (uid, prenom, nom, alpha, profession, source_file) VALUES ('PA1', 'Alice', 'Martin', 'MARTIN', 'Juriste', 'acteur.json')`); err != nil {
 			t.Fatalf("insert acteur: %v", err)
@@ -252,6 +308,12 @@ INSERT INTO scrutins (
 		}
 		if _, err := db.Exec(`INSERT INTO acteur_vote_stats (acteur_uid, legislature, total_votes, pour, contre, abstentions, non_votants) VALUES ('PA1', 17, 1, 1, 0, 0, 0)`); err != nil {
 			t.Fatalf("insert acteur vote stats: %v", err)
+		}
+		if _, err := db.Exec(`INSERT INTO mandats (uid, acteur_uid, legislature, type_organe, date_debut, nomin_principale, lib_qualite) VALUES ('M1', 'PA1', 17, 'ASSEMBLEE', '2024-01-01', 1, 'Députée')`); err != nil {
+			t.Fatalf("insert mandat: %v", err)
+		}
+		if _, err := db.Exec(`INSERT INTO mandat_organes (mandat_uid, organe_uid) VALUES ('M1', 'GRP1')`); err != nil {
+			t.Fatalf("insert mandat organe: %v", err)
 		}
 	}
 

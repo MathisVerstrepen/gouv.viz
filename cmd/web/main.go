@@ -46,6 +46,7 @@ func main() {
 	e.GET("/", server.Home)
 	e.GET("/scrutins", server.Scrutins)
 	e.GET("/scrutins/:uid", server.ScrutinDetail)
+	e.GET("/deputes", server.Deputies)
 	e.GET("/deputes/:uid", server.DeputyDetail)
 	e.GET("/ping", handlers.Ping)
 

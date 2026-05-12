@@ -30,6 +30,24 @@ func TestScrutinListURL(t *testing.T) {
 	}
 }
 
+func TestDeputyListURL(t *testing.T) {
+	query := DeputiesQuery{Search: " alice ", Sort: "alpha_asc", Page: 3, PerPage: 25}
+	if got := deputyListURL(query, "alpha_asc", 1, "alpha_asc"); got != "/deputes?q=+alice+" {
+		t.Fatalf("deputyListURL(default sort) = %q", got)
+	}
+	if got := deputyListURL(query, "alpha_asc", 2, "votes_desc"); got != "/deputes?page=2&q=+alice+&sort=votes_desc" {
+		t.Fatalf("deputyListURL(custom sort) = %q", got)
+	}
+
+	query = DeputiesQuery{Legislature: 17, Group: "GRP1"}
+	if got := deputyListURL(query, "alpha_asc", 1, "alpha_asc"); got != "/deputes?group=GRP1&legislature=17" {
+		t.Fatalf("deputyListURL(filters) = %q", got)
+	}
+	if !hasDeputyFilters(query) {
+		t.Fatal("hasDeputyFilters() = false, want true")
+	}
+}
+
 func TestPaginationPages(t *testing.T) {
 	tests := []struct {
 		name    string

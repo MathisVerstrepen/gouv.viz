@@ -40,6 +40,27 @@ func scrutinsView(page store.ScrutinsPage) components.ScrutinsPage {
 	}
 }
 
+func deputiesView(page store.DeputiesPage) components.DeputiesPage {
+	return components.DeputiesPage{
+		Query: components.DeputiesQuery{
+			Search:      page.Query.Search,
+			Sort:        page.Query.Sort,
+			Page:        page.Query.Page,
+			PerPage:     page.Query.PerPage,
+			Legislature: page.Query.Legislature,
+			Group:       page.Query.Group,
+		},
+		DefaultSort:   page.DefaultSort,
+		SortOptions:   deputySortOptionViews(page.SortOptions),
+		FilterOptions: deputyFilterOptionsView(page.FilterOptions),
+		Deputies:      deputyListItemViews(page.Deputies),
+		TotalResults:  page.TotalResults,
+		TotalPages:    page.TotalPages,
+		StartItem:     page.StartItem,
+		EndItem:       page.EndItem,
+	}
+}
+
 func scrutinDetailView(page store.ScrutinDetailPage) components.ScrutinDetailPage {
 	return components.ScrutinDetailPage{
 		Scrutin: components.ScrutinDetailData{
@@ -169,6 +190,53 @@ func scrutinFilterOptionViews(options []store.ScrutinFilterOption) []components.
 			Value: option.Value,
 			Label: option.Label,
 		})
+	}
+	return views
+}
+
+func deputyListItemViews(items []store.DeputyListItem) []components.DeputyListItem {
+	views := make([]components.DeputyListItem, 0, len(items))
+	for _, item := range items {
+		views = append(views, components.DeputyListItem{
+			UID:           item.UID,
+			DisplayName:   item.DisplayName,
+			Alpha:         item.Alpha,
+			Profession:    item.Profession,
+			DateNaissance: item.DateNaissance,
+			Legislature:   item.Legislature,
+			GroupUID:      item.GroupUID,
+			Group:         item.Group,
+			GroupAbrege:   item.GroupAbrege,
+			GroupAbrev:    item.GroupAbrev,
+			TotalVotes:    item.TotalVotes,
+			Pour:          item.Pour,
+			Contre:        item.Contre,
+			Abstentions:   item.Abstentions,
+			NonVotants:    item.NonVotants,
+		})
+	}
+	return views
+}
+
+func deputySortOptionViews(options []store.DeputySortOption) []components.DeputySortOption {
+	views := make([]components.DeputySortOption, 0, len(options))
+	for _, option := range options {
+		views = append(views, components.DeputySortOption{Value: option.Value, Label: option.Label})
+	}
+	return views
+}
+
+func deputyFilterOptionsView(options store.DeputyFilterOptions) components.DeputyFilterOptions {
+	return components.DeputyFilterOptions{
+		Legislatures: deputyFilterOptionViews(options.Legislatures),
+		Groups:       deputyFilterOptionViews(options.Groups),
+	}
+}
+
+func deputyFilterOptionViews(options []store.DeputyFilterOption) []components.DeputyFilterOption {
+	views := make([]components.DeputyFilterOption, 0, len(options))
+	for _, option := range options {
+		views = append(views, components.DeputyFilterOption{Value: option.Value, Label: option.Label})
 	}
 	return views
 }

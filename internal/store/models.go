@@ -64,6 +64,60 @@ type ScrutinsPage struct {
 	EndItem       int
 }
 
+type DeputiesQuery struct {
+	Search      string
+	Sort        string
+	Page        int
+	PerPage     int
+	Legislature int
+	Group       string
+}
+
+type DeputyListItem struct {
+	UID           string
+	DisplayName   string
+	Alpha         string
+	Profession    string
+	DateNaissance string
+	Legislature   int
+	GroupUID      string
+	Group         string
+	GroupAbrege   string
+	GroupAbrev    string
+	TotalVotes    int
+	Pour          int
+	Contre        int
+	Abstentions   int
+	NonVotants    int
+}
+
+type DeputySortOption struct {
+	Value string
+	Label string
+}
+
+type DeputyFilterOption struct {
+	Value string
+	Label string
+}
+
+type DeputyFilterOptions struct {
+	Legislatures []DeputyFilterOption
+	Groups       []DeputyFilterOption
+}
+
+type DeputiesPage struct {
+	Query         DeputiesQuery
+	DefaultSort   string
+	SortOptions   []DeputySortOption
+	FilterOptions DeputyFilterOptions
+	Deputies      []DeputyListItem
+	TotalResults  int
+	TotalPages    int
+	StartItem     int
+	EndItem       int
+}
+
 type ScrutinDetailPage struct {
 	Scrutin         ScrutinDetailData
 	GroupVotes      []ScrutinGroupVote
