@@ -48,6 +48,21 @@ func TestDeputyListURL(t *testing.T) {
 	}
 }
 
+func TestDeputyListPlaceholderHelpers(t *testing.T) {
+	deputy := DeputyListItem{UID: "PA1", DisplayName: "Alice Martin"}
+	if !deputyHasNoRecordedVotes(deputy) {
+		t.Fatal("deputyHasNoRecordedVotes() = false, want true")
+	}
+	if got := deputyListInitials(deputy); got != "AM" {
+		t.Fatalf("deputyListInitials() = %q, want AM", got)
+	}
+
+	deputy.TotalVotes = 1
+	if deputyHasNoRecordedVotes(deputy) {
+		t.Fatal("deputyHasNoRecordedVotes(with votes) = true, want false")
+	}
+}
+
 func TestPoliticalGroupListURL(t *testing.T) {
 	query := PoliticalGroupsQuery{Search: " groupe ", Sort: "preseance_asc", Page: 3, PerPage: 25}
 	if got := politicalGroupListURL(query, "preseance_asc", 1, "preseance_asc"); got != "/groupes?q=+groupe+" {

@@ -153,7 +153,9 @@ templ DeputiesExplorer(page DeputiesPage) {
 templ DeputyCard(deputy DeputyListItem) {
 	<article class="deputy-card">
 		<div class="deputy-card__media">
-			if deputyListPhotoURL(deputy) != "" {
+			if deputyHasNoRecordedVotes(deputy) {
+				<span class="deputy-card__photo deputy-card__photo--placeholder" role="img" aria-label="Portrait non affiché faute de votes enregistrés">{ deputyListInitials(deputy) }</span>
+			} else if deputyListPhotoURL(deputy) != "" {
 				<img class="deputy-card__photo" src={ deputyListPhotoURL(deputy) } alt={ "Portrait officiel de " + deputy.DisplayName } loading="lazy" width="96" height="96"/>
 			}
 			if deputyListGroupLogoURL(deputy) != "" {
@@ -300,4 +302,22 @@ func deputyListPhotoURL(deputy DeputyListItem) string {
 		legislature = 17
 	}
 	return "https://www.assemblee-nationale.fr/dyn/static/tribun/" + strconv.Itoa(legislature) + "/photos/carre/" + id + ".jpg"
+}
+
+func deputyHasNoRecordedVotes(deputy DeputyListItem) bool {
+	return deputy.TotalVotes == 0 && deputy.Pour == 0 && deputy.Contre == 0
+}
+
+func deputyListInitials(deputy DeputyListItem) string {
+	label := firstNonEmpty(deputy.DisplayName, deputy.Alpha, deputy.UID)
+	parts := strings.Fields(label)
+	if len(parts) == 0 {
+		return "?"
+	}
+	if len(parts) == 1 {
+		return strings.ToUpper(string([]rune(parts[0])[0]))
+	}
+	first := []rune(parts[0])
+	last := []rune(parts[len(parts)-1])
+	return strings.ToUpper(string(first[0]) + string(last[0]))
 }
