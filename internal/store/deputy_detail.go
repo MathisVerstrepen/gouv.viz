@@ -89,15 +89,26 @@ WHERE uid = ?
 	}
 	page.Stats = stats
 
-	votesTotal, err := s.deputyVotesCount(ctx, uid, query)
+	votes, votesTotal, err := s.deputyVotesPage(ctx, uid, query)
 	if err != nil {
 		return DeputyDetailPage{}, err
+	}
+	if votesTotal == 0 && query.VotesPage > 1 {
+		votesTotal, err = s.deputyVotesCount(ctx, uid, query)
+		if err != nil {
+			return DeputyDetailPage{}, err
+		}
 	}
 	page.VotesTotalResults = votesTotal
 	if page.VotesTotalResults > 0 {
 		page.VotesTotalPages = int(math.Ceil(float64(page.VotesTotalResults) / float64(query.VotesPerPage)))
 		if page.Query.VotesPage > page.VotesTotalPages {
 			page.Query.VotesPage = page.VotesTotalPages
+			votes, votesTotal, err = s.deputyVotesPage(ctx, uid, page.Query)
+			if err != nil {
+				return DeputyDetailPage{}, err
+			}
+			page.VotesTotalResults = votesTotal
 		}
 		page.VotesStartItem = ((page.Query.VotesPage - 1) * query.VotesPerPage) + 1
 		page.VotesEndItem = page.VotesStartItem + query.VotesPerPage - 1
@@ -107,11 +118,6 @@ WHERE uid = ?
 	} else {
 		page.Query.VotesPage = 1
 		page.VotesTotalPages = 1
-	}
-
-	votes, err := s.deputyVotes(ctx, uid, page.Query)
-	if err != nil {
-		return DeputyDetailPage{}, err
 	}
 	page.Votes = votes
 
@@ -263,7 +269,7 @@ LEFT JOIN organes g ON g.uid = v.groupe_uid
 	return total, nil
 }
 
-func (s *Store) deputyVotes(ctx context.Context, uid string, query DeputyDetailQuery) ([]DeputyVote, error) {
+func (s *Store) deputyVotesPage(ctx context.Context, uid string, query DeputyDetailQuery) ([]DeputyVote, int, error) {
 	whereClause, whereArgs := deputyVotesWhereClause(uid, query)
 	sortDefinition := deputyVoteSortByValue(query.VotesSort)
 	rowsArgs := append([]any{}, whereArgs...)
@@ -284,7 +290,8 @@ SELECT
   COALESCE(v.mandat_uid, ''),
   v.position,
   COALESCE(v.par_delegation, 0),
-  COALESCE(v.num_place, '')
+  COALESCE(v.num_place, ''),
+  COUNT(*) OVER()
 FROM votes v
 JOIN scrutins s ON s.uid = v.scrutin_uid
 LEFT JOIN organes o ON o.uid = s.organe_uid
@@ -294,14 +301,16 @@ ORDER BY `+sortDefinition.orderBy+`
 LIMIT ? OFFSET ?
 `, rowsArgs...)
 	if err != nil {
-		return nil, fmt.Errorf("query deputy votes: %w", err)
+		return nil, 0, fmt.Errorf("query deputy votes: %w", err)
 	}
 	defer rows.Close()
 
 	var votes []DeputyVote
+	var total int
 	for rows.Next() {
 		var vote DeputyVote
 		var parDelegation int
+		var rowTotal int
 		if err := rows.Scan(
 			&vote.ScrutinUID,
 			&vote.Numero,
@@ -318,17 +327,19 @@ LIMIT ? OFFSET ?
 			&vote.Position,
 			&parDelegation,
 			&vote.NumPlace,
+			&rowTotal,
 		); err != nil {
-			return nil, fmt.Errorf("scan deputy vote: %w", err)
+			return nil, 0, fmt.Errorf("scan deputy vote: %w", err)
 		}
+		total = rowTotal
 		vote.ParDelegation = parDelegation == 1
 		votes = append(votes, vote)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate deputy votes: %w", err)
+		return nil, 0, fmt.Errorf("iterate deputy votes: %w", err)
 	}
 
-	return votes, nil
+	return votes, total, nil
 }
 
 func deputyVotesWhereClause(uid string, query DeputyDetailQuery) (string, []any) {
@@ -339,7 +350,10 @@ func deputyVotesWhereClause(uid string, query DeputyDetailQuery) (string, []any)
 		args = append(args, query.VotesPosition)
 	}
 	if query.VotesSearch != "" {
-		clauses = append(clauses, `LOWER(
+		likeArg := "%" + escapeLike(strings.ToLower(query.VotesSearch)) + "%"
+		ftsQuery := scrutinSearchQuery(query.VotesSearch)
+		if ftsQuery == "" {
+			clauses = append(clauses, `LOWER(
   COALESCE(s.titre, '') || ' ' ||
   COALESCE(s.numero, '') || ' ' ||
   COALESCE(s.sort_code, '') || ' ' ||
@@ -350,7 +364,15 @@ func deputyVotesWhereClause(uid string, query DeputyDetailQuery) (string, []any)
   COALESCE(g.libelle_abrege, '') || ' ' ||
   COALESCE(g.libelle, '')
 ) LIKE ? ESCAPE '\'`)
-		args = append(args, "%"+escapeLike(strings.ToLower(query.VotesSearch))+"%")
+			args = append(args, likeArg)
+		} else {
+			clauses = append(clauses, `(s.uid IN (
+  SELECT uid
+  FROM scrutin_search
+  WHERE scrutin_search MATCH ?
+) OR LOWER(COALESCE(g.libelle_abrege, '') || ' ' || COALESCE(g.libelle, '')) LIKE ? ESCAPE '\')`)
+			args = append(args, ftsQuery, likeArg)
+		}
 	}
 	return "WHERE " + strings.Join(clauses, " AND "), args
 }

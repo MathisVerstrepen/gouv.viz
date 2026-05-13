@@ -162,6 +162,17 @@ CREATE TABLE groupe_vote_stats (
   PRIMARY KEY (groupe_uid, legislature)
 );
 
+CREATE TABLE acteur_latest_group (
+  acteur_uid TEXT PRIMARY KEY REFERENCES acteurs(uid),
+  legislature INTEGER NOT NULL,
+  groupe_uid TEXT NOT NULL REFERENCES organes(uid)
+);
+
+CREATE TABLE groupe_member_stats (
+  groupe_uid TEXT PRIMARY KEY REFERENCES organes(uid),
+  deputies_count INTEGER NOT NULL
+);
+
 CREATE VIRTUAL TABLE scrutin_search USING fts5(
   uid UNINDEXED,
   document,
@@ -178,5 +189,6 @@ CREATE INDEX idx_votes_position ON votes(position);
 CREATE INDEX idx_mandats_acteur ON mandats(acteur_uid);
 CREATE INDEX idx_mandats_dates ON mandats(date_debut, date_fin);
 CREATE INDEX idx_mandat_organes_organe ON mandat_organes(organe_uid);
+CREATE INDEX idx_acteur_latest_group_groupe ON acteur_latest_group(groupe_uid);
 CREATE INDEX idx_organes_code_type ON organes(code_type);
 CREATE INDEX idx_organes_legislature ON organes(legislature);

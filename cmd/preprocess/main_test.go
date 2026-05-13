@@ -56,6 +56,8 @@ func TestBuildDatabaseImportsFixtureDataset(t *testing.T) {
 	assertScalar(t, db, `SELECT position FROM votes WHERE scrutin_uid = 'VTANR5L17V1' AND acteur_uid = 'PA100001'`, "pour")
 	assertScalar(t, db, `SELECT par_delegation FROM votes WHERE scrutin_uid = 'VTANR5L17V1' AND acteur_uid = 'PA100001'`, "1")
 	assertScalar(t, db, `SELECT total_votes FROM acteur_vote_stats WHERE acteur_uid = 'PA100001' AND legislature = 17`, "1")
+	assertScalar(t, db, `SELECT COUNT(*) FROM acteur_latest_group WHERE acteur_uid = 'PA100001'`, "1")
+	assertScalar(t, db, `SELECT deputies_count FROM groupe_member_stats WHERE groupe_uid = (SELECT groupe_uid FROM acteur_latest_group WHERE acteur_uid = 'PA100001')`, "1")
 }
 
 func TestValidateDatabaseRejectsForeignKeyViolations(t *testing.T) {

@@ -89,15 +89,26 @@ WHERE uid = ? AND UPPER(COALESCE(code_type, '')) = 'GP'
 	}
 	page.Deputies = deputies
 
-	votesTotal, err := s.politicalGroupVotesCount(ctx, uid, query)
+	votes, votesTotal, err := s.politicalGroupVotesPage(ctx, uid, query)
 	if err != nil {
 		return PoliticalGroupDetailPage{}, err
+	}
+	if votesTotal == 0 && query.VotesPage > 1 {
+		votesTotal, err = s.politicalGroupVotesCount(ctx, uid, query)
+		if err != nil {
+			return PoliticalGroupDetailPage{}, err
+		}
 	}
 	page.VotesTotalResults = votesTotal
 	if page.VotesTotalResults > 0 {
 		page.VotesTotalPages = int(math.Ceil(float64(page.VotesTotalResults) / float64(query.VotesPerPage)))
 		if page.Query.VotesPage > page.VotesTotalPages {
 			page.Query.VotesPage = page.VotesTotalPages
+			votes, votesTotal, err = s.politicalGroupVotesPage(ctx, uid, page.Query)
+			if err != nil {
+				return PoliticalGroupDetailPage{}, err
+			}
+			page.VotesTotalResults = votesTotal
 		}
 		page.VotesStartItem = ((page.Query.VotesPage - 1) * query.VotesPerPage) + 1
 		page.VotesEndItem = page.VotesStartItem + query.VotesPerPage - 1
@@ -107,11 +118,6 @@ WHERE uid = ? AND UPPER(COALESCE(code_type, '')) = 'GP'
 	} else {
 		page.Query.VotesPage = 1
 		page.VotesTotalPages = 1
-	}
-
-	votes, err := s.politicalGroupVotes(ctx, uid, page.Query)
-	if err != nil {
-		return PoliticalGroupDetailPage{}, err
 	}
 	page.Votes = votes
 
@@ -208,7 +214,7 @@ JOIN scrutins s ON s.uid = sgv.scrutin_uid
 	return total, nil
 }
 
-func (s *Store) politicalGroupVotes(ctx context.Context, uid string, query PoliticalGroupDetailQuery) ([]PoliticalGroupVote, error) {
+func (s *Store) politicalGroupVotesPage(ctx context.Context, uid string, query PoliticalGroupDetailQuery) ([]PoliticalGroupVote, int, error) {
 	whereClause, whereArgs := politicalGroupVotesWhereClause(uid, query)
 	sortDefinition := politicalGroupVoteSortByValue(query.VotesSort)
 	rowsArgs := append([]any{}, whereArgs...)
@@ -229,7 +235,8 @@ SELECT
   COALESCE(sgv.contre, 0),
   COALESCE(sgv.abstentions, 0),
   COALESCE(sgv.non_votants, 0),
-  COALESCE(sgv.non_votants_volontaires, 0)
+  COALESCE(sgv.non_votants_volontaires, 0),
+  COUNT(*) OVER()
 FROM scrutin_groupe_votes sgv
 JOIN scrutins s ON s.uid = sgv.scrutin_uid
 `+whereClause+`
@@ -237,13 +244,15 @@ ORDER BY `+sortDefinition.orderBy+`
 LIMIT ? OFFSET ?
 `, rowsArgs...)
 	if err != nil {
-		return nil, fmt.Errorf("query political group votes: %w", err)
+		return nil, 0, fmt.Errorf("query political group votes: %w", err)
 	}
 	defer rows.Close()
 
 	var votes []PoliticalGroupVote
+	var total int
 	for rows.Next() {
 		var vote PoliticalGroupVote
+		var rowTotal int
 		if err := rows.Scan(
 			&vote.ScrutinUID,
 			&vote.Numero,
@@ -260,15 +269,17 @@ LIMIT ? OFFSET ?
 			&vote.Abstentions,
 			&vote.NonVotants,
 			&vote.NonVotantsVolontaires,
+			&rowTotal,
 		); err != nil {
-			return nil, fmt.Errorf("scan political group vote: %w", err)
+			return nil, 0, fmt.Errorf("scan political group vote: %w", err)
 		}
+		total = rowTotal
 		votes = append(votes, vote)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate political group votes: %w", err)
+		return nil, 0, fmt.Errorf("iterate political group votes: %w", err)
 	}
-	return votes, nil
+	return votes, total, nil
 }
 
 func politicalGroupVotesWhereClause(uid string, query PoliticalGroupDetailQuery) (string, []any) {
@@ -279,7 +290,9 @@ func politicalGroupVotesWhereClause(uid string, query PoliticalGroupDetailQuery)
 		args = append(args, query.VotesPosition)
 	}
 	if query.VotesSearch != "" {
-		clauses = append(clauses, `LOWER(
+		ftsQuery := scrutinSearchQuery(query.VotesSearch)
+		if ftsQuery == "" {
+			clauses = append(clauses, `LOWER(
   COALESCE(s.titre, '') || ' ' ||
   COALESCE(s.numero, '') || ' ' ||
   COALESCE(s.sort_code, '') || ' ' ||
@@ -288,7 +301,15 @@ func politicalGroupVotesWhereClause(uid string, query PoliticalGroupDetailQuery)
   COALESCE(s.objet_libelle, '') || ' ' ||
   COALESCE(s.demandeur_texte, '')
 ) LIKE ? ESCAPE '\'`)
-		args = append(args, "%"+escapeLike(strings.ToLower(query.VotesSearch))+"%")
+			args = append(args, "%"+escapeLike(strings.ToLower(query.VotesSearch))+"%")
+		} else {
+			clauses = append(clauses, `s.uid IN (
+  SELECT uid
+  FROM scrutin_search
+  WHERE scrutin_search MATCH ?
+)`)
+			args = append(args, ftsQuery)
+		}
 	}
 	return "WHERE " + strings.Join(clauses, " AND "), args
 }

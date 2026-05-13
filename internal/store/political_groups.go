@@ -58,7 +58,7 @@ func (s *Store) PoliticalGroupsPage(ctx context.Context, query PoliticalGroupsQu
 	if err := s.db.QueryRowContext(ctx, politicalGroupsListCTE()+`
 SELECT COUNT(*)
 FROM organes g
-LEFT JOIN member_counts md ON md.groupe_uid = g.uid
+LEFT JOIN groupe_member_stats md ON md.groupe_uid = g.uid
 LEFT JOIN vote_stats vs ON vs.groupe_uid = g.uid
 `+whereClause, whereArgs...).Scan(&page.TotalResults); err != nil {
 		return PoliticalGroupsPage{}, fmt.Errorf("count political groups: %w", err)
@@ -91,7 +91,7 @@ SELECT
   COALESCE(vs.abstentions, 0),
   COALESCE(vs.non_votants, 0)
 FROM organes g
-LEFT JOIN member_counts md ON md.groupe_uid = g.uid
+LEFT JOIN groupe_member_stats md ON md.groupe_uid = g.uid
 LEFT JOIN vote_stats vs ON vs.groupe_uid = g.uid
 `+whereClause+`
 ORDER BY `+sortDefinition.orderBy+`, g.uid ASC
@@ -175,13 +175,7 @@ func politicalGroupsWhereClause(query PoliticalGroupsQuery) (string, []any) {
 
 func politicalGroupsListCTE() string {
 	return `
-WITH member_counts AS (
-  SELECT mo.organe_uid AS groupe_uid, COUNT(DISTINCT m.acteur_uid) AS deputies_count
-  FROM mandat_organes mo
-  JOIN mandats m ON m.uid = mo.mandat_uid
-  GROUP BY mo.organe_uid
-),
-vote_stats AS (
+WITH vote_stats AS (
   SELECT groupe_uid, SUM(total_scrutins) AS total_scrutins, SUM(pour) AS pour, SUM(contre) AS contre, SUM(abstentions) AS abstentions, SUM(non_votants) AS non_votants
   FROM groupe_vote_stats
   GROUP BY groupe_uid

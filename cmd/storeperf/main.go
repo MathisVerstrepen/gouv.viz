@@ -108,8 +108,8 @@ func main() {
 	}
 
 	fmt.Printf("Database: %s\n", *dbPath)
-	fmt.Printf("Rows: acteurs=%d organes=%d scrutins=%d scrutin_groupe_votes=%d votes=%d\n",
-		s.RowCounts["acteurs"], s.RowCounts["organes"], s.RowCounts["scrutins"], s.RowCounts["scrutin_groupe_votes"], s.RowCounts["votes"])
+	fmt.Printf("Rows: acteurs=%d organes=%d scrutins=%d scrutin_groupe_votes=%d votes=%d acteur_latest_group=%d groupe_member_stats=%d\n",
+		s.RowCounts["acteurs"], s.RowCounts["organes"], s.RowCounts["scrutins"], s.RowCounts["scrutin_groupe_votes"], s.RowCounts["votes"], s.RowCounts["acteur_latest_group"], s.RowCounts["groupe_member_stats"])
 	fmt.Printf("Timing: runs=%d slow_threshold=%s\n\n", *runs, *slow)
 
 	results := runTimedCases(ctx, *runs, representativeCases(st, s))
@@ -140,7 +140,7 @@ func readOnlyDSN(databasePath string) string {
 
 func loadSamples(ctx context.Context, db *sql.DB) (samples, error) {
 	s := samples{RowCounts: make(map[string]int)}
-	for _, table := range []string{"acteurs", "organes", "scrutins", "scrutin_groupe_votes", "votes"} {
+	for _, table := range []string{"acteurs", "organes", "scrutins", "scrutin_groupe_votes", "votes", "acteur_latest_group", "groupe_member_stats"} {
 		var count int
 		if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+table).Scan(&count); err != nil {
 			return samples{}, fmt.Errorf("count %s: %w", table, err)
@@ -383,6 +383,21 @@ func printTimedResults(results []timedResult, slow time.Duration) bool {
 func representativePlanChecks(s samples) []planCheck {
 	checks := []planCheck{
 		{
+			Name: "deputies_latest_group_filter",
+			SQL: `
+SELECT a.uid
+FROM acteurs a
+LEFT JOIN acteur_latest_group alg ON alg.acteur_uid = a.uid
+LEFT JOIN organes lg ON lg.uid = alg.groupe_uid
+WHERE alg.groupe_uid = ?
+ORDER BY COALESCE(NULLIF(COALESCE(lg.libelle_abrege, lg.libelle, lg.uid, ''), ''), 'zzzz') ASC, COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid) ASC, a.uid ASC
+LIMIT 25
+`,
+			Args:               []any{s.PoliticalGroupUID},
+			ForbiddenFullScans: []string{"alg", "acteur_latest_group"},
+			RequireAny:         []string{"idx_acteur_latest_group_groupe"},
+		},
+		{
 			Name: "deputy_votes_by_actor",
 			SQL: `
 SELECT s.uid
@@ -440,6 +455,49 @@ ORDER BY COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid), a.uid
 		},
 	}
 
+	if ftsQuery := ftsPrefixQuery(s.DeputyVoteSearch); ftsQuery != "" {
+		checks = append(checks, planCheck{
+			Name: "deputy_vote_search_fts",
+			SQL: `
+SELECT s.uid
+FROM votes v
+JOIN scrutins s ON s.uid = v.scrutin_uid
+LEFT JOIN organes g ON g.uid = v.groupe_uid
+WHERE v.acteur_uid = ? AND v.position = ? AND (s.uid IN (
+  SELECT uid
+  FROM scrutin_search
+  WHERE scrutin_search MATCH ?
+) OR LOWER(COALESCE(g.libelle_abrege, '') || ' ' || COALESCE(g.libelle, '')) LIKE ? ESCAPE '\')
+ORDER BY s.date_scrutin DESC, s.numero DESC, s.uid
+LIMIT 50 OFFSET 50
+`,
+			Args:               []any{s.DeputyUID, s.DeputyVotePosition, ftsQuery, "%" + escapeLikeForPerf(strings.ToLower(s.DeputyVoteSearch)) + "%"},
+			ForbiddenFullScans: []string{"v", "votes"},
+			RequireAny:         []string{"VIRTUAL TABLE INDEX"},
+		})
+	}
+
+	if ftsQuery := ftsPrefixQuery(s.PoliticalGroupVoteTerm); ftsQuery != "" {
+		checks = append(checks, planCheck{
+			Name: "political_group_vote_search_fts",
+			SQL: `
+SELECT s.uid
+FROM scrutin_groupe_votes sgv
+JOIN scrutins s ON s.uid = sgv.scrutin_uid
+WHERE sgv.groupe_uid = ? AND sgv.position_majoritaire = ? AND s.uid IN (
+  SELECT uid
+  FROM scrutin_search
+  WHERE scrutin_search MATCH ?
+)
+ORDER BY s.date_scrutin DESC, s.numero DESC, s.uid
+LIMIT 50 OFFSET 50
+`,
+			Args:               []any{s.PoliticalGroupUID, s.PoliticalGroupPosition, ftsQuery},
+			ForbiddenFullScans: []string{"sgv", "scrutin_groupe_votes"},
+			RequireAny:         []string{"VIRTUAL TABLE INDEX"},
+		})
+	}
+
 	if s.ScrutinSearch != "" {
 		checks = append(checks, planCheck{
 			Name: "scrutin_search_fts",
@@ -455,6 +513,21 @@ WHERE scrutin_search MATCH ?
 
 	sort.SliceStable(checks, func(i, j int) bool { return checks[i].Name < checks[j].Name })
 	return checks
+}
+
+func ftsPrefixQuery(search string) string {
+	parts := make([]string, 0, len(tokenRE.FindAllString(search, -1)))
+	for _, token := range tokenRE.FindAllString(search, -1) {
+		parts = append(parts, `"`+strings.ReplaceAll(token, `"`, `""`)+`"*`)
+	}
+	return strings.Join(parts, " AND ")
+}
+
+func escapeLikeForPerf(value string) string {
+	value = strings.ReplaceAll(value, `\`, `\\`)
+	value = strings.ReplaceAll(value, `%`, `\%`)
+	value = strings.ReplaceAll(value, `_`, `\_`)
+	return value
 }
 
 func runPlanChecks(ctx context.Context, db *sql.DB, checks []planCheck) []planResult {

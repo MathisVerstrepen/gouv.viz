@@ -75,6 +75,40 @@ GROUP BY v.groupe_uid, s.legislature
 		return fmt.Errorf("insert group vote stats: %w", err)
 	}
 
+	if _, err := tx.Exec(`
+INSERT INTO acteur_latest_group (acteur_uid, legislature, groupe_uid)
+SELECT acteur_uid, legislature, groupe_uid
+FROM (
+  SELECT
+    m.acteur_uid,
+    m.legislature,
+    o.uid AS groupe_uid,
+    ROW_NUMBER() OVER (
+      PARTITION BY m.acteur_uid
+      ORDER BY COALESCE(m.date_debut, '') DESC, COALESCE(m.preseance, 9999), m.uid, COALESCE(o.preseance, 9999)
+    ) AS rn
+  FROM mandats m
+  JOIN mandat_organes mo ON mo.mandat_uid = m.uid
+  JOIN organes o ON o.uid = mo.organe_uid
+  WHERE UPPER(COALESCE(o.code_type, '')) = 'GP'
+)
+WHERE rn = 1
+`); err != nil {
+		return fmt.Errorf("insert actor latest groups: %w", err)
+	}
+
+	if _, err := tx.Exec(`
+INSERT INTO groupe_member_stats (groupe_uid, deputies_count)
+SELECT mo.organe_uid, COUNT(DISTINCT m.acteur_uid) AS deputies_count
+FROM mandat_organes mo
+JOIN mandats m ON m.uid = mo.mandat_uid
+JOIN organes o ON o.uid = mo.organe_uid
+WHERE UPPER(COALESCE(o.code_type, '')) = 'GP'
+GROUP BY mo.organe_uid
+`); err != nil {
+		return fmt.Errorf("insert group member stats: %w", err)
+	}
+
 	return nil
 }
 

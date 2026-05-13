@@ -17,8 +17,8 @@ type deputySortDefinition struct {
 var deputySortDefinitions = []deputySortDefinition{
 	{value: "alpha_asc", label: "Nom alphabétique", orderBy: "COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid) ASC, a.uid ASC"},
 	{value: "votes_desc", label: "Plus de votes", orderBy: "COALESCE(vt.total_votes, 0) DESC, COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid) ASC, a.uid ASC"},
-	{value: "groupe_asc", label: "Groupe", orderBy: "COALESCE(NULLIF(lg.groupe, ''), 'zzzz') ASC, COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid) ASC, a.uid ASC"},
-	{value: "legislature_desc", label: "Législature récente", orderBy: "COALESCE(lg.legislature, 0) DESC, COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid) ASC, a.uid ASC"},
+	{value: "groupe_asc", label: "Groupe", orderBy: "COALESCE(NULLIF(COALESCE(lg.libelle_abrege, lg.libelle, lg.uid, ''), ''), 'zzzz') ASC, COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid) ASC, a.uid ASC"},
+	{value: "legislature_desc", label: "Législature récente", orderBy: "COALESCE(alg.legislature, 0) DESC, COALESCE(NULLIF(a.alpha, ''), a.nom, a.prenom, a.uid) ASC, a.uid ASC"},
 }
 
 func NormalizeDeputiesQuery(query DeputiesQuery) DeputiesQuery {
@@ -58,7 +58,8 @@ func (s *Store) DeputiesPage(ctx context.Context, query DeputiesQuery) (Deputies
 	if err := s.db.QueryRowContext(ctx, deputiesListCTE()+`
 SELECT COUNT(*)
 FROM acteurs a
-LEFT JOIN latest_group lg ON lg.acteur_uid = a.uid
+LEFT JOIN acteur_latest_group alg ON alg.acteur_uid = a.uid
+LEFT JOIN organes lg ON lg.uid = alg.groupe_uid
 LEFT JOIN vote_totals vt ON vt.acteur_uid = a.uid
 `+whereClause, whereArgs...).Scan(&page.TotalResults); err != nil {
 		return DeputiesPage{}, fmt.Errorf("count deputies: %w", err)
@@ -80,18 +81,19 @@ SELECT
   COALESCE(a.alpha, ''),
   COALESCE(a.profession, ''),
   COALESCE(a.date_naissance, ''),
-  COALESCE(lg.legislature, 0),
-  COALESCE(lg.groupe_uid, ''),
-  COALESCE(lg.groupe, ''),
-  COALESCE(lg.groupe_abrege, ''),
-  COALESCE(lg.groupe_abrev, ''),
+  COALESCE(alg.legislature, 0),
+  COALESCE(alg.groupe_uid, ''),
+  COALESCE(lg.libelle_abrege, lg.libelle, alg.groupe_uid, ''),
+  COALESCE(lg.libelle_abrege, ''),
+  COALESCE(lg.libelle_abrev, ''),
   COALESCE(vt.total_votes, 0),
   COALESCE(vt.pour, 0),
   COALESCE(vt.contre, 0),
   COALESCE(vt.abstentions, 0),
   COALESCE(vt.non_votants, 0)
 FROM acteurs a
-LEFT JOIN latest_group lg ON lg.acteur_uid = a.uid
+LEFT JOIN acteur_latest_group alg ON alg.acteur_uid = a.uid
+LEFT JOIN organes lg ON lg.uid = alg.groupe_uid
 LEFT JOIN vote_totals vt ON vt.acteur_uid = a.uid
 `+whereClause+`
 ORDER BY `+sortDefinition.orderBy+`
@@ -198,9 +200,9 @@ func deputiesWhereClause(query DeputiesQuery) (string, []any) {
   COALESCE(a.nom, '') || ' ' ||
   COALESCE(a.alpha, '') || ' ' ||
   COALESCE(a.profession, '') || ' ' ||
-  COALESCE(lg.groupe, '') || ' ' ||
-  COALESCE(lg.groupe_abrege, '') || ' ' ||
-  COALESCE(lg.groupe_abrev, '')
+  COALESCE(lg.libelle, '') || ' ' ||
+  COALESCE(lg.libelle_abrege, '') || ' ' ||
+  COALESCE(lg.libelle_abrev, '')
 ) LIKE ? ESCAPE '\'`)
 		args = append(args, "%"+escapeLike(strings.ToLower(query.Search))+"%")
 	}
@@ -213,7 +215,7 @@ func deputiesWhereClause(query DeputiesQuery) (string, []any) {
 		args = append(args, query.Legislature)
 	}
 	if query.Group != "" {
-		clauses = append(clauses, "lg.groupe_uid = ?")
+		clauses = append(clauses, "alg.groupe_uid = ?")
 		args = append(args, query.Group)
 	}
 	if len(clauses) == 0 {
@@ -224,29 +226,7 @@ func deputiesWhereClause(query DeputiesQuery) (string, []any) {
 
 func deputiesListCTE() string {
 	return `
-WITH ranked_groups AS (
-  SELECT
-    m.acteur_uid,
-    m.legislature,
-    o.uid AS groupe_uid,
-    COALESCE(o.libelle_abrege, o.libelle, o.uid, '') AS groupe,
-    COALESCE(o.libelle_abrege, '') AS groupe_abrege,
-    COALESCE(o.libelle_abrev, '') AS groupe_abrev,
-    ROW_NUMBER() OVER (
-      PARTITION BY m.acteur_uid
-      ORDER BY COALESCE(m.date_debut, '') DESC, COALESCE(m.preseance, 9999), m.uid, COALESCE(o.preseance, 9999)
-    ) AS rn
-  FROM mandats m
-  JOIN mandat_organes mo ON mo.mandat_uid = m.uid
-  JOIN organes o ON o.uid = mo.organe_uid
-  WHERE UPPER(COALESCE(o.code_type, '')) = 'GP'
-),
-latest_group AS (
-  SELECT acteur_uid, legislature, groupe_uid, groupe, groupe_abrege, groupe_abrev
-  FROM ranked_groups
-  WHERE rn = 1
-),
-vote_totals AS (
+WITH vote_totals AS (
   SELECT acteur_uid, SUM(total_votes) AS total_votes, SUM(pour) AS pour, SUM(contre) AS contre, SUM(abstentions) AS abstentions, SUM(non_votants) AS non_votants
   FROM acteur_vote_stats
   GROUP BY acteur_uid

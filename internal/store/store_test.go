@@ -821,6 +821,39 @@ func insertMandatOrgane(t *testing.T, db *sql.DB, mandatUID, organeUID string) {
 	if err != nil {
 		t.Fatalf("insert mandat organe %s/%s: %v", mandatUID, organeUID, err)
 	}
+	refreshGroupDerivedStats(t, db, mandatUID, organeUID)
+}
+
+func refreshGroupDerivedStats(t *testing.T, db *sql.DB, mandatUID, organeUID string) {
+	t.Helper()
+	_, err := db.Exec(`
+INSERT INTO groupe_member_stats (groupe_uid, deputies_count)
+SELECT mo.organe_uid, COUNT(DISTINCT m.acteur_uid)
+FROM mandat_organes mo
+JOIN mandats m ON m.uid = mo.mandat_uid
+WHERE mo.organe_uid = ?
+GROUP BY mo.organe_uid
+ON CONFLICT(groupe_uid) DO UPDATE SET deputies_count = excluded.deputies_count
+`, organeUID)
+	if err != nil {
+		t.Fatalf("refresh group member stats %s: %v", organeUID, err)
+	}
+
+	_, err = db.Exec(`
+INSERT INTO acteur_latest_group (acteur_uid, legislature, groupe_uid)
+SELECT m.acteur_uid, m.legislature, mo.organe_uid
+FROM mandats m
+JOIN mandat_organes mo ON mo.mandat_uid = m.uid
+JOIN organes o ON o.uid = mo.organe_uid
+WHERE m.acteur_uid = (SELECT acteur_uid FROM mandats WHERE uid = ?)
+  AND UPPER(COALESCE(o.code_type, '')) = 'GP'
+ORDER BY COALESCE(m.date_debut, '') DESC, COALESCE(m.preseance, 9999), m.uid, COALESCE(o.preseance, 9999)
+LIMIT 1
+ON CONFLICT(acteur_uid) DO UPDATE SET legislature = excluded.legislature, groupe_uid = excluded.groupe_uid
+`, mandatUID)
+	if err != nil {
+		t.Fatalf("refresh actor latest group for mandat %s: %v", mandatUID, err)
+	}
 }
 
 func nullStringTest(value string) any {

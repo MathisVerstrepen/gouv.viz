@@ -22,6 +22,8 @@ var requiredTables = []string{
 	"votes",
 	"acteur_vote_stats",
 	"groupe_vote_stats",
+	"acteur_latest_group",
+	"groupe_member_stats",
 	"scrutin_search",
 }
 
