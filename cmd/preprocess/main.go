@@ -24,6 +24,7 @@ type stats struct {
 	Scrutins           int
 	ScrutinGroupeVotes int
 	Votes              int
+	Diagnostics        importDiagnostics
 }
 
 type rawFile struct {
@@ -72,6 +73,9 @@ func main() {
 		result.ScrutinGroupeVotes,
 		result.Votes,
 	)
+	if report := result.Diagnostics.Report(); report != "" {
+		log.Print(report)
+	}
 }
 
 func amendementsDirectoryPath(rawDir string) (string, bool) {
@@ -137,20 +141,23 @@ func buildDatabaseWithOptions(rawDir, outPath string, options buildOptions) (sta
 		}
 	}()
 
-	if err := importOrganes(tx, filepath.Join(rawDir, "organe"), &result); err != nil {
-		return result, err
+	if err := importOrganes(tx, filepath.Join(rawDir, "organe"), &result, &result.Diagnostics); err != nil {
+		return result, withDiagnostics(err, result.Diagnostics)
 	}
 	if err := insertSyntheticOrganes(tx, &result); err != nil {
-		return result, err
+		return result, withDiagnostics(err, result.Diagnostics)
 	}
-	if err := importActeurs(tx, filepath.Join(rawDir, "acteur"), &result); err != nil {
-		return result, err
+	if err := importActeurs(tx, filepath.Join(rawDir, "acteur"), &result, &result.Diagnostics); err != nil {
+		return result, withDiagnostics(err, result.Diagnostics)
 	}
-	if err := importScrutins(tx, filepath.Join(rawDir, "scrutins-publics"), &result, options.AmendementResolver, options.DossierResolver); err != nil {
-		return result, err
+	if err := importScrutins(tx, filepath.Join(rawDir, "scrutins-publics"), &result, options.AmendementResolver, options.DossierResolver, &result.Diagnostics); err != nil {
+		return result, withDiagnostics(err, result.Diagnostics)
+	}
+	if err := collectDatabaseDiagnostics(tx, &result.Diagnostics); err != nil {
+		return result, withDiagnostics(err, result.Diagnostics)
 	}
 	if err := insertMetadata(tx, result); err != nil {
-		return result, err
+		return result, withDiagnostics(err, result.Diagnostics)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -159,7 +166,7 @@ func buildDatabaseWithOptions(rawDir, outPath string, options buildOptions) (sta
 	committed = true
 
 	if err := validateDatabase(db); err != nil {
-		return result, err
+		return result, withDiagnostics(err, result.Diagnostics)
 	}
 	if _, err := db.Exec("PRAGMA optimize"); err != nil {
 		return result, fmt.Errorf("optimize sqlite database: %w", err)

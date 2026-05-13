@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -60,6 +61,86 @@ func TestBuildDatabaseImportsFixtureDataset(t *testing.T) {
 	assertScalar(t, db, `SELECT deputies_count FROM groupe_member_stats WHERE groupe_uid = (SELECT groupe_uid FROM acteur_latest_group WHERE acteur_uid = 'PA100001')`, "1")
 }
 
+func TestBuildDatabaseReportsUnmatchedAmendement(t *testing.T) {
+	outPath := filepath.Join(t.TempDir(), "gouv-viz.sqlite")
+
+	result, err := buildDatabaseWithOptions(filepath.Join("..", "..", "data", "fixtures", "raw"), outPath, buildOptions{
+		AmendementResolver: stubAmendementResolver{},
+	})
+	if err != nil {
+		t.Fatalf("buildDatabase() error = %v", err)
+	}
+
+	if got := result.Diagnostics.Count("unmatched_amendement"); got != 1 {
+		t.Fatalf("unmatched_amendement diagnostics = %d, want 1", got)
+	}
+	if report := result.Diagnostics.Report(); !strings.Contains(report, "amendment 301") {
+		t.Fatalf("diagnostics report = %q, want amendment example", report)
+	}
+}
+
+func TestBuildDatabaseReportsUnresolvedReferences(t *testing.T) {
+	rawDir := writeMinimalRawDataset(t, `{
+  "scrutin": {
+    "uid": "VT1",
+    "numero": "1",
+    "legislature": "17",
+    "organeRef": "PO_MISSING",
+    "dateScrutin": "2024-07-18",
+    "ventilationVotes": {
+      "organe": {
+        "groupes": {
+          "groupe": {
+            "organeRef": "PO_MISSING",
+            "vote": {
+              "positionMajoritaire": "mystere",
+              "decompteNominatif": {
+                "pours": {"votant": {"acteurRef": "PA1"}}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}`)
+	outPath := filepath.Join(t.TempDir(), "gouv-viz.sqlite")
+
+	result, err := buildDatabase(rawDir, outPath)
+	if err == nil {
+		t.Fatalf("buildDatabase() error = nil, want validation error")
+	}
+	if got := result.Diagnostics.Count("unresolved_organe"); got == 0 {
+		t.Fatalf("unresolved_organe diagnostics = %d, want at least 1", got)
+	}
+	if got := result.Diagnostics.Count("unknown_vote_position"); got == 0 {
+		t.Fatalf("unknown_vote_position diagnostics = %d, want at least 1", got)
+	}
+	message := err.Error()
+	if !strings.Contains(message, "foreign key violation") || !strings.Contains(message, "import anomalies") || !strings.Contains(message, "unresolved_organe") {
+		t.Fatalf("buildDatabase() error = %q, want validation error with anomaly report", message)
+	}
+}
+
+func TestBuildDatabaseReportsMissingScrutinDate(t *testing.T) {
+	rawDir := writeMinimalRawDataset(t, `{
+  "scrutin": {
+    "uid": "VT1",
+    "numero": "1",
+    "legislature": "17"
+  }
+}`)
+	outPath := filepath.Join(t.TempDir(), "gouv-viz.sqlite")
+
+	result, err := buildDatabase(rawDir, outPath)
+	if err == nil || !strings.Contains(err.Error(), "missing dateScrutin") {
+		t.Fatalf("buildDatabase() error = %v, want missing dateScrutin", err)
+	}
+	if got := result.Diagnostics.Count("missing_date"); got != 1 {
+		t.Fatalf("missing_date diagnostics = %d, want 1", got)
+	}
+}
+
 func TestValidateDatabaseRejectsForeignKeyViolations(t *testing.T) {
 	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "broken.sqlite"))
 	if err != nil {
@@ -86,6 +167,26 @@ type stubAmendementResolver struct {
 
 func (r stubAmendementResolver) Resolve(int, string, string, string, string) (officialAmendementReference, error) {
 	return r.ref, nil
+}
+
+func writeMinimalRawDataset(t *testing.T, scrutinJSON string) string {
+	t.Helper()
+
+	rawDir := t.TempDir()
+	files := map[string]string{
+		filepath.Join(rawDir, "organe", "PO800001.json"):      `{"organe":{"uid":"PO800001","codeType":"GP","libelle":"Groupe fixture"}}`,
+		filepath.Join(rawDir, "acteur", "PA1.json"):           `{"acteur":{"uid":"PA1"}}`,
+		filepath.Join(rawDir, "scrutins-publics", "VT1.json"): scrutinJSON,
+	}
+	for path, content := range files {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatalf("create fixture directory: %v", err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatalf("write fixture %s: %v", path, err)
+		}
+	}
+	return rawDir
 }
 
 func assertScalar(t *testing.T, db *sql.DB, query string, want string) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func importOrganes(tx *sql.Tx, dir string, result *stats) error {
+func importOrganes(tx *sql.Tx, dir string, result *stats, diagnostics *importDiagnostics) error {
 	stmt, err := tx.Prepare(`
 INSERT INTO organes (
   uid, code_type, libelle, libelle_abrege, libelle_abrev, libelle_edition,
@@ -43,6 +43,7 @@ ON CONFLICT(uid) DO UPDATE SET
 		organe := objectAt(file.Root, "organe")
 		uid := stringAt(organe, "uid")
 		if uid == "" {
+			diagnostics.Warn("missing_uid", file.SourcePath, "missing organe.uid")
 			return fmt.Errorf("%s: missing organe.uid", file.SourcePath)
 		}
 

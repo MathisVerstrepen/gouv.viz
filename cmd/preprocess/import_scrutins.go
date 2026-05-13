@@ -3,9 +3,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 )
 
-func importScrutins(tx *sql.Tx, dir string, result *stats, amendementResolver amendementLinkResolver, dossierResolver dossierLinkResolver) error {
+func importScrutins(tx *sql.Tx, dir string, result *stats, amendementResolver amendementLinkResolver, dossierResolver dossierLinkResolver, diagnostics *importDiagnostics) error {
 	scrutinStmt, err := tx.Prepare(`
 INSERT INTO scrutins (
   uid, numero, legislature, organe_uid, session_ref, seance_ref,
@@ -100,7 +101,23 @@ ON CONFLICT(scrutin_uid, acteur_uid) DO UPDATE SET
 		scrutin := objectAt(file.Root, "scrutin")
 		uid := stringAt(scrutin, "uid")
 		if uid == "" {
+			diagnostics.Warn("missing_uid", file.SourcePath, "missing scrutin.uid")
 			return fmt.Errorf("%s: missing scrutin.uid", file.SourcePath)
+		}
+		numero, hasNumero := intAt(scrutin, "numero")
+		if !hasNumero {
+			diagnostics.Warn("missing_numero", file.SourcePath, "scrutin %s missing numero", uid)
+			return fmt.Errorf("%s: scrutin %s missing numero", file.SourcePath, uid)
+		}
+		legislature, hasLegislature := intAt(scrutin, "legislature")
+		if !hasLegislature {
+			diagnostics.Warn("missing_legislature", file.SourcePath, "scrutin %s missing legislature", uid)
+			return fmt.Errorf("%s: scrutin %s missing legislature", file.SourcePath, uid)
+		}
+		dateScrutin := stringAt(scrutin, "dateScrutin")
+		if dateScrutin == "" {
+			diagnostics.Warn("missing_date", file.SourcePath, "scrutin %s missing dateScrutin", uid)
+			return fmt.Errorf("%s: scrutin %s missing dateScrutin", file.SourcePath, uid)
 		}
 
 		title := stringAt(scrutin, "titre")
@@ -122,21 +139,25 @@ ON CONFLICT(scrutin_uid, acteur_uid) DO UPDATE SET
 		}
 		var linkedAmendement officialAmendementReference
 		if amendementResolver != nil && linkedReference.AmendementNum != "" && dossierRef != "" {
-			legislature, _ := intAt(scrutin, "legislature")
 			linkedAmendement, err = amendementResolver.Resolve(legislature, dossierRef, linkedReference.AmendementNum, stringAt(scrutin, "organeRef"), stringAt(scrutin, "seanceRef"))
 			if err != nil {
 				return fmt.Errorf("%s: resolve amendement link for scrutin %s: %w", file.SourcePath, uid, err)
 			}
+			if linkedAmendement.URL == "" {
+				diagnostics.Warn("unmatched_amendement", file.SourcePath, "scrutin %s amendment %s could not be matched in dossier %s", uid, linkedReference.AmendementNum, dossierRef)
+			}
+		} else if amendementResolver != nil && linkedReference.AmendementNum != "" {
+			diagnostics.Warn("unmatched_amendement", file.SourcePath, "scrutin %s amendment %s has no dossier reference", uid, linkedReference.AmendementNum)
 		}
 
 		_, err := scrutinStmt.Exec(
 			uid,
-			nullInt(intAt(scrutin, "numero")),
-			nullInt(intAt(scrutin, "legislature")),
+			numero,
+			legislature,
 			nullString(stringAt(scrutin, "organeRef")),
 			nullString(stringAt(scrutin, "sessionRef")),
 			nullString(stringAt(scrutin, "seanceRef")),
-			nullString(stringAt(scrutin, "dateScrutin")),
+			dateScrutin,
 			nullInt(intAt(scrutin, "quantiemeJourSeance")),
 			nullString(stringAt(scrutin, "typeVote", "codeTypeVote")),
 			nullString(stringAt(scrutin, "typeVote", "libelleTypeVote")),
@@ -174,7 +195,7 @@ ON CONFLICT(scrutin_uid, acteur_uid) DO UPDATE SET
 		}
 		result.Scrutins++
 
-		if err := insertScrutinGroupes(groupeVoteStmt, voteStmt, scrutin, uid, result); err != nil {
+		if err := insertScrutinGroupes(groupeVoteStmt, voteStmt, scrutin, uid, result, diagnostics, file.SourcePath); err != nil {
 			return fmt.Errorf("%s: %w", file.SourcePath, err)
 		}
 
@@ -182,21 +203,26 @@ ON CONFLICT(scrutin_uid, acteur_uid) DO UPDATE SET
 	})
 }
 
-func insertScrutinGroupes(groupeVoteStmt, voteStmt *sql.Stmt, scrutin map[string]any, scrutinUID string, result *stats) error {
+func insertScrutinGroupes(groupeVoteStmt, voteStmt *sql.Stmt, scrutin map[string]any, scrutinUID string, result *stats, diagnostics *importDiagnostics, sourcePath string) error {
 	for _, item := range items(valueAt(scrutin, "ventilationVotes", "organe", "groupes", "groupe")) {
 		groupe := asObject(item)
 		groupeUID := stringAt(groupe, "organeRef")
 		if groupeUID == "" {
+			diagnostics.Warn("missing_uid", sourcePath, "skipped group vote without organeRef for scrutin %s", scrutinUID)
 			continue
 		}
 
 		vote := objectAt(groupe, "vote")
 		decompte := objectAt(vote, "decompteVoix")
+		positionMajoritaire := stringAt(vote, "positionMajoritaire")
+		if positionMajoritaire != "" && !isKnownVotePosition(positionMajoritaire) {
+			diagnostics.Warn("unknown_vote_position", sourcePath, "scrutin %s group %s has positionMajoritaire %q", scrutinUID, groupeUID, positionMajoritaire)
+		}
 		_, err := groupeVoteStmt.Exec(
 			scrutinUID,
 			groupeUID,
 			nullInt(intAt(groupe, "nombreMembresGroupe")),
-			nullString(stringAt(vote, "positionMajoritaire")),
+			nullString(positionMajoritaire),
 			nullInt(intAt(decompte, "nonVotants")),
 			nullInt(intAt(decompte, "pour")),
 			nullInt(intAt(decompte, "contre")),
@@ -216,8 +242,13 @@ func insertScrutinGroupes(groupeVoteStmt, voteStmt *sql.Stmt, scrutin map[string
 			"nonVotants":            "non_votant",
 			"nonVotantsVolontaires": "non_votant_volontaire",
 		}
+		for rawBucket, value := range nominatif {
+			if _, ok := buckets[rawBucket]; !ok && len(items(value)) > 0 {
+				diagnostics.Warn("unknown_vote_position", sourcePath, "scrutin %s group %s has unknown nominative vote bucket %q", scrutinUID, groupeUID, rawBucket)
+			}
+		}
 		for rawBucket, position := range buckets {
-			if err := insertVotes(voteStmt, valueAt(nominatif, rawBucket), scrutinUID, groupeUID, position, result); err != nil {
+			if err := insertVotes(voteStmt, valueAt(nominatif, rawBucket), scrutinUID, groupeUID, position, result, diagnostics, sourcePath); err != nil {
 				return err
 			}
 		}
@@ -225,7 +256,7 @@ func insertScrutinGroupes(groupeVoteStmt, voteStmt *sql.Stmt, scrutin map[string
 	return nil
 }
 
-func insertVotes(stmt *sql.Stmt, bucket any, scrutinUID, groupeUID, position string, result *stats) error {
+func insertVotes(stmt *sql.Stmt, bucket any, scrutinUID, groupeUID, position string, result *stats, diagnostics *importDiagnostics, sourcePath string) error {
 	votants := items(valueAt(asObject(bucket), "votant"))
 	if len(votants) == 0 {
 		votants = items(bucket)
@@ -235,6 +266,7 @@ func insertVotes(stmt *sql.Stmt, bucket any, scrutinUID, groupeUID, position str
 		votant := asObject(item)
 		acteurUID := stringAt(votant, "acteurRef")
 		if acteurUID == "" {
+			diagnostics.Warn("missing_uid", sourcePath, "skipped %s vote without acteurRef for scrutin %s group %s", position, scrutinUID, groupeUID)
 			continue
 		}
 
@@ -253,6 +285,22 @@ func insertVotes(stmt *sql.Stmt, bucket any, scrutinUID, groupeUID, position str
 		result.Votes++
 	}
 	return nil
+}
+
+func isKnownVotePosition(value string) bool {
+	switch normalizeVotePosition(value) {
+	case "pour", "contre", "abstention", "non_votant", "non_votant_volontaire":
+		return true
+	default:
+		return false
+	}
+}
+
+func normalizeVotePosition(value string) string {
+	value = strings.ToLower(strings.TrimSpace(value))
+	value = strings.ReplaceAll(value, "-", "_")
+	value = strings.Join(strings.Fields(value), "_")
+	return value
 }
 
 func firstNonEmpty(values ...string) string {

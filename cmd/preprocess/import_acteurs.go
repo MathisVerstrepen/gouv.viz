@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func importActeurs(tx *sql.Tx, dir string, result *stats) error {
+func importActeurs(tx *sql.Tx, dir string, result *stats, diagnostics *importDiagnostics) error {
 	acteurStmt, err := tx.Prepare(`
 INSERT INTO acteurs (
   uid, civilite, prenom, nom, alpha, date_naissance, ville_naissance,
@@ -85,6 +85,7 @@ VALUES (?, ?)
 		acteur := objectAt(file.Root, "acteur")
 		uid := stringAt(acteur, "uid")
 		if uid == "" {
+			diagnostics.Warn("missing_uid", file.SourcePath, "missing acteur.uid")
 			return fmt.Errorf("%s: missing acteur.uid", file.SourcePath)
 		}
 
@@ -109,10 +110,10 @@ VALUES (?, ?)
 		}
 		result.Acteurs++
 
-		if err := insertActeurAdresses(adresseStmt, acteur, uid, result); err != nil {
+		if err := insertActeurAdresses(adresseStmt, acteur, uid, result, diagnostics, file.SourcePath); err != nil {
 			return fmt.Errorf("%s: %w", file.SourcePath, err)
 		}
-		if err := insertMandats(mandatStmt, mandatOrganeStmt, acteur, uid, result); err != nil {
+		if err := insertMandats(mandatStmt, mandatOrganeStmt, acteur, uid, result, diagnostics, file.SourcePath); err != nil {
 			return fmt.Errorf("%s: %w", file.SourcePath, err)
 		}
 
@@ -120,12 +121,13 @@ VALUES (?, ?)
 	})
 }
 
-func insertActeurAdresses(stmt *sql.Stmt, acteur map[string]any, acteurUID string, result *stats) error {
+func insertActeurAdresses(stmt *sql.Stmt, acteur map[string]any, acteurUID string, result *stats, diagnostics *importDiagnostics, sourcePath string) error {
 	for index, item := range items(valueAt(acteur, "adresses", "adresse")) {
 		adresse := asObject(item)
 		uid := stringAt(adresse, "uid")
 		if uid == "" {
 			uid = fmt.Sprintf("%s:adresse:%d", acteurUID, index+1)
+			diagnostics.Warn("missing_uid", sourcePath, "adresse for acteur %s has no uid; generated %s", acteurUID, uid)
 		}
 
 		_, err := stmt.Exec(
@@ -145,11 +147,12 @@ func insertActeurAdresses(stmt *sql.Stmt, acteur map[string]any, acteurUID strin
 	return nil
 }
 
-func insertMandats(mandatStmt, mandatOrganeStmt *sql.Stmt, acteur map[string]any, acteurUID string, result *stats) error {
+func insertMandats(mandatStmt, mandatOrganeStmt *sql.Stmt, acteur map[string]any, acteurUID string, result *stats, diagnostics *importDiagnostics, sourcePath string) error {
 	for _, item := range items(valueAt(acteur, "mandats", "mandat")) {
 		mandat := asObject(item)
 		uid := stringAt(mandat, "uid")
 		if uid == "" {
+			diagnostics.Warn("missing_uid", sourcePath, "skipped mandat without uid for acteur %s", acteurUID)
 			continue
 		}
 		mandatActeurUID := stringAt(mandat, "acteurRef")
