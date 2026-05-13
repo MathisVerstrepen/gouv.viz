@@ -48,14 +48,14 @@ func layout(content templ.Component, title string, description string) templ.Com
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><meta name=\"htmx-config\" content='{\"includeIndicatorStyles\": false}'><meta name=\"msapplication-TileColor\" content=\"#ffffff\"><meta name=\"msapplication-config\" content=\"/assets/favicon/browserconfig.xml\"><meta name=\"theme-color\" content=\"#ffffff\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><meta name=\"htmx-config\" content='{\"includeIndicatorStyles\": false}'><meta name=\"msapplication-TileColor\" content=\"#ffffff\"><meta name=\"msapplication-config\" content=\"/assets/favicon/browserconfig.xml\"><meta name=\"theme-color\" content=\"#ffffff\"><meta name=\"google-site-verification\" content=\"apwQENsv759rPi3bYHn0PLB6gkIDUAYmyI6NodI5nvs\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 20, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 21, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
