@@ -27,6 +27,7 @@ func main() {
 	e := newEcho(cfg)
 
 	e.Static("/assets", cfg.AssetsPath)
+	e.File("/favicon.ico", filepath.Join(cfg.AssetsPath, "favicon", "favicon.ico"))
 
 	db, err := openWebDatabase(cfg.DatabasePath)
 	if err != nil {

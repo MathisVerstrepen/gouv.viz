@@ -35,20 +35,20 @@ func layout(content templ.Component, title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"fr\" data-fr-scheme=\"system\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Visualisation des scrutins publics de l'Assemblée nationale\"><meta name=\"htmx-config\" content='{\"includeIndicatorStyles\": false}'><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"fr\" data-fr-scheme=\"system\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"description\" content=\"Visualisation des scrutins publics de l'Assemblée nationale\"><meta name=\"htmx-config\" content='{\"includeIndicatorStyles\": false}'><meta name=\"msapplication-TileColor\" content=\"#ffffff\"><meta name=\"msapplication-config\" content=\"/assets/favicon/browserconfig.xml\"><meta name=\"theme-color\" content=\"#ffffff\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 17, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 20, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><script src=\"/assets/js/theme.js\"></script><link rel=\"stylesheet\" href=\"/assets/css/main.css\"><script src=\"/assets/js/htmx.min.js\" defer></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/assets/favicon/apple-icon-180x180.png\"><link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/assets/favicon/favicon-32x32.png\"><link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/assets/favicon/favicon-16x16.png\"><link rel=\"manifest\" href=\"/assets/favicon/manifest.json\"><link rel=\"shortcut icon\" href=\"/assets/favicon/favicon.ico\"><script src=\"/assets/js/theme.js\"></script><link rel=\"stylesheet\" href=\"/assets/css/main.css\"><script src=\"/assets/js/htmx.min.js\" defer></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -124,7 +124,7 @@ func SiteHeader(active string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-block\" href=\"/\" aria-label=\"Accueil - gouv.viz\">gouv.viz</a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">Non officiel</p><p class=\"service-title__tagline\">Scrutins publics de l'Assemblée nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-logo\" href=\"/\" aria-label=\"Accueil - Gouv.viz\"><img src=\"/assets/img/logo.png\" alt=\"\" width=\"48\" height=\"48\" loading=\"lazy\"></a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">Gouv.viz</p><p class=\"service-title__tagline\">Visualisation non officielle des données de l'Assemblée nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
