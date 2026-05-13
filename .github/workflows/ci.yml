@@ -23,8 +23,14 @@ jobs:
       - name: Generate templ components
         run: templ generate -path ./web/components
 
-      - name: Check generated files are current
+      - name: Check generated templ files are current
         run: git diff --exit-code -- web/components
+
+      - name: Generate CSS bundle
+        run: ./scripts/build-css.sh
+
+      - name: Check generated CSS bundle is current
+        run: git diff --exit-code -- web/assets/css/main.css
 
       - name: Check Go formatting
         run: |

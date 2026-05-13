@@ -9,6 +9,7 @@ COPY go.mod go.sum* ./
 RUN go mod download
 
 COPY . .
+RUN ./scripts/build-css.sh
 RUN templ generate -path ./web/components
 RUN CGO_ENABLED=0 GOOS=linux go build -o gouv-viz ./cmd/web
 
