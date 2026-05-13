@@ -31,6 +31,18 @@ Static-first website scaffold for visualizing statistics from French Assemblee n
 3. Run `make generate` before building, or `make dev` with Air installed.
 4. Put large raw Scrutins publics JSON files in `data/raw/scrutins-publics/`.
 5. Run `./scripts/download-data.sh` to download and extract the open-data datasets before `make preprocess`.
+6. Run `make perf-check` after `make preprocess` to time representative store queries against the generated SQLite database.
+
+## Performance Checks
+
+`make perf-check` runs `cmd/storeperf` against `data/processed/gouv-viz.sqlite`. It samples real scrutin, deputy, and political group IDs from the generated database, exercises representative store pages/details, and reports slow queries plus suspicious SQLite query plans such as full scans or automatic indexes.
+
+Useful options:
+
+```sh
+go run ./cmd/storeperf -db data/processed/gouv-viz.sqlite -runs 5 -slow 500ms
+go run ./cmd/storeperf -db data/processed/gouv-viz.sqlite -strict
+```
 
 ## Docker
 

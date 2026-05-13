@@ -1,4 +1,4 @@
-.PHONY: dev css generate build run preprocess tidy test verify
+.PHONY: dev css generate build run preprocess perf-check tidy test verify
 
 dev:
 	air
@@ -17,6 +17,9 @@ run: generate
 
 preprocess:
 	go run ./cmd/preprocess
+
+perf-check:
+	go run ./cmd/storeperf -db data/processed/gouv-viz.sqlite
 
 tidy:
 	go mod tidy
