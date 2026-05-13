@@ -3,8 +3,6 @@ package store
 import (
 	"context"
 	"fmt"
-	"math"
-	"strconv"
 	"strings"
 )
 
@@ -50,11 +48,11 @@ func (s *Store) PoliticalGroupsPage(ctx context.Context, query PoliticalGroupsQu
 		SortOptions: politicalGroupSortOptions(),
 	}
 
-	filterOptions, err := s.politicalGroupFilterOptions(ctx)
+	cache, err := s.staticCache(ctx)
 	if err != nil {
 		return PoliticalGroupsPage{}, err
 	}
-	page.FilterOptions = filterOptions
+	page.FilterOptions = clonePoliticalGroupFilterOptions(cache.politicalGroupFilterOptions)
 
 	whereClause, whereArgs := politicalGroupsWhereClause(query)
 	if err := s.db.QueryRowContext(ctx, politicalGroupsListCTE()+`
@@ -66,24 +64,15 @@ LEFT JOIN vote_stats vs ON vs.groupe_uid = g.uid
 		return PoliticalGroupsPage{}, fmt.Errorf("count political groups: %w", err)
 	}
 
-	if page.TotalResults > 0 {
-		page.TotalPages = int(math.Ceil(float64(page.TotalResults) / float64(query.PerPage)))
-		if page.Query.Page > page.TotalPages {
-			page.Query.Page = page.TotalPages
-		}
-		page.StartItem = ((page.Query.Page - 1) * query.PerPage) + 1
-		page.EndItem = page.StartItem + query.PerPage - 1
-		if page.EndItem > page.TotalResults {
-			page.EndItem = page.TotalResults
-		}
-	} else {
-		page.Query.Page = 1
-		page.TotalPages = 1
-	}
+	window := paginate(page.TotalResults, page.Query.Page, query.PerPage)
+	page.Query.Page = window.Page
+	page.TotalPages = window.TotalPages
+	page.StartItem = window.StartItem
+	page.EndItem = window.EndItem
 
 	sortDefinition := politicalGroupSortByValue(page.Query.Sort)
 	rowsArgs := append([]any{}, whereArgs...)
-	rowsArgs = append(rowsArgs, query.PerPage, (page.Query.Page-1)*query.PerPage)
+	rowsArgs = append(rowsArgs, query.PerPage, window.Offset)
 	rows, err := s.db.QueryContext(ctx, politicalGroupsListCTE()+`
 SELECT
   g.uid,
@@ -143,8 +132,8 @@ LIMIT ? OFFSET ?
 	return page, nil
 }
 
-func (s *Store) politicalGroupFilterOptions(ctx context.Context) (PoliticalGroupFilterOptions, error) {
-	rows, err := s.db.QueryContext(ctx, `
+func (s *Store) queryPoliticalGroupFilterOptions(ctx context.Context) (PoliticalGroupFilterOptions, error) {
+	legislatures, err := s.intFilterOptions(ctx, `
 SELECT DISTINCT legislature
 FROM organes
 WHERE UPPER(COALESCE(code_type, '')) = 'GP' AND legislature IS NOT NULL
@@ -153,22 +142,12 @@ ORDER BY legislature DESC
 	if err != nil {
 		return PoliticalGroupFilterOptions{}, fmt.Errorf("query political group legislature filter options: %w", err)
 	}
-	defer rows.Close()
 
-	var legislatures []PoliticalGroupFilterOption
-	for rows.Next() {
-		var legislature int
-		if err := rows.Scan(&legislature); err != nil {
-			return PoliticalGroupFilterOptions{}, fmt.Errorf("scan political group legislature filter option: %w", err)
-		}
-		text := strconv.Itoa(legislature)
-		legislatures = append(legislatures, PoliticalGroupFilterOption{Value: text, Label: text})
-	}
-	if err := rows.Err(); err != nil {
-		return PoliticalGroupFilterOptions{}, fmt.Errorf("iterate political group legislature filter options: %w", err)
-	}
+	return PoliticalGroupFilterOptions{Legislatures: mapFilterOptions[PoliticalGroupFilterOption](legislatures)}, nil
+}
 
-	return PoliticalGroupFilterOptions{Legislatures: legislatures}, nil
+func clonePoliticalGroupFilterOptions(options PoliticalGroupFilterOptions) PoliticalGroupFilterOptions {
+	return PoliticalGroupFilterOptions{Legislatures: cloneSlice(options.Legislatures)}
 }
 
 func politicalGroupsWhereClause(query PoliticalGroupsQuery) (string, []any) {

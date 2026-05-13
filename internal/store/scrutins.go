@@ -2,11 +2,8 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"math"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -60,11 +57,11 @@ func (s *Store) ScrutinsPage(ctx context.Context, query ScrutinsQuery) (Scrutins
 		DefaultSort: DefaultScrutinsSort(),
 		SortOptions: scrutinSortOptions(),
 	}
-	filterOptions, err := s.scrutinFilterOptions(ctx)
+	cache, err := s.staticCache(ctx)
 	if err != nil {
 		return ScrutinsPage{}, err
 	}
-	page.FilterOptions = filterOptions
+	page.FilterOptions = cloneScrutinFilterOptions(cache.scrutinFilterOptions)
 
 	whereClause, whereArgs := scrutinsWhereClause(query)
 	countQuery := `
@@ -76,24 +73,15 @@ LEFT JOIN organes o ON o.uid = s.organe_uid
 		return ScrutinsPage{}, fmt.Errorf("count scrutins: %w", err)
 	}
 
-	if page.TotalResults > 0 {
-		page.TotalPages = int(math.Ceil(float64(page.TotalResults) / float64(query.PerPage)))
-		if page.Query.Page > page.TotalPages {
-			page.Query.Page = page.TotalPages
-		}
-		page.StartItem = ((page.Query.Page - 1) * query.PerPage) + 1
-		page.EndItem = page.StartItem + query.PerPage - 1
-		if page.EndItem > page.TotalResults {
-			page.EndItem = page.TotalResults
-		}
-	} else {
-		page.Query.Page = 1
-		page.TotalPages = 1
-	}
+	window := paginate(page.TotalResults, page.Query.Page, query.PerPage)
+	page.Query.Page = window.Page
+	page.TotalPages = window.TotalPages
+	page.StartItem = window.StartItem
+	page.EndItem = window.EndItem
 
 	sortDefinition := scrutinSortByValue(page.Query.Sort)
 	rowsArgs := append([]any{}, whereArgs...)
-	rowsArgs = append(rowsArgs, query.PerPage, (page.Query.Page-1)*query.PerPage)
+	rowsArgs = append(rowsArgs, query.PerPage, window.Offset)
 	rows, err := s.db.QueryContext(ctx, `
 SELECT
   s.uid,
@@ -144,8 +132,8 @@ LIMIT ? OFFSET ?
 	return page, nil
 }
 
-func (s *Store) scrutinFilterOptions(ctx context.Context) (ScrutinFilterOptions, error) {
-	legislatures, err := s.scrutinIntFilterOptions(ctx, `
+func (s *Store) queryScrutinFilterOptions(ctx context.Context) (ScrutinFilterOptions, error) {
+	legislatures, err := s.intFilterOptions(ctx, `
 SELECT DISTINCT legislature
 FROM scrutins
 WHERE legislature IS NOT NULL
@@ -154,7 +142,7 @@ ORDER BY legislature DESC
 	if err != nil {
 		return ScrutinFilterOptions{}, fmt.Errorf("query legislature filter options: %w", err)
 	}
-	results, err := s.scrutinTextFilterOptions(ctx, `
+	results, err := s.textFilterOptions(ctx, `
 SELECT DISTINCT sort_code, COALESCE(sort_libelle, sort_code)
 FROM scrutins
 WHERE sort_code IS NOT NULL AND sort_code <> ''
@@ -163,7 +151,7 @@ ORDER BY COALESCE(sort_libelle, sort_code)
 	if err != nil {
 		return ScrutinFilterOptions{}, fmt.Errorf("query result filter options: %w", err)
 	}
-	voteTypes, err := s.scrutinTextFilterOptions(ctx, `
+	voteTypes, err := s.textFilterOptions(ctx, `
 SELECT DISTINCT code_type_vote, COALESCE(libelle_type_vote, code_type_vote)
 FROM scrutins
 WHERE code_type_vote IS NOT NULL AND code_type_vote <> ''
@@ -172,7 +160,7 @@ ORDER BY COALESCE(libelle_type_vote, code_type_vote)
 	if err != nil {
 		return ScrutinFilterOptions{}, fmt.Errorf("query vote type filter options: %w", err)
 	}
-	organes, err := s.scrutinTextFilterOptions(ctx, `
+	organes, err := s.textFilterOptions(ctx, `
 SELECT uid, label
 FROM (
   SELECT DISTINCT o.uid, COALESCE(o.libelle_abrege, o.libelle, o.uid) AS label, COALESCE(o.preseance, 999999) AS preseance
@@ -190,62 +178,20 @@ ORDER BY preseance, label
 	}
 
 	return ScrutinFilterOptions{
-		Legislatures: legislatures,
-		Results:      results,
-		VoteTypes:    voteTypes,
-		Organes:      organes,
+		Legislatures: mapFilterOptions[ScrutinFilterOption](legislatures),
+		Results:      mapFilterOptions[ScrutinFilterOption](results),
+		VoteTypes:    mapFilterOptions[ScrutinFilterOption](voteTypes),
+		Organes:      mapFilterOptions[ScrutinFilterOption](organes),
 	}, nil
 }
 
-func (s *Store) scrutinIntFilterOptions(ctx context.Context, query string) ([]ScrutinFilterOption, error) {
-	rows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
+func cloneScrutinFilterOptions(options ScrutinFilterOptions) ScrutinFilterOptions {
+	return ScrutinFilterOptions{
+		Legislatures: cloneSlice(options.Legislatures),
+		Results:      cloneSlice(options.Results),
+		VoteTypes:    cloneSlice(options.VoteTypes),
+		Organes:      cloneSlice(options.Organes),
 	}
-	defer rows.Close()
-
-	var options []ScrutinFilterOption
-	for rows.Next() {
-		var value int
-		if err := rows.Scan(&value); err != nil {
-			return nil, err
-		}
-		text := strconv.Itoa(value)
-		options = append(options, ScrutinFilterOption{Value: text, Label: text})
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return options, nil
-}
-
-func (s *Store) scrutinTextFilterOptions(ctx context.Context, query string) ([]ScrutinFilterOption, error) {
-	rows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var options []ScrutinFilterOption
-	for rows.Next() {
-		var value string
-		var label sql.NullString
-		if err := rows.Scan(&value, &label); err != nil {
-			return nil, err
-		}
-		if value == "" {
-			continue
-		}
-		optionLabel := value
-		if label.Valid && label.String != "" {
-			optionLabel = label.String
-		}
-		options = append(options, ScrutinFilterOption{Value: value, Label: optionLabel})
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return options, nil
 }
 
 func scrutinSortOptions() []ScrutinSortOption {

@@ -159,6 +159,32 @@ func TestScrutinsPageAppliesStructuredFilters(t *testing.T) {
 	}
 }
 
+func TestScrutinsPageCachesImmutableFilterOptions(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertScrutin(t, s.db, testScrutin{UID: "one", Numero: 1, Legislature: 17, Date: "2024-01-01", Titre: "Premier", OrganeUID: "ORG1"})
+
+	page, err := s.ScrutinsPage(context.Background(), ScrutinsQuery{Page: 1, PerPage: 25})
+	if err != nil {
+		t.Fatalf("ScrutinsPage() error = %v", err)
+	}
+	if !hasFilterOption(page.FilterOptions.Legislatures, "17") {
+		t.Fatalf("legislature filter options = %+v, want 17", page.FilterOptions.Legislatures)
+	}
+
+	insertScrutin(t, s.db, testScrutin{UID: "two", Numero: 2, Legislature: 16, Date: "2024-01-02", Titre: "Deuxieme", OrganeUID: "ORG1"})
+	page, err = s.ScrutinsPage(context.Background(), ScrutinsQuery{Page: 1, PerPage: 25})
+	if err != nil {
+		t.Fatalf("ScrutinsPage() error = %v", err)
+	}
+	if hasFilterOption(page.FilterOptions.Legislatures, "16") {
+		t.Fatalf("legislature filter options = %+v, want cached options without 16", page.FilterOptions.Legislatures)
+	}
+	if page.TotalResults != 2 {
+		t.Fatalf("TotalResults = %d, want live query count 2", page.TotalResults)
+	}
+}
+
 func TestScrutinDetailPageReturnsErrNotFound(t *testing.T) {
 	s := newTestStore(t)
 

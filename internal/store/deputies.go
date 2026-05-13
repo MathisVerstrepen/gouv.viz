@@ -2,10 +2,7 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"math"
-	"strconv"
 	"strings"
 )
 
@@ -51,11 +48,11 @@ func (s *Store) DeputiesPage(ctx context.Context, query DeputiesQuery) (Deputies
 		SortOptions: deputySortOptions(),
 	}
 
-	filterOptions, err := s.deputyFilterOptions(ctx)
+	cache, err := s.staticCache(ctx)
 	if err != nil {
 		return DeputiesPage{}, err
 	}
-	page.FilterOptions = filterOptions
+	page.FilterOptions = cloneDeputyFilterOptions(cache.deputyFilterOptions)
 
 	whereClause, whereArgs := deputiesWhereClause(query)
 	if err := s.db.QueryRowContext(ctx, deputiesListCTE()+`
@@ -67,24 +64,15 @@ LEFT JOIN vote_totals vt ON vt.acteur_uid = a.uid
 		return DeputiesPage{}, fmt.Errorf("count deputies: %w", err)
 	}
 
-	if page.TotalResults > 0 {
-		page.TotalPages = int(math.Ceil(float64(page.TotalResults) / float64(query.PerPage)))
-		if page.Query.Page > page.TotalPages {
-			page.Query.Page = page.TotalPages
-		}
-		page.StartItem = ((page.Query.Page - 1) * query.PerPage) + 1
-		page.EndItem = page.StartItem + query.PerPage - 1
-		if page.EndItem > page.TotalResults {
-			page.EndItem = page.TotalResults
-		}
-	} else {
-		page.Query.Page = 1
-		page.TotalPages = 1
-	}
+	window := paginate(page.TotalResults, page.Query.Page, query.PerPage)
+	page.Query.Page = window.Page
+	page.TotalPages = window.TotalPages
+	page.StartItem = window.StartItem
+	page.EndItem = window.EndItem
 
 	sortDefinition := deputySortByValue(page.Query.Sort)
 	rowsArgs := append([]any{}, whereArgs...)
-	rowsArgs = append(rowsArgs, query.PerPage, (page.Query.Page-1)*query.PerPage)
+	rowsArgs = append(rowsArgs, query.PerPage, window.Offset)
 	rows, err := s.db.QueryContext(ctx, deputiesListCTE()+`
 SELECT
   a.uid,
@@ -144,8 +132,8 @@ LIMIT ? OFFSET ?
 	return page, nil
 }
 
-func (s *Store) deputyFilterOptions(ctx context.Context) (DeputyFilterOptions, error) {
-	legislatures, err := s.deputyIntFilterOptions(ctx, `
+func (s *Store) queryDeputyFilterOptions(ctx context.Context) (DeputyFilterOptions, error) {
+	legislatures, err := s.intFilterOptions(ctx, `
 SELECT DISTINCT legislature
 FROM mandats
 WHERE legislature IS NOT NULL
@@ -154,12 +142,15 @@ ORDER BY legislature DESC
 	if err != nil {
 		return DeputyFilterOptions{}, fmt.Errorf("query deputy legislature filter options: %w", err)
 	}
-	groups, err := s.deputyTextFilterOptions(ctx, `
-SELECT DISTINCT o.uid, COALESCE(o.libelle_abrege, o.libelle, o.uid) AS label, COALESCE(o.preseance, 999999) AS preseance
-FROM mandats m
-JOIN mandat_organes mo ON mo.mandat_uid = m.uid
-JOIN organes o ON o.uid = mo.organe_uid
-WHERE UPPER(COALESCE(o.code_type, '')) = 'GP'
+	groups, err := s.textFilterOptions(ctx, `
+SELECT uid, label
+FROM (
+  SELECT DISTINCT o.uid, COALESCE(o.libelle_abrege, o.libelle, o.uid) AS label, COALESCE(o.preseance, 999999) AS preseance
+  FROM mandats m
+  JOIN mandat_organes mo ON mo.mandat_uid = m.uid
+  JOIN organes o ON o.uid = mo.organe_uid
+  WHERE UPPER(COALESCE(o.code_type, '')) = 'GP'
+)
 ORDER BY preseance, label
 `)
 	if err != nil {
@@ -167,61 +158,16 @@ ORDER BY preseance, label
 	}
 
 	return DeputyFilterOptions{
-		Legislatures: legislatures,
-		Groups:       groups,
+		Legislatures: mapFilterOptions[DeputyFilterOption](legislatures),
+		Groups:       mapFilterOptions[DeputyFilterOption](groups),
 	}, nil
 }
 
-func (s *Store) deputyIntFilterOptions(ctx context.Context, query string) ([]DeputyFilterOption, error) {
-	rows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
+func cloneDeputyFilterOptions(options DeputyFilterOptions) DeputyFilterOptions {
+	return DeputyFilterOptions{
+		Legislatures: cloneSlice(options.Legislatures),
+		Groups:       cloneSlice(options.Groups),
 	}
-	defer rows.Close()
-
-	var options []DeputyFilterOption
-	for rows.Next() {
-		var value int
-		if err := rows.Scan(&value); err != nil {
-			return nil, err
-		}
-		text := strconv.Itoa(value)
-		options = append(options, DeputyFilterOption{Value: text, Label: text})
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return options, nil
-}
-
-func (s *Store) deputyTextFilterOptions(ctx context.Context, query string) ([]DeputyFilterOption, error) {
-	rows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var options []DeputyFilterOption
-	for rows.Next() {
-		var value string
-		var label sql.NullString
-		var ignoredPreseance int
-		if err := rows.Scan(&value, &label, &ignoredPreseance); err != nil {
-			return nil, err
-		}
-		if value == "" {
-			continue
-		}
-		optionLabel := value
-		if label.Valid && label.String != "" {
-			optionLabel = label.String
-		}
-		options = append(options, DeputyFilterOption{Value: value, Label: optionLabel})
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return options, nil
 }
 
 func deputySortOptions() []DeputySortOption {

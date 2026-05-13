@@ -6,6 +6,14 @@ import (
 )
 
 func (s *Store) HomePage(ctx context.Context) (HomePage, error) {
+	cache, err := s.staticCache(ctx)
+	if err != nil {
+		return HomePage{}, err
+	}
+	return cloneHomePage(cache.homePage), nil
+}
+
+func (s *Store) queryHomePage(ctx context.Context) (HomePage, error) {
 	var page HomePage
 	if err := s.db.QueryRowContext(ctx, `
 SELECT
@@ -65,4 +73,9 @@ LIMIT 50
 	}
 
 	return page, nil
+}
+
+func cloneHomePage(page HomePage) HomePage {
+	page.Scrutins = cloneSlice(page.Scrutins)
+	return page
 }
