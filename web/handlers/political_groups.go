@@ -23,7 +23,7 @@ func (s *Server) PoliticalGroups(ctx echo.Context) error {
 		return Render(ctx, http.StatusOK, components.PoliticalGroupsExplorer(view))
 	}
 
-	return Render(ctx, http.StatusOK, components.Root(components.PoliticalGroups(view), "Groupes politiques - gouv.viz"))
+	return Render(ctx, http.StatusOK, components.Root(components.PoliticalGroups(view), "Groupes politiques - gouv.viz", "Liste des groupes politiques de l'Assemblée nationale. Découvrez la composition et les positions de vote de chaque groupe."))
 }
 
 func parsePoliticalGroupsQuery(ctx echo.Context) store.PoliticalGroupsQuery {

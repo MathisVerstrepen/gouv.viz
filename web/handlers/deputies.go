@@ -23,7 +23,7 @@ func (s *Server) Deputies(ctx echo.Context) error {
 		return Render(ctx, http.StatusOK, components.DeputiesExplorer(view))
 	}
 
-	return Render(ctx, http.StatusOK, components.Root(components.Deputies(view), "Députés - gouv.viz"))
+	return Render(ctx, http.StatusOK, components.Root(components.Deputies(view), "Députés - gouv.viz", "Liste des députés de l'Assemblée nationale. Consultez les fiches parlementaires, les votes et les statistiques de chaque député."))
 }
 
 func parseDeputiesQuery(ctx echo.Context) store.DeputiesQuery {

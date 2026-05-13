@@ -25,8 +25,9 @@ func (s *Server) DeputyDetail(ctx echo.Context) error {
 		return Render(ctx, http.StatusOK, components.DeputyVotesPanel(view))
 	}
 
-	title := fmt.Sprintf("%s - gouv.viz", view.Deputy.DisplayName)
-	return Render(ctx, http.StatusOK, components.Root(components.DeputyDetail(view), title))
+	title := fmt.Sprintf("%s - Député - gouv.viz", view.Deputy.DisplayName)
+	description := fmt.Sprintf("Fiche de %s, député à l'Assemblée nationale. Consultez ses votes, ses mandats et ses statistiques de participation.", view.Deputy.DisplayName)
+	return Render(ctx, http.StatusOK, components.Root(components.DeputyDetail(view), title, description))
 }
 
 func parseDeputyDetailQuery(ctx echo.Context) store.DeputyDetailQuery {

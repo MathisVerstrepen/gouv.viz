@@ -23,7 +23,7 @@ func (s *Server) Scrutins(ctx echo.Context) error {
 		return Render(ctx, http.StatusOK, components.ScrutinsExplorer(view))
 	}
 
-	return Render(ctx, http.StatusOK, components.Root(components.Scrutins(view), "Scrutins publics - gouv.viz"))
+	return Render(ctx, http.StatusOK, components.Root(components.Scrutins(view), "Scrutins publics - gouv.viz", "Liste des scrutins publics de l'Assemblée nationale. Recherchez, filtrez et consultez les résultats détaillés des votes par scrutin."))
 }
 
 func parseScrutinsQuery(ctx echo.Context) store.ScrutinsQuery {

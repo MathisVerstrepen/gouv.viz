@@ -25,8 +25,10 @@ func (s *Server) PoliticalGroupDetail(ctx echo.Context) error {
 		return Render(ctx, http.StatusOK, components.PoliticalGroupVotesPanel(view))
 	}
 
-	title := fmt.Sprintf("%s - gouv.viz", components.PoliticalGroupLabel(view.Group))
-	return Render(ctx, http.StatusOK, components.Root(components.PoliticalGroupDetail(view), title))
+	label := components.PoliticalGroupLabel(view.Group)
+	title := fmt.Sprintf("%s - Groupe politique - gouv.viz", label)
+	description := fmt.Sprintf("Groupe politique %s à l'Assemblée nationale. Découvrez sa composition, ses députés et ses positions de vote.", label)
+	return Render(ctx, http.StatusOK, components.Root(components.PoliticalGroupDetail(view), title, description))
 }
 
 func parsePoliticalGroupDetailQuery(ctx echo.Context) store.PoliticalGroupDetailQuery {

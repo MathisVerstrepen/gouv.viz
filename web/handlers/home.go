@@ -15,5 +15,5 @@ func (s *Server) Home(ctx echo.Context) error {
 		return fmt.Errorf("load homepage data: %w", err)
 	}
 
-	return Render(ctx, http.StatusOK, components.Root(components.Home(homeView(page)), "gouv.viz"))
+	return Render(ctx, http.StatusOK, components.Root(components.Home(homeView(page)), "Gouv.viz - Visualisation des scrutins publics", "Visualisation des scrutins publics de l'Assemblée nationale. Explorez les votes, les députés et les groupes politiques à partir des données ouvertes."))
 }

@@ -40,7 +40,7 @@ func NewHTTPErrorHandler(e *echo.Echo) echo.HTTPErrorHandler {
 			Title:      http.StatusText(code),
 			Message:    message,
 		}
-		if renderErr := Render(ctx, code, components.Root(components.ErrorPage(page), fmt.Sprintf("%d - gouv.viz", code))); renderErr != nil {
+		if renderErr := Render(ctx, code, components.Root(components.ErrorPage(page), fmt.Sprintf("%d - gouv.viz", code), "Une erreur est survenue sur gouv.viz.")); renderErr != nil {
 			e.DefaultHTTPErrorHandler(renderErr, ctx)
 		}
 	}
