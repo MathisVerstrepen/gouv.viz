@@ -386,6 +386,152 @@ func TestPoliticalGroupDetailHandlerReturns404ForMissing(t *testing.T) {
 	}
 }
 
+func TestSitemapIndexReturnsXML(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/sitemap.xml", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.SitemapIndex(SitemapConfig{BaseURL: "https://example.com"})(ctx); err != nil {
+		t.Fatalf("SitemapIndex() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	contentType := rec.Header().Get("Content-Type")
+	if contentType != "text/xml; charset=utf-8" {
+		t.Fatalf("Content-Type = %q, want text/xml; charset=utf-8", contentType)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `<?xml version="1.0" encoding="UTF-8"?>`) {
+		t.Fatalf("response missing XML declaration")
+	}
+	if !strings.Contains(body, `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`) {
+		t.Fatalf("response missing sitemapindex")
+	}
+	if !strings.Contains(body, "https://example.com/sitemap-static.xml") {
+		t.Fatalf("response missing static sitemap ref")
+	}
+	if !strings.Contains(body, "https://example.com/sitemap-scrutins.xml") {
+		t.Fatalf("response missing scrutins sitemap ref")
+	}
+	if !strings.Contains(body, "https://example.com/sitemap-deputes.xml") {
+		t.Fatalf("response missing deputes sitemap ref")
+	}
+	if !strings.Contains(body, "https://example.com/sitemap-groupes.xml") {
+		t.Fatalf("response missing groupes sitemap ref")
+	}
+}
+
+func TestSitemapStaticReturnsXML(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/sitemap-static.xml", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.SitemapStatic(SitemapConfig{BaseURL: "https://example.com"})(ctx); err != nil {
+		t.Fatalf("SitemapStatic() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "https://example.com/") {
+		t.Fatalf("response missing home URL")
+	}
+	if !strings.Contains(body, "https://example.com/scrutins") {
+		t.Fatalf("response missing scrutins list URL")
+	}
+	if !strings.Contains(body, "https://example.com/deputes") {
+		t.Fatalf("response missing deputes list URL")
+	}
+	if !strings.Contains(body, "https://example.com/groupes") {
+		t.Fatalf("response missing groupes list URL")
+	}
+	if strings.Contains(body, "scrutin-1") {
+		t.Fatalf("static sitemap should not contain detail URLs")
+	}
+}
+
+func TestSitemapScrutinsReturnsXML(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/sitemap-scrutins.xml", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.SitemapScrutins(SitemapConfig{BaseURL: "https://example.com"})(ctx); err != nil {
+		t.Fatalf("SitemapScrutins() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "https://example.com/scrutins/scrutin-1") {
+		t.Fatalf("response missing scrutin detail URL")
+	}
+}
+
+func TestSitemapDeputiesReturnsXML(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/sitemap-deputes.xml", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.SitemapDeputies(SitemapConfig{BaseURL: "https://example.com"})(ctx); err != nil {
+		t.Fatalf("SitemapDeputies() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "https://example.com/deputes/PA1") {
+		t.Fatalf("response missing deputy detail URL")
+	}
+}
+
+func TestSitemapGroupsReturnsXML(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/sitemap-groupes.xml", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.SitemapGroups(SitemapConfig{BaseURL: "https://example.com"})(ctx); err != nil {
+		t.Fatalf("SitemapGroups() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "https://example.com/groupes/GRP1") {
+		t.Fatalf("response missing group detail URL")
+	}
+}
+
+func TestSitemapIndexDerivesBaseURLFromRequest(t *testing.T) {
+	server := NewServer(store.New(newHandlerTestDB(t, true)))
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/sitemap.xml", nil)
+	req.Host = "gouv.viz.local"
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	if err := server.SitemapIndex(SitemapConfig{})(ctx); err != nil {
+		t.Fatalf("SitemapIndex() error = %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "http://gouv.viz.local/sitemap-static.xml") {
+		t.Fatalf("response missing derived base URL")
+	}
+}
+
 func TestHTTPErrorHandlerRendersCustomPage(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/missing", nil)

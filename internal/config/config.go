@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Env          string
 	Port         string
+	BaseURL      string
 	AssetsPath   string
 	DatabasePath string
 }
@@ -22,6 +23,7 @@ func Load() (Config, error) {
 	cfg := Config{
 		Env:          envOrDefault("ENV", "dev"),
 		Port:         envOrDefault("PORT", "9456"),
+		BaseURL:      envOrDefault("BASE_URL", ""),
 		AssetsPath:   envOrDefault("ASSETS_PATH", "web/assets"),
 		DatabasePath: envOrDefault("DATABASE_PATH", "data/processed/gouv-viz.sqlite"),
 	}

@@ -573,6 +573,50 @@ func TestValidateRejectsMissingRequiredTable(t *testing.T) {
 	}
 }
 
+func TestSitemapScrutinUIDsReturnsOrderedUIDs(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
+	insertScrutin(t, s.db, testScrutin{UID: "two", Numero: 2, Date: "2024-01-02", Titre: "Deuxieme", OrganeUID: "ORG1"})
+	insertScrutin(t, s.db, testScrutin{UID: "one", Numero: 1, Date: "2024-01-01", Titre: "Premier", OrganeUID: "ORG1"})
+
+	uids, err := s.SitemapScrutinUIDs(context.Background())
+	if err != nil {
+		t.Fatalf("SitemapScrutinUIDs() error = %v", err)
+	}
+	if len(uids) != 2 || uids[0] != "one" || uids[1] != "two" {
+		t.Fatalf("uids = %v, want [one two]", uids)
+	}
+}
+
+func TestSitemapDeputyUIDsReturnsOrderedUIDs(t *testing.T) {
+	s := newTestStore(t)
+	insertActeur(t, s.db, "PA2", "Bruno", "Durand", "DURAND")
+	insertActeur(t, s.db, "PA1", "Alice", "Martin", "MARTIN")
+
+	uids, err := s.SitemapDeputyUIDs(context.Background())
+	if err != nil {
+		t.Fatalf("SitemapDeputyUIDs() error = %v", err)
+	}
+	if len(uids) != 2 || uids[0] != "PA1" || uids[1] != "PA2" {
+		t.Fatalf("uids = %v, want [PA1 PA2]", uids)
+	}
+}
+
+func TestSitemapGroupUIDsReturnsOrderedUIDs(t *testing.T) {
+	s := newTestStore(t)
+	insertOrgane(t, s.db, "GRP2", "Groupe deux", "G2", 2)
+	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 1)
+	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 3)
+
+	uids, err := s.SitemapGroupUIDs(context.Background())
+	if err != nil {
+		t.Fatalf("SitemapGroupUIDs() error = %v", err)
+	}
+	if len(uids) != 2 || uids[0] != "GRP1" || uids[1] != "GRP2" {
+		t.Fatalf("uids = %v, want [GRP1 GRP2]", uids)
+	}
+}
+
 func TestValidateRejectsUnexpectedSchemaVersion(t *testing.T) {
 	s := newValidationTestStore(t, "0", nil)
 

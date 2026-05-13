@@ -51,6 +51,11 @@ func main() {
 	e.GET("/deputes/:uid", server.DeputyDetail)
 	e.GET("/groupes", server.PoliticalGroups)
 	e.GET("/groupes/:uid", server.PoliticalGroupDetail)
+	e.GET("/sitemap.xml", server.SitemapIndex(handlers.SitemapConfig{BaseURL: cfg.BaseURL}))
+	e.GET("/sitemap-static.xml", server.SitemapStatic(handlers.SitemapConfig{BaseURL: cfg.BaseURL}))
+	e.GET("/sitemap-scrutins.xml", server.SitemapScrutins(handlers.SitemapConfig{BaseURL: cfg.BaseURL}))
+	e.GET("/sitemap-deputes.xml", server.SitemapDeputies(handlers.SitemapConfig{BaseURL: cfg.BaseURL}))
+	e.GET("/sitemap-groupes.xml", server.SitemapGroups(handlers.SitemapConfig{BaseURL: cfg.BaseURL}))
 	e.GET("/ping", handlers.Ping)
 
 	if !cfg.IsProd() {

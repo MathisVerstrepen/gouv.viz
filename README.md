@@ -86,6 +86,7 @@ Configuration is read from environment variables. The application loads `ENV_FIL
 | `PORT` | `9456` | HTTP port. |
 | `ASSETS_PATH` | `web/assets` | Static assets directory served at `/assets`. |
 | `DATABASE_PATH` | `data/processed/gouv-viz.sqlite` | SQLite database used by the web server. |
+| `BASE_URL` | unset | Canonical base URL for absolute links, e.g. `https://gouv.viz`. When unset, the server derives the base URL from each request. |
 
 ## Development Workflow
 
