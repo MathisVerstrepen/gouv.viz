@@ -11,6 +11,11 @@ type HomePage struct {
 	TotalGroups      int
 	FirstScrutinDate string
 	LastScrutinDate  string
+	GeneratedAt      string
+	OrganesCount     int
+	ActeursCount     int
+	MandatsCount     int
+	VotesCount       int
 	Scrutins         []ScrutinListItem
 }
 
@@ -34,6 +39,18 @@ func formatDate(value string) string {
 		return value
 	}
 	return date.Format("02/01/2006")
+}
+
+func formatDateTime(value string) string {
+	date, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		return value
+	}
+	return date.UTC().Format("02/01/2006 à 15:04 UTC")
+}
+
+func hasDatasetMeta(page HomePage) bool {
+	return page.GeneratedAt != "" || page.OrganesCount > 0 || page.ActeursCount > 0 || page.MandatsCount > 0 || page.VotesCount > 0
 }
 
 templ Home(page HomePage) {
@@ -75,6 +92,27 @@ templ Home(page HomePage) {
 								<span>Groupes</span>
 							</div>
 						</div>
+						if hasDatasetMeta(page) {
+							<div class="dataset-meta" aria-label="Fraîcheur des données">
+								if page.GeneratedAt != "" {
+									<p>Données générées le { formatDateTime(page.GeneratedAt) }.</p>
+								}
+								<ul>
+									if page.OrganesCount > 0 {
+										<li>{ strconv.Itoa(page.OrganesCount) } organes importés</li>
+									}
+									if page.ActeursCount > 0 {
+										<li>{ strconv.Itoa(page.ActeursCount) } acteurs importés</li>
+									}
+									if page.MandatsCount > 0 {
+										<li>{ strconv.Itoa(page.MandatsCount) } mandats importés</li>
+									}
+									if page.VotesCount > 0 {
+										<li>{ strconv.Itoa(page.VotesCount) } votes individuels importés</li>
+									}
+								</ul>
+							</div>
+						}
 					</aside>
 				</div>
 			</section>

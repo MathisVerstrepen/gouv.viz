@@ -12,6 +12,11 @@ func homeView(page store.HomePage) components.HomePage {
 		TotalGroups:      page.TotalGroups,
 		FirstScrutinDate: page.FirstScrutinDate,
 		LastScrutinDate:  page.LastScrutinDate,
+		GeneratedAt:      page.GeneratedAt,
+		OrganesCount:     page.OrganesCount,
+		ActeursCount:     page.ActeursCount,
+		MandatsCount:     page.MandatsCount,
+		VotesCount:       page.VotesCount,
 		Scrutins:         scrutinListItemViews(page.Scrutins),
 	}
 }

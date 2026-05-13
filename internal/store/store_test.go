@@ -37,6 +37,13 @@ func TestHomePageHandlesEmptyDatabase(t *testing.T) {
 
 func TestHomePageReturnsDatasetSummaryCounts(t *testing.T) {
 	s := newTestStore(t)
+	insertDatasetMeta(t, s.db, map[string]string{
+		"generated_at":  "2026-05-13T10:30:00Z",
+		"organes_count": "7",
+		"acteurs_count": "11",
+		"mandats_count": "13",
+		"votes_count":   "17",
+	})
 	insertOrgane(t, s.db, "ORG1", "Commission", "COM", 1)
 	insertOrgane(t, s.db, "GRP1", "Groupe un", "G1", 1)
 	insertOrgane(t, s.db, "GRP2", "Groupe deux", "G2", 2)
@@ -55,6 +62,12 @@ func TestHomePageReturnsDatasetSummaryCounts(t *testing.T) {
 	}
 	if page.FirstScrutinDate != "2024-01-01" || page.LastScrutinDate != "2024-01-03" {
 		t.Fatalf("date range = %q/%q, want 2024-01-01/2024-01-03", page.FirstScrutinDate, page.LastScrutinDate)
+	}
+	if page.GeneratedAt != "2026-05-13T10:30:00Z" {
+		t.Fatalf("GeneratedAt = %q, want metadata timestamp", page.GeneratedAt)
+	}
+	if page.OrganesCount != 7 || page.ActeursCount != 11 || page.MandatsCount != 13 || page.VotesCount != 17 {
+		t.Fatalf("metadata counts = organes:%d acteurs:%d mandats:%d votes:%d, want 7/11/13/17", page.OrganesCount, page.ActeursCount, page.MandatsCount, page.VotesCount)
 	}
 }
 
@@ -638,6 +651,15 @@ func insertOrgane(t *testing.T, db *sql.DB, uid, libelle, libelleAbrege string, 
 	_, err := db.Exec(`INSERT INTO organes (uid, code_type, libelle, libelle_abrege, libelle_abrev, preseance) VALUES (?, ?, ?, ?, ?, ?)`, uid, organeCodeType(uid), libelle, libelleAbrege, libelleAbrege, preseance)
 	if err != nil {
 		t.Fatalf("insert organe %s: %v", uid, err)
+	}
+}
+
+func insertDatasetMeta(t *testing.T, db *sql.DB, values map[string]string) {
+	t.Helper()
+	for key, value := range values {
+		if _, err := db.Exec(`INSERT INTO dataset_meta (key, value) VALUES (?, ?)`, key, value); err != nil {
+			t.Fatalf("insert dataset metadata %s: %v", key, err)
+		}
 	}
 }
 

@@ -6,6 +6,11 @@ type HomePage struct {
 	TotalGroups      int
 	FirstScrutinDate string
 	LastScrutinDate  string
+	GeneratedAt      string
+	OrganesCount     int
+	ActeursCount     int
+	MandatsCount     int
+	VotesCount       int
 	Scrutins         []ScrutinListItem
 }
 

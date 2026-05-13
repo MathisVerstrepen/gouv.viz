@@ -21,8 +21,24 @@ SELECT
   (SELECT COUNT(*) FROM acteurs),
   (SELECT COUNT(*) FROM organes WHERE UPPER(COALESCE(code_type, '')) = 'GP'),
   COALESCE((SELECT MIN(date_scrutin) FROM scrutins), ''),
-  COALESCE((SELECT MAX(date_scrutin) FROM scrutins), '')
-`).Scan(&page.TotalScrutins, &page.TotalDeputies, &page.TotalGroups, &page.FirstScrutinDate, &page.LastScrutinDate); err != nil {
+  COALESCE((SELECT MAX(date_scrutin) FROM scrutins), ''),
+  COALESCE((SELECT value FROM dataset_meta WHERE key = 'generated_at'), ''),
+  COALESCE((SELECT CAST(value AS INTEGER) FROM dataset_meta WHERE key = 'organes_count'), 0),
+  COALESCE((SELECT CAST(value AS INTEGER) FROM dataset_meta WHERE key = 'acteurs_count'), 0),
+  COALESCE((SELECT CAST(value AS INTEGER) FROM dataset_meta WHERE key = 'mandats_count'), 0),
+  COALESCE((SELECT CAST(value AS INTEGER) FROM dataset_meta WHERE key = 'votes_count'), 0)
+`).Scan(
+		&page.TotalScrutins,
+		&page.TotalDeputies,
+		&page.TotalGroups,
+		&page.FirstScrutinDate,
+		&page.LastScrutinDate,
+		&page.GeneratedAt,
+		&page.OrganesCount,
+		&page.ActeursCount,
+		&page.MandatsCount,
+		&page.VotesCount,
+	); err != nil {
 		return HomePage{}, fmt.Errorf("query scrutin totals: %w", err)
 	}
 

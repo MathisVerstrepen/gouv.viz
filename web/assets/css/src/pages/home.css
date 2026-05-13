@@ -133,6 +133,27 @@
 	font-size: var(--text-sm);
 }
 
+.dataset-meta {
+	margin-block-start: var(--space-6v);
+	padding-block-start: var(--space-4v);
+	border-top: 1px solid var(--border-default-grey);
+	color: var(--text-mention-grey);
+	font-size: var(--text-sm);
+}
+
+.dataset-meta p {
+	margin-block-end: var(--space-2v);
+	color: var(--text-default-grey);
+	font-weight: var(--font-weight-bold);
+}
+
+.dataset-meta ul {
+	display: grid;
+	gap: var(--space-1v);
+	margin: 0;
+	padding-inline-start: var(--space-5v);
+}
+
 .card-grid {
 	display: grid;
 	grid-template-columns: 1fr;
