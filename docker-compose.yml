@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    image: gouv-viz:latest
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      ENV: ${ENV}
+      PORT: ${PORT}
+      ASSETS_PATH: ${ASSETS_PATH}
+      DATABASE_PATH: ${DATABASE_PATH}
+    volumes:
+      - ./${DATABASE_PATH}:/app/${DATABASE_PATH}:ro
+    restart: unless-stopped

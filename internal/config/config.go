@@ -17,9 +17,7 @@ type Config struct {
 }
 
 func Load() (Config, error) {
-	if err := godotenv.Load(".env"); err != nil {
-		log.Println("[init] .env not loaded; using environment/default values")
-	}
+	loadEnvFile()
 
 	cfg := Config{
 		Env:          envOrDefault("ENV", "dev"),
@@ -31,6 +29,26 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	return cfg, nil
+}
+
+func loadEnvFile() {
+	if envFile := os.Getenv("ENV_FILE"); envFile != "" {
+		loadEnvFilePath(envFile)
+		return
+	}
+
+	if _, err := os.Stat(".env"); err == nil {
+		loadEnvFilePath(".env")
+		return
+	}
+
+	loadEnvFilePath("dev.env")
+}
+
+func loadEnvFilePath(path string) {
+	if err := godotenv.Load(path); err != nil {
+		log.Printf("[init] %s not loaded; using environment/default values", path)
+	}
 }
 
 func (c Config) Validate() error {

@@ -1,7 +1,7 @@
 .PHONY: dev css generate build run preprocess perf-check tidy test verify
 
 dev:
-	air
+	ENV_FILE=dev.env air
 
 css:
 	./scripts/build-css.sh
@@ -13,7 +13,7 @@ build: generate
 	go build -o ./bin/gouv-viz ./cmd/web
 
 run: generate
-	go run ./cmd/web
+	ENV_FILE=dev.env go run ./cmd/web
 
 preprocess:
 	go run ./cmd/preprocess

@@ -18,3 +18,5 @@ data/raw/dossiers/*
 !data/raw/dossiers/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+internal/config/config.go
+dev.env

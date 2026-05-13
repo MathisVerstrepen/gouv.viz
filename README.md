@@ -68,21 +68,21 @@ go install github.com/a-h/templ/cmd/templ@v0.3.1001
 ## Quick Start
 
 ```sh
-cp .env.example .env
 ./scripts/download-data.sh
 make preprocess
 make run
 ```
 
-The web application listens on `http://localhost:9456` by default.
+Local development uses the `dev.env` file through `make run` and `make dev`. The web application listens on `http://localhost:9456` by default.
 
 ## Configuration
 
-Configuration is read from environment variables. A local `.env` file is loaded when present.
+Configuration is read from environment variables. The application loads `ENV_FILE` when set, otherwise `.env` when present, otherwise `dev.env`. Values already present in the process environment take precedence over env files.
 
 | Variable | Default | Description |
 | --- | --- | --- |
 | `ENV` | `dev` | Runtime environment. Set to `prod` to disable development-only routes. |
+| `ENV_FILE` | unset | Optional env file path to load before applying defaults. |
 | `PORT` | `9456` | HTTP port. |
 | `ASSETS_PATH` | `web/assets` | Static assets directory served at `/assets`. |
 | `DATABASE_PATH` | `data/processed/gouv-viz.sqlite` | SQLite database used by the web server. |
@@ -157,25 +157,27 @@ go run ./cmd/storeperf -db data/processed/gouv-viz.sqlite -strict
 
 Use `-strict` in CI-like checks when slow queries or plan issues should fail the command.
 
-## Docker
+## Docker Compose
 
 The Docker image contains the web binary and static assets. It does not contain the generated Assemblée nationale database.
 
-Build the database first, then mount `data/processed` at runtime:
+Copy the example environment file, build the database, then start the web container with Docker Compose:
 
 ```sh
+cp .env.example .env
 make preprocess
-docker build -t gouv-viz .
-docker run --rm -p 9456:9456 -v "$PWD/data/processed:/data:ro" gouv-viz
+docker compose up --build
 ```
 
-The container uses these defaults:
+The Compose service reads `.env` through Docker Compose variable interpolation, builds the local `Dockerfile`, exposes `http://localhost:${PORT}`, and mounts `${DATABASE_PATH}` read-only at the same path inside `/app`.
+
+Default `.env` values:
 
 ```sh
 ENV=prod
 PORT=9456
 ASSETS_PATH=web/assets
-DATABASE_PATH=/data/gouv-viz.sqlite
+DATABASE_PATH=data/processed/gouv-viz.sqlite
 ```
 
 At startup, the web process opens SQLite in read-only immutable mode and validates the expected schema version and required tables. Missing or incompatible database mounts fail at startup.
@@ -201,6 +203,7 @@ In development mode, `/ws` is also registered for hot reload support.
 cmd/web/                 Web server entrypoint
 cmd/preprocess/          JSON-to-SQLite preprocessing command
 cmd/storeperf/           Store query timing and query-plan checks
+docker-compose.yml       Local container orchestration for the web app
 internal/config/         Environment loading and validation
 internal/dbmigration/    Embedded SQLite migrations
 internal/store/          Read-side SQLite queries and page DTOs
