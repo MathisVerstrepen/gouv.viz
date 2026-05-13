@@ -124,7 +124,7 @@ func SiteHeader(active string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-logo\" href=\"/\" aria-label=\"Accueil - Gouv.viz\"><img src=\"/assets/img/logo.png\" alt=\"\" width=\"48\" height=\"48\" loading=\"lazy\"></a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">Gouv.viz</p><p class=\"service-title__tagline\">Visualisation non officielle des données de l'Assemblée nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<header class=\"site-header\"><div class=\"fr-container site-header__inner\"><a class=\"brand-logo\" href=\"/\" aria-label=\"Accueil - Gouv.viz\"><img alt=\"\" width=\"48\" height=\"48\" loading=\"lazy\"></a><div class=\"service-title\" aria-label=\"Service\"><p class=\"service-title__name\">Gouv.viz</p><p class=\"service-title__tagline\">Visualisation non officielle des données de l'Assemblée nationale</p></div><nav class=\"site-nav\" aria-label=\"Navigation principale\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

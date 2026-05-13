@@ -36,6 +36,11 @@
 	inline-size: 100%;
 	block-size: 100%;
 	object-fit: contain;
+	content: url('/assets/img/logo.png');
+}
+
+:root[data-fr-scheme="dark"] .brand-logo img {
+	content: url('/assets/img/logo_dark.png');
 }
 
 .service-title {
