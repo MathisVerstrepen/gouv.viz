@@ -54,4 +54,4 @@ docker build -t gouv-viz .
 docker run --rm -p 9456:9456 -v "$PWD/data/processed:/data:ro" gouv-viz
 ```
 
-Startup validates the database path, schema tables, and `dataset_meta.schema_version`, so a missing or incompatible mount fails fast.
+Startup validates the database path, schema tables, and `schema_migrations` version, so a missing or incompatible mount fails fast.

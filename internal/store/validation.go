@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"gouv.viz/internal/dbschema"
+	"gouv.viz/internal/dbmigration"
 )
 
-const expectedSchemaVersion = dbschema.Version
+const expectedSchemaVersion = dbmigration.LatestVersionString
 
 var requiredTables = []string{
 	"dataset_meta",
@@ -25,6 +25,7 @@ var requiredTables = []string{
 	"acteur_latest_group",
 	"groupe_member_stats",
 	"scrutin_search",
+	"schema_migrations",
 }
 
 func (s *Store) Validate(ctx context.Context) error {
@@ -47,11 +48,15 @@ WHERE type = 'table' AND name = ?
 	}
 
 	var schemaVersion string
-	if err := s.db.QueryRowContext(ctx, `SELECT value FROM dataset_meta WHERE key = 'schema_version'`).Scan(&schemaVersion); err != nil {
+	var dirty int
+	if err := s.db.QueryRowContext(ctx, `SELECT CAST(version AS TEXT), dirty FROM schema_migrations`).Scan(&schemaVersion, &dirty); err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("missing dataset metadata %q", "schema_version")
+			return fmt.Errorf("missing schema migration version")
 		}
 		return fmt.Errorf("query schema version: %w", err)
+	}
+	if dirty != 0 {
+		return fmt.Errorf("dirty database schema migration version %q", schemaVersion)
 	}
 	if schemaVersion != expectedSchemaVersion {
 		return fmt.Errorf("unsupported database schema version %q, want %q", schemaVersion, expectedSchemaVersion)

@@ -3,12 +3,10 @@ package main
 import (
 	"context"
 	"database/sql"
-	_ "embed"
 	"fmt"
-)
 
-//go:embed schema.sql
-var schemaSQL string
+	"gouv.viz/internal/dbmigration"
+)
 
 func configureDatabase(db *sql.DB) error {
 	statements := []string{
@@ -26,7 +24,7 @@ func configureDatabase(db *sql.DB) error {
 }
 
 func createSchema(db *sql.DB) error {
-	if _, err := db.Exec(schemaSQL); err != nil {
+	if err := dbmigration.Run(db); err != nil {
 		return fmt.Errorf("create sqlite schema: %w", err)
 	}
 	return nil

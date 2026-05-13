@@ -7,6 +7,7 @@
 - Read-side SQLite access for the web app lives in `internal/store/`; handlers should call store methods rather than embed SQL.
 - templ is less common than standard Go templates; if unsure about syntax or codegen, check https://templ.guide/ before guessing.
 - The website entrypoint is `cmd/web/main.go`; the preprocessing entrypoint is `cmd/preprocess/main.go`.
+- Database migrations live in `internal/dbmigration/`; the current full schema is `internal/dbmigration/migrations/000001_initial_schema.up.sql`.
 - Static files live under `web/assets/`; Echo serves them at `/assets` using `ASSETS_PATH`.
 - CSS source modules live under `web/assets/css/src/`; the served stylesheet is the generated bundle `web/assets/css/main.css`.
 - Local raw JSON belongs in `data/raw/scrutins-publics/`; generated preprocessing output belongs in `data/processed/`; both are ignored except `.gitkeep`.
@@ -16,6 +17,8 @@
 
 - `cmd/web/main.go` owns process setup: environment initialization, Echo middleware, static assets, SQLite opening, store construction, and route registration.
 - Open the web SQLite database once at startup with `database/sql`; pass the resulting `*sql.DB` into `internal/store.New` and close it when the process exits.
+- Create or update SQLite schemas through `internal/dbmigration.Run`; do not recreate standalone schema loaders or duplicate full schema SQL outside migrations.
+- Keep `internal/dbmigration.LatestVersion` and `LatestVersionString` aligned with the newest migration number when adding migrations.
 - Keep HTTP handlers in `web/handlers/` thin: parse request parameters, call the store, translate expected store errors into HTTP responses, and render templ components.
 - Keep SQL, row scanning, pagination totals, search clauses, and whitelisted SQL sort definitions inside `internal/store/`, not in handlers or templ components.
 - Use `QueryContext` and `QueryRowContext` in store methods with `ctx.Request().Context()` from handlers so request cancellation can reach SQLite calls.
@@ -39,7 +42,7 @@
 ## Testing Guidelines
 
 - Prefer fast Go tests over browser tests for this static-first server-rendered app.
-- Store tests live in `internal/store/` and should use temporary SQLite databases with the smallest schema and rows needed for the behavior under test.
+- Store tests live in `internal/store/` and should use temporary SQLite databases with the smallest schema and rows needed for the behavior under test; use `internal/testdb` when the real migrated schema is needed.
 - Preprocessing tests should use tiny committed raw JSON fixtures under `data/fixtures/raw/`; never depend on local ignored raw datasets.
 - Handler tests should exercise Echo contexts and real store calls where practical, and must cover query parsing plus expected HTTP translations such as `store.ErrNotFound` to 404.
 - Component tests should target helper behavior and focused rendered output; avoid broad full-page snapshots unless there is a clear stability need.
@@ -52,6 +55,7 @@
 - Keep production changes small and place behavior in the existing layer that owns it: SQL in `internal/store`, HTTP parsing in `web/handlers`, rendering helpers in `web/components`, and preprocessing import logic under `cmd/preprocess` until it is split into an internal package.
 - When fixing a bug, add the narrowest regression test that fails without the fix, especially for SQLite null handling, search escaping, pagination boundaries, and Assemblee JSON shape variations.
 - Do not duplicate large schemas or fixture datasets in tests; define only the columns and rows needed by the code path under test.
+- When changing database structure, add a new migration under `internal/dbmigration/migrations/` rather than editing existing migrations, except when intentionally redefining the current unreleased initial schema.
 - Prefer real temporary SQLite databases in store and handler tests over mocks so query text, scans, joins, and pagination are exercised together.
 - Avoid editing generated `*_templ.go` files directly; update `.templ` sources, regenerate, and let CI verify generated output.
 

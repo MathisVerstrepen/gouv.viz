@@ -8,12 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"gouv.viz/internal/dbschema"
+	"gouv.viz/internal/dbmigration"
 
 	_ "modernc.org/sqlite"
 )
 
-const schemaVersion = dbschema.Version
+const schemaVersion = dbmigration.LatestVersionString
 
 type stats struct {
 	Organes            int

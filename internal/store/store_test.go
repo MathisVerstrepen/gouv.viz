@@ -606,6 +606,9 @@ func newValidationTestStore(t *testing.T, schemaVersion string, skipTables map[s
 		if table == "dataset_meta" {
 			statement = "CREATE TABLE dataset_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
 		}
+		if table == "schema_migrations" {
+			statement = "CREATE TABLE schema_migrations (version uint64, dirty bool)"
+		}
 		if _, err := db.Exec(statement); err != nil {
 			t.Fatalf("create table %s: %v", table, err)
 		}
@@ -614,6 +617,11 @@ func newValidationTestStore(t *testing.T, schemaVersion string, skipTables map[s
 	if !skipTables["dataset_meta"] {
 		if _, err := db.Exec(`INSERT INTO dataset_meta (key, value) VALUES ('schema_version', ?)`, schemaVersion); err != nil {
 			t.Fatalf("insert schema version: %v", err)
+		}
+	}
+	if !skipTables["schema_migrations"] {
+		if _, err := db.Exec(`INSERT INTO schema_migrations (version, dirty) VALUES (?, false)`, schemaVersion); err != nil {
+			t.Fatalf("insert schema migration version: %v", err)
 		}
 	}
 
