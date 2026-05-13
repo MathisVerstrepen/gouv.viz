@@ -1494,7 +1494,7 @@ func politicalGroupDeputyMeta(deputy PoliticalGroupDeputy) string {
 	if deputy.Legislature > 0 {
 		parts = append(parts, strconv.Itoa(deputy.Legislature)+"e législature")
 	}
-	if deputy.Qualite != "" {
+	if deputy.Qualite != "" && deputy.Qualite != "Membre du" {
 		parts = append(parts, deputy.Qualite)
 	}
 	return fallbackText(strings.Join(parts, " · "))
