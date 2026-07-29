@@ -22,7 +22,7 @@ download() {
   local output="$2"
 
   printf 'Downloading %s\n' "$url"
-  curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 20 --output "$output" "$url"
+  curl --fail --location --http1.1 --retry 3 --retry-all-errors --retry-delay 2 --connect-timeout 20 --output "$output" "$url"
 }
 
 reset_json_dir() {
@@ -36,7 +36,7 @@ reset_data_dir() {
   local dir="$1"
 
   mkdir -p "$dir"
-  find "$dir" -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} +
+  find "$dir" -mindepth 1 -maxdepth 1 ! -name '.gitkeep' -exec rm -rf -- {} +
 }
 
 extract_json_flat() {
